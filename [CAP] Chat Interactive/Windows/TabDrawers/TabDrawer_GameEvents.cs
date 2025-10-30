@@ -1,4 +1,5 @@
-﻿using CAP_ChatInteractive.Incidents.Weather;
+﻿// TabDrawer_GameEvents.cs
+using CAP_ChatInteractive.Incidents.Weather;
 using CAP_ChatInteractive.Store;
 using CAP_ChatInteractive.Traits;
 using System.Linq;
@@ -32,6 +33,11 @@ namespace CAP_ChatInteractive
 
             // COOLDOWN SETTINGS SECTION (Always available - no game required)
             DrawCooldownSettings(listing, settings);
+
+            listing.Gap(24f);
+
+            // OTHER SETTINGS SECTION
+            DrawOtherSettings(listing, settings);
 
             listing.Gap(24f);
 
@@ -85,6 +91,20 @@ namespace CAP_ChatInteractive
             NumericField(listing, "Maximum item purchases per period:", ref settings.MaxItemPurchases, 1, 50);
             Text.Font = GameFont.Tiny;
             listing.Label($"Viewers can purchase up to {settings.MaxItemPurchases} items before cooldown");
+            Text.Font = GameFont.Small;
+        }
+
+        private static void DrawOtherSettings(Listing_Standard listing, CAPGlobalChatSettings settings)
+        {
+            Text.Font = GameFont.Medium;
+            listing.Label("Other Settings");
+            Text.Font = GameFont.Small;
+            listing.GapLine(6f);
+
+            // Max Traits setting
+            NumericField(listing, "Max traits for a pawn:", ref settings.MaxTraits, 1, 20);
+            Text.Font = GameFont.Tiny;
+            listing.Label($"Maximum number of traits a single pawn can have");
             Text.Font = GameFont.Small;
         }
 

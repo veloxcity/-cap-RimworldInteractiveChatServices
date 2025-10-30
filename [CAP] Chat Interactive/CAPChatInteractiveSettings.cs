@@ -71,7 +71,9 @@ namespace CAP_ChatInteractive
         public int MinKarma = 0;
         public int MaxKarma = 200;
         public int MinutesForActive = 30;
+        public int MaxTraits = 4;
         public string CurrencyName = " 💰 ";
+        
 
         // Global event settings
         public bool EventCooldownsEnabled = true;
@@ -104,6 +106,7 @@ namespace CAP_ChatInteractive
             Scribe_Values.Look(ref MinKarma, "minKarma", 0);
             Scribe_Values.Look(ref MaxKarma, "maxKarma", 200);
             Scribe_Values.Look(ref MinutesForActive, "minutesForActive", 30);
+            Scribe_Values.Look(ref MaxTraits, "maxTraits", 4);
             Scribe_Values.Look(ref CurrencyName, "currencyName", " 💰 ");
 
             // Cooldown settings
