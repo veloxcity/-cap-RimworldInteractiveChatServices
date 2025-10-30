@@ -402,7 +402,7 @@ namespace CAP_ChatInteractive
             Widgets.EndGroup();
         }
 
-        private string ReplacePawnVariables(string text)
+        public static string ReplacePawnVariables(string text)
         {
             if (string.IsNullOrEmpty(text))
                 return text;
