@@ -25,7 +25,6 @@ namespace CAP_ChatInteractive
             doCloseButton = true;
             forcePause = true;
             absorbInputAroundWindow = true;
-            optionalTitle = "Pawn Queue Management";
 
             RefreshAvailablePawns();
             FilterPawns();
@@ -39,12 +38,12 @@ namespace CAP_ChatInteractive
                 FilterPawns();
             }
 
-            // Header
-            Rect headerRect = new Rect(0f, 0f, inRect.width, 40f);
+            // Header - increased height to accommodate two rows
+            Rect headerRect = new Rect(0f, 0f, inRect.width, 70f); // Increased from 40f to 70f
             DrawHeader(headerRect);
 
-            // Main content area
-            Rect contentRect = new Rect(0f, 45f, inRect.width, inRect.height - 45f - CloseButSize.y);
+            // Main content area - adjusted position
+            Rect contentRect = new Rect(0f, 75f, inRect.width, inRect.height - 75f - CloseButSize.y); // Adjusted from 45f to 75f
             DrawContent(contentRect);
         }
 
@@ -52,15 +51,31 @@ namespace CAP_ChatInteractive
         {
             Widgets.BeginGroup(rect);
 
-            // Title with counts - left aligned
+            // Custom title with larger font and underline effect
             Text.Font = GameFont.Medium;
-            Rect titleRect = new Rect(0f, 0f, 300f, 30f); // Wider to prevent cutoff
-            string titleText = $"Pawn Queue ({GetQueueManager().GetQueueSize()} waiting)";
-            Widgets.Label(titleRect, titleText);
-            Text.Font = GameFont.Small;
+            GUI.color = ColorLibrary.Orange;
+            Rect titleRect = new Rect(0f, 0f, 400f, 35f);
+            string titleText = $"Pawn Queue Management - {GetQueueManager().GetQueueSize()} waiting";
 
-            // Search bar
-            Rect searchRect = new Rect(310f, 5f, 250f, 30f); // Moved right
+            // Draw title
+            Widgets.Label(titleRect, titleText);
+
+            // Draw underline
+            Rect underlineRect = new Rect(titleRect.x, titleRect.yMax - 2f, titleRect.width, 2f);
+            Widgets.DrawLineHorizontal(underlineRect.x, underlineRect.y, underlineRect.width);
+
+            Text.Font = GameFont.Small;
+            GUI.color = Color.white;
+
+            // Second row for controls - positioned below the title
+            float controlsY = titleRect.yMax + 5f;
+            float controlsHeight = 30f;
+
+            // Search bar on the left with label
+            Rect searchLabelRect = new Rect(0f, controlsY, 80f, controlsHeight);
+            Widgets.Label(searchLabelRect, "Search:");
+
+            Rect searchRect = new Rect(85f, controlsY, 200f, controlsHeight);
             searchQuery = Widgets.TextField(searchRect, searchQuery);
 
             // Action buttons - right aligned
@@ -69,7 +84,7 @@ namespace CAP_ChatInteractive
             float x = rect.width - (buttonWidth * 3 + spacing * 2);
 
             // Select Random button
-            Rect randomRect = new Rect(x, 5f, buttonWidth, 30f);
+            Rect randomRect = new Rect(x, controlsY, buttonWidth, controlsHeight);
             if (Widgets.ButtonText(randomRect, "Select Random"))
             {
                 SelectRandomViewer();
@@ -77,7 +92,7 @@ namespace CAP_ChatInteractive
             x += buttonWidth + spacing;
 
             // Send Offer button
-            Rect offerRect = new Rect(x, 5f, buttonWidth, 30f);
+            Rect offerRect = new Rect(x, controlsY, buttonWidth, controlsHeight);
             if (Widgets.ButtonText(offerRect, "Send Offer") && selectedPawn != null && !string.IsNullOrEmpty(selectedUsername))
             {
                 SendPawnOffer(selectedUsername, selectedPawn);
@@ -85,7 +100,7 @@ namespace CAP_ChatInteractive
             x += buttonWidth + spacing;
 
             // Clear Queue button
-            Rect clearRect = new Rect(x, 5f, buttonWidth, 30f);
+            Rect clearRect = new Rect(x, controlsY, buttonWidth, controlsHeight);
             if (Widgets.ButtonText(clearRect, "Clear Queue"))
             {
                 Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
@@ -211,22 +226,40 @@ namespace CAP_ChatInteractive
         {
             Text.Anchor = TextAnchor.UpperLeft;
 
-            // Name - with proper width calculation
-            string pawnName = pawn.Name?.ToStringShort ?? "Unnamed";
-            Rect nameRect = new Rect(rect.x, rect.y, rect.width, 18f);
-            Widgets.Label(nameRect, pawnName);
+            // Calculate centered positions for 2 lines in the available 50px height
+            float lineHeight = 22f; // Increased from 20f to 22f
+            float totalHeight = lineHeight * 2;
+            float startY = rect.y + (50f - totalHeight) / 2f; // Center in the 50px info area
 
-            // Race and gender
-            string raceGender = $"{pawn.def.label.CapitalizeFirst()} • {pawn.gender.ToString()}";
-            Rect raceRect = new Rect(rect.x, rect.y + 18f, rect.width, 16f);
-            Widgets.Label(raceRect, raceGender);
+            // Line 1: Name • Age • Gender
+            string nameAgeGender = $"{pawn.Name?.ToStringShort ?? "Unnamed"} • {pawn.ageTracker.AgeBiologicalYears} • {GetGenderSymbol(pawn)}";
+            Rect line1Rect = new Rect(rect.x, startY, rect.width, lineHeight);
+            Widgets.Label(line1Rect, nameAgeGender);
 
-            // Health and age - with proper spacing
-            string healthAge = $"Health: {pawn.health.summaryHealth.SummaryHealthPercent.ToStringPercent()} • Age: {pawn.ageTracker.AgeBiologicalYears}";
-            Rect healthRect = new Rect(rect.x, rect.y + 34f, rect.width, 16f);
-            Widgets.Label(healthRect, healthAge);
+            // Line 2: Race • Xenotype (if Biotech)
+            string raceXenotype = pawn.def.label.CapitalizeFirst();
+            if (ModsConfig.BiotechActive && pawn.genes != null)
+            {
+                XenotypeDef xenotype = pawn.genes.Xenotype;
+                if (xenotype != null && xenotype != XenotypeDefOf.Baseliner)
+                {
+                    raceXenotype += $" • {xenotype.label}";
+                }
+            }
+            Rect line2Rect = new Rect(rect.x, startY + lineHeight, rect.width, lineHeight);
+            Widgets.Label(line2Rect, raceXenotype);
 
             Text.Anchor = TextAnchor.UpperLeft;
+        }
+
+        private string GetGenderSymbol(Pawn pawn)
+        {
+            return pawn.gender switch
+            {
+                Gender.Male => "M ♂️",
+                Gender.Female => "F ♀️",
+                _ => "O ⚧️"
+            };
         }
 
         private void DrawQueueDetails(Rect rect)
@@ -244,12 +277,12 @@ namespace CAP_ChatInteractive
                 return;
             }
 
-            // Header with pawn info - increased height for better spacing
-            Rect headerRect = new Rect(rect.x, rect.y, rect.width, 90f); // Increased from 80f
+            // Header with pawn info - increased height for bio card layout with assign section
+            Rect headerRect = new Rect(rect.x, rect.y, rect.width, 250f); // Increased from 220f to 250f
             DrawPawnHeader(headerRect, selectedPawn);
 
             // Queue list below - adjusted position
-            Rect queueRect = new Rect(rect.x, rect.y + 100f, rect.width, rect.height - 110f); // Adjusted from 90f/100f
+            Rect queueRect = new Rect(rect.x, rect.y + 260f, rect.width, rect.height - 270f);
             DrawQueueList(queueRect);
         }
 
@@ -257,37 +290,134 @@ namespace CAP_ChatInteractive
         {
             Widgets.DrawMenuSection(rect);
 
-            // Larger portrait
-            Rect portraitRect = new Rect(rect.x + 10f, rect.y + 10f, 60f, 60f);
+            // Layout constants
+            float portraitSize = 80f;
+            float leftColWidth = 200f;
+            float rightColWidth = rect.width - portraitSize - leftColWidth - 30f;
+            float lineHeight = 22f;
+            float currentY = rect.y + 10f;
+
+            // Pawn portrait (larger)
+            Rect portraitRect = new Rect(rect.x + 10f, rect.y + 10f, portraitSize, portraitSize);
             DrawSmallPawnPortrait(portraitRect, pawn);
 
-            // Pawn details - with better spacing
-            Rect detailsRect = new Rect(portraitRect.xMax + 10f, rect.y + 10f, rect.width - portraitRect.width - 20f, 60f);
+            // Left column (bio info)
+            Rect leftColRect = new Rect(portraitRect.xMax + 10f, currentY, leftColWidth, rect.height - 20f);
 
-            string pawnName = pawn.Name?.ToStringFull ?? "Unnamed";
-            string pawnInfo = $"{pawn.def.label.CapitalizeFirst()} • {pawn.gender.ToString()} • Age: {pawn.ageTracker.AgeBiologicalYears}";
-            string healthInfo = $"Health: {pawn.health.summaryHealth.SummaryHealthPercent.ToStringPercent()}";
-            string skillsInfo = $"Skills: {pawn.skills.skills.Count(s => s.Level > 0)}";
+            // Right column (skills)
+            Rect rightColRect = new Rect(leftColRect.xMax + 10f, currentY, rightColWidth, rect.height - 20f);
 
-            Text.Anchor = TextAnchor.UpperLeft;
+            // Draw left column content
+            DrawPawnBioInfo(leftColRect, pawn, lineHeight);
 
-            // Name
-            Text.Anchor = TextAnchor.UpperLeft;
-            Widgets.Label(new Rect(detailsRect.x, detailsRect.y, detailsRect.width, 20f), pawnName);
-            Widgets.Label(new Rect(detailsRect.x, detailsRect.y + 20f, detailsRect.width, 18f), pawnInfo);
-            Widgets.Label(new Rect(detailsRect.x, detailsRect.y + 38f, detailsRect.width, 18f), $"{healthInfo} • {skillsInfo}");
-            Text.Anchor = TextAnchor.UpperLeft;
+            // Draw right column content
+            DrawPawnSkills(rightColRect, pawn, lineHeight);
 
-            // Username input - moved up to avoid divider
-            Rect usernameRect = new Rect(detailsRect.x, detailsRect.y + 56f, detailsRect.width - 100f, 25f);
+            // Username input and assign button at bottom
+            Rect usernameRect = new Rect(leftColRect.x, rect.yMax - 35f, leftColWidth - 100f, 25f);
             selectedUsername = Widgets.TextField(usernameRect, selectedUsername);
 
-            // Manual assign button - moved up
             Rect assignRect = new Rect(usernameRect.xMax + 5f, usernameRect.y, 95f, 25f);
             if (Widgets.ButtonText(assignRect, "Assign") && !string.IsNullOrEmpty(selectedUsername))
             {
-                SendPawnOffer(selectedUsername, selectedPawn);
+                SendPawnOffer(selectedUsername, pawn);
             }
+        }
+
+        private void DrawPawnBioInfo(Rect rect, Pawn pawn, float lineHeight)
+        {
+            float currentY = rect.y;
+            Text.Anchor = TextAnchor.UpperLeft;
+
+            // Name, Gender, Age
+            string nameInfo = $"{pawn.Name?.ToStringFull ?? "Unnamed"} • {GetGenderSymbol(pawn)} • {pawn.ageTracker.AgeBiologicalYears}";
+            Widgets.Label(new Rect(rect.x, currentY, rect.width, lineHeight), nameInfo);
+            currentY += lineHeight;
+
+            // Race and Xenotype
+            string raceInfo = pawn.def.label.CapitalizeFirst();
+            if (ModsConfig.BiotechActive && pawn.genes != null)
+            {
+                XenotypeDef xenotype = pawn.genes.Xenotype;
+                if (xenotype != null && xenotype != XenotypeDefOf.Baseliner)
+                {
+                    raceInfo += $" • {xenotype.label}";
+                }
+            }
+            Widgets.Label(new Rect(rect.x, currentY, rect.width, lineHeight), raceInfo);
+            currentY += lineHeight + 5f;
+
+            // Backstories
+            if (pawn.story != null)
+            {
+                if (pawn.story.Childhood != null)
+                {
+                    string childhoodTitle = pawn.story.Childhood.TitleCapFor(pawn.gender);
+                    Widgets.Label(new Rect(rect.x, currentY, rect.width, lineHeight), $"Childhood: {childhoodTitle}");
+                    currentY += lineHeight;
+                }
+
+                if (pawn.story.Adulthood != null)
+                {
+                    string adulthoodTitle = pawn.story.Adulthood.TitleCapFor(pawn.gender);
+                    Widgets.Label(new Rect(rect.x, currentY, rect.width, lineHeight), $"Adulthood: {adulthoodTitle}");
+                    currentY += lineHeight + 5f;
+                }
+            }
+
+            // Traits
+            if (pawn.story != null && pawn.story.traits != null && pawn.story.traits.allTraits.Count > 0)
+            {
+                Widgets.Label(new Rect(rect.x, currentY, rect.width, lineHeight), "Traits:");
+                currentY += lineHeight;
+
+                foreach (Trait trait in pawn.story.traits.allTraits)
+                {
+                    Widgets.Label(new Rect(rect.x + 10f, currentY, rect.width - 10f, lineHeight), trait.LabelCap);
+                    currentY += lineHeight;
+                }
+            }
+
+            Text.Anchor = TextAnchor.UpperLeft;
+        }
+
+        private void DrawPawnSkills(Rect rect, Pawn pawn, float lineHeight)
+        {
+            float currentY = rect.y;
+            Text.Anchor = TextAnchor.UpperLeft;
+
+            Widgets.Label(new Rect(rect.x, currentY, rect.width, lineHeight), "Skills:");
+            currentY += lineHeight;
+
+            // Draw skills in two columns
+            float col1Width = 100f;
+            float col2Width = rect.width - col1Width - 10f;
+            int skillsPerCol = 10; // Roughly half the skills
+
+            var allSkills = pawn.skills.skills.OrderBy(s => s.def.listOrder).ToList();
+
+            for (int i = 0; i < allSkills.Count; i++)
+            {
+                SkillRecord skill = allSkills[i];
+                float colX = (i < skillsPerCol) ? rect.x : rect.x + col1Width + 10f;
+                float colY = rect.y + lineHeight + (i % skillsPerCol) * lineHeight;
+
+                // Skill name and level
+                string skillText = $"{skill.def.LabelCap}: {skill.Level}";
+
+                // Add passion symbol
+                string passionSymbol = skill.passion switch
+                {
+                    Passion.Major => " 🔥",
+                    Passion.Minor => " ♨️",
+                    _ => ""
+                };
+                skillText += passionSymbol;
+
+                Widgets.Label(new Rect(colX, colY, col1Width, lineHeight), skillText);
+            }
+
+            Text.Anchor = TextAnchor.UpperLeft;
         }
 
         private void DrawQueueList(Rect rect)
