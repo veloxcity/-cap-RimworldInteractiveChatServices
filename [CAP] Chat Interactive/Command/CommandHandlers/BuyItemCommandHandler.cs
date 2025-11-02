@@ -331,15 +331,29 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 // Get viewer's pawn
                 var viewerPawn = StoreCommandHelper.GetViewerPawn(user.Username);
                 Verse.Pawn rimworldPawn = viewerPawn; // This is already a Verse.Pawn
+                Logger.Debug($"Viewer pawn for {user.Username}: {(viewerPawn != null ? viewerPawn.Name.ToString() : "null")}");
+                Logger.Debug($"Viewer pawn dead status: {(viewerPawn != null ? viewerPawn.Dead.ToString() : "N/A")}");
+                Logger.Debug($"Rimworld pawn for {user.Username}: {(rimworldPawn != null ? rimworldPawn.Name.ToString() : "null")}");
+                Logger.Debug($"Rimworld pawn dead status: {(rimworldPawn != null ? rimworldPawn.Dead.ToString() : "N/A")}");
 
                 if (viewerPawn == null)
                 {
                     return "You need to have a pawn in the colony to use items. Use !buy pawn first.";
                 }
 
-                if (viewerPawn.Dead)
+                // SPECIAL RESURRECTION LOGIC: Allow Resurrector Mech Serum on dead pawns
+                bool isResurrectorSerum = storeItem.DefName == "MechSerumResurrector";
+
+                if (viewerPawn.Dead && !isResurrectorSerum)
                 {
                     return "Your pawn is dead. You cannot use items.";
+                }
+
+                // For resurrector serum on dead pawns, force quantity to 1
+                if (isResurrectorSerum && viewerPawn.Dead)
+                {
+                    quantity = 1;
+                    Logger.Debug($"Using Resurrector Mech Serum on dead pawn, quantity forced to 1");
                 }
 
                 // Calculate final price (no quality/material multipliers for usable items)
@@ -362,26 +376,53 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 // Deduct coins
                 viewer.TakeCoins(finalPrice);
 
-                // Actually use the item immediately instead of putting it in inventory
-                UseItemImmediately(thingDef, quantity, rimworldPawn);
-
-                // Send appropriate letter notification for major uses
-                string itemLabel = thingDef?.LabelCap ?? itemName;
-                string invoiceLabel = $"🔵 Rimazon Instant - {user.Username}";
-                string invoiceMessage = CreateRimazonInstantInvoice(user.Username, itemLabel, quantity, finalPrice, currencySymbol);
-
-                if (IsMajorPurchase(finalPrice, null)) // Don't check quality for use commands
+                // SPECIAL RESURRECTION: Handle resurrector serum differently
+                if (isResurrectorSerum && viewerPawn.Dead)
                 {
+                    ResurrectPawn(viewerPawn);
+                }
+                else
+                {
+                    // Normal item usage
+                    UseItemImmediately(thingDef, quantity, rimworldPawn);
+                }
+
+                // Send appropriate letter notification
+                string itemLabel = thingDef?.LabelCap ?? itemName;
+                string invoiceLabel;
+                string invoiceMessage;
+
+                if (isResurrectorSerum && viewerPawn.Dead)
+                {
+                    // Pink letter for resurrection
+                    invoiceLabel = $"💖 Rimazon Resurrection - {user.Username}";
+                    invoiceMessage = CreateRimazonResurrectionInvoice(user.Username, itemLabel, finalPrice, currencySymbol);
+                    MessageHandler.SendPinkLetter(invoiceLabel, invoiceMessage);
+                }
+                else if (IsMajorPurchase(finalPrice, null)) // Don't check quality for use commands
+                {
+                    invoiceLabel = $"🔵 Rimazon Instant - {user.Username}";
+                    invoiceMessage = CreateRimazonInstantInvoice(user.Username, itemLabel, quantity, finalPrice, currencySymbol);
                     MessageHandler.SendGoldLetter(invoiceLabel, invoiceMessage);
                 }
                 else
                 {
+                    invoiceLabel = $"🔵 Rimazon Instant - {user.Username}";
+                    invoiceMessage = CreateRimazonInstantInvoice(user.Username, itemLabel, quantity, finalPrice, currencySymbol);
                     MessageHandler.SendBlueLetter(invoiceLabel, invoiceMessage); // Blue for instant/medical items
                 }
 
                 Logger.Debug($"Use item successful: {user.Username} used {quantity}x {itemName} for {finalPrice}{currencySymbol}");
 
-                return $"Used {quantity}x {itemName} for {StoreCommandHelper.FormatCurrencyMessage(finalPrice, currencySymbol)}! Remaining: {StoreCommandHelper.FormatCurrencyMessage(viewer.Coins, currencySymbol)}.";
+                // Return appropriate success message
+                if (isResurrectorSerum && viewerPawn.Dead)
+                {
+                    return $"💖 RESURRECTION! Used {itemName} to bring your pawn back to life for {StoreCommandHelper.FormatCurrencyMessage(finalPrice, currencySymbol)}! Remaining: {StoreCommandHelper.FormatCurrencyMessage(viewer.Coins, currencySymbol)}.";
+                }
+                else
+                {
+                    return $"Used {quantity}x {itemName} for {StoreCommandHelper.FormatCurrencyMessage(finalPrice, currencySymbol)}! Remaining: {StoreCommandHelper.FormatCurrencyMessage(viewer.Coins, currencySymbol)}.";
+                }
 
             }
             catch (Exception ex)
@@ -588,6 +629,104 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
             return invoice;
         }
 
+        public static string CreateRimazonResurrectionInvoice(string username, string itemName, int price, string currencySymbol)
+        {
+            string invoice = $"RIMAZON RESURRECTION SERVICE\n";
+            invoice += $"====================\n";
+            invoice += $"Customer: {username}\n";
+            invoice += $"Service: Pawn Resurrection\n";
+            invoice += $"Item: {itemName}\n";
+            invoice += $"====================\n";
+            invoice += $"Total: {price}{currencySymbol}\n";
+            invoice += $"====================\n";
+            invoice += $"Thank you for using Rimazon Resurrection!\n";
+            invoice += $"Your pawn has been restored to life!\n";
+            invoice += $"Life is precious - cherish every moment! 💖";
+
+            return invoice;
+        }
+
+        public static void ResurrectPawn(Verse.Pawn pawn)
+        {
+            try
+            {
+                Logger.Debug($"Attempting to resurrect pawn: {pawn?.Name}");
+
+                // Safety check - ensure pawn exists and is actually dead
+                if (pawn == null)
+                {
+                    Logger.Error("Cannot resurrect - pawn is null");
+                    return;
+                }
+
+                if (!pawn.Dead)
+                {
+                    Logger.Warning($"Pawn {pawn.Name} is not dead, cannot resurrect");
+                    return;
+                }
+
+                // Check if pawn is completely destroyed (no corpse exists)
+                if (IsPawnCompletelyDestroyed(pawn))
+                {
+                    Logger.Error($"Cannot resurrect {pawn.Name} - pawn is completely destroyed (no corpse exists)");
+                    return;
+                }
+
+                Logger.Debug($"Resurrecting pawn: {pawn.Name}");
+
+                // Use RimWorld's built-in resurrection method with side effects
+                try
+                {
+                    ResurrectionUtility.TryResurrectWithSideEffects(pawn);
+                }
+                catch (NullReferenceException)
+                {
+                    Logger.Warning("Failed to revive with side effects -- falling back to regular revive");
+                    ResurrectionUtility.TryResurrect(pawn);
+                }
+
+                Logger.Debug($"Successfully resurrected pawn: {pawn.Name}");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error resurrecting pawn: {ex}");
+                throw;
+            }
+        }
+
+        public static bool IsPawnCompletelyDestroyed(Verse.Pawn pawn)
+        {
+            try
+            {
+                // Check if the pawn exists as a corpse in any map
+                foreach (var map in Find.Maps)
+                {
+                    foreach (var thing in map.listerThings.AllThings)
+                    {
+                        if (thing is Corpse corpse && corpse.InnerPawn == pawn)
+                        {
+                            return false; // Corpse exists, not completely destroyed
+                        }
+                    }
+                }
+
+                // Check if pawn exists in world pawns (dead)
+                if (Find.WorldPawns.AllPawnsDead.Contains(pawn))
+                {
+                    return false; // Pawn exists in world pawns
+                }
+
+                // If we get here, the pawn is completely gone
+                Logger.Debug($"Pawn {pawn.Name} is completely destroyed - no corpse found in any map or world pawns");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error checking if pawn is destroyed: {ex}");
+                return true; // Assume destroyed if we can't check
+            }
+        }
+
         private static bool IsQualityKeyword(string arg)
         {
             return arg.ToLower() switch
@@ -635,15 +774,6 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
             "gold", "silver", "uranium", "jade", "component", "components"
         };
             }
-        }
-
-        private static bool IsAlcoholicItem(ThingDef thingDef)
-        {
-            if (!thingDef.IsIngestible || thingDef.ingestible == null)
-                return false;
-
-            // Check if it has the Liquor food type flag
-            return (thingDef.ingestible.foodType & FoodTypeFlags.Liquor) != 0;
         }
 
         public static bool IsMaterialKeyword(string arg)

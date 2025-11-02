@@ -185,7 +185,7 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
             else
             {
                 // Clear the assignment if pawn is dead
-                assignmentManager.UnassignPawn(user.Username);
+                // assignmentManager.UnassignPawn(user.Username); lets not do this automatically to preserve history
                 return "You don't have an active pawn in the colony. Use !pawn to purchase one!";
             }
         }
@@ -534,6 +534,54 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
         public override string Execute(ChatMessageWrapper user, string[] args)
         {
             return PawnQueueCommandHandler.HandleAcceptPawnCommand(user);
+        }
+    }
+
+    public class RevivePawn : ChatCommand
+    {
+        public override string Name => "revive pawn";
+        public override string Description => "Revives a pawn - self, specific user, or all dead pawns";
+        public override string PermissionLevel => "everyone";
+        public override int CooldownSeconds
+        {
+            get
+            {
+                var settings = GetCommandSettings();
+                return settings?.CooldownSeconds ?? 0;
+            }
+        }
+
+        public override string Execute(ChatMessageWrapper user, string[] args)
+        {
+            if (!IsEnabled())
+            {
+                return "The Revivepawn command is currently disabled.";
+            }
+            return RevivePawnCommandHandler.HandleRevivePawn(user, args);
+        }
+    }
+
+    public class Healpawn : ChatCommand
+    {
+        public override string Name => "heal pawn";
+        public override string Description => "Heals a pawn - ";
+        public override string PermissionLevel => "everyone";
+        public override int CooldownSeconds
+        {
+            get
+            {
+                var settings = GetCommandSettings();
+                return settings?.CooldownSeconds ?? 0;
+            }
+        }
+
+        public override string Execute(ChatMessageWrapper user, string[] args)
+        {
+            if (!IsEnabled())
+            {
+                return "The Revivepawn command is currently disabled.";
+            }
+            return RevivePawnCommandHandler.HandleHealPawn(user, args);
         }
     }
 }

@@ -67,8 +67,19 @@ namespace CAP_ChatInteractive
         {
             if (viewerPawnAssignments.TryGetValue(username.ToLowerInvariant(), out string thingId))
             {
-                return FindPawnByThingId(thingId);
+                Logger.Debug($"Retrieving assigned pawn for {username}, ThingID: {thingId}");
+                Pawn pawn = FindPawnByThingId(thingId);
+                if (pawn != null)
+                {
+                    Logger.Debug($"Found pawn: {pawn.Name}, Dead: {pawn.Dead}, Destroyed: {pawn.Destroyed}");
+                }
+                else
+                {
+                    Logger.Debug($"No pawn found with ThingID: {thingId}");
+                }
+                return pawn;
             }
+            Logger.Debug($"No assignment found for username: {username}");
             return null;
         }
 
@@ -76,7 +87,10 @@ namespace CAP_ChatInteractive
         {
             if (viewerPawnAssignments.TryGetValue(username.ToLowerInvariant(), out string thingId))
             {
-                return FindPawnByThingId(thingId) != null;
+                Logger.Debug($"Checking assigned pawn for {username}, ThingID: {thingId}");
+                Pawn pawn = FindPawnByThingId(thingId);
+                // Return true even if pawn is dead - we still want to allow resurrection
+                return pawn != null;
             }
             return false;
         }
@@ -96,7 +110,7 @@ namespace CAP_ChatInteractive
             if (string.IsNullOrEmpty(thingId))
                 return null;
 
-            // Search all maps for the pawn
+            // Search all maps for the pawn (alive)
             foreach (var map in Find.Maps)
             {
                 foreach (var pawn in map.mapPawns.AllPawns)
@@ -104,11 +118,24 @@ namespace CAP_ChatInteractive
                     if (pawn.ThingID == thingId)
                         return pawn;
                 }
+
+                // NEW: Also search for dead pawns/corpses
+                foreach (var thing in map.listerThings.AllThings)
+                {
+                    if (thing.ThingID == thingId && thing is Corpse corpse)
+                    {
+                        return corpse.InnerPawn;
+                    }
+                }
             }
 
-            // Also check world pawns
+            // Also check world pawns (alive and dead)
             var worldPawn = Find.WorldPawns.AllPawnsAlive.FirstOrDefault(p => p.ThingID == thingId);
-            return worldPawn;
+            if (worldPawn != null) return worldPawn;
+
+            // NEW: Check dead world pawns
+            var deadWorldPawn = Find.WorldPawns.AllPawnsDead.FirstOrDefault(p => p.ThingID == thingId);
+            return deadWorldPawn;
         }
         public List<Pawn> GetAllViewerPawns()
         {

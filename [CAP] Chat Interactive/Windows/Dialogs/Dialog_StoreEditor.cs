@@ -4,6 +4,7 @@ using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -503,6 +504,13 @@ namespace CAP_ChatInteractive
                 {
                     Rect iconRect = new Rect(x, 5f, 50f, 50f);
                     Widgets.ThingIcon(iconRect, thingDef);
+
+                    // Make the icon itself clickable to show Def info
+                    if (Widgets.ButtonInvisible(iconRect))
+                    {
+                        ShowDefInfoWindow(thingDef, item);
+                    }
+
                     Widgets.InfoCardButton(iconRect.xMax + 2f, iconRect.y, thingDef);
                 }
                 x += 80f;
@@ -569,18 +577,17 @@ namespace CAP_ChatInteractive
                 string label = null;
                 Action<Rect, StoreItem> drawAction = null;
 
-                if (thingDef.IsIngestible || thingDef.IsMedicine || thingDef.IsDrug ||
-                    thingDef.defName.Contains("Psytrainer") || thingDef.defName.Contains("Neuroformer"))
+                if (item.IsUsable)
                 {
                     label = "Usable";
                     drawAction = DrawUsableCheckbox;
                 }
-                else if (thingDef.IsApparel)
+                else if (item.IsWearable)
                 {
                     label = "Wearable";
                     drawAction = DrawWearableCheckbox;
                 }
-                else if (thingDef.IsWeapon)
+                else if (item.IsEquippable)
                 {
                     label = "Equippable";
                     drawAction = DrawEquippableCheckbox;
@@ -952,6 +959,118 @@ namespace CAP_ChatInteractive
             // Auto-save any changes when window closes
             StoreInventory.SaveStoreToJson();
             base.PostClose();
+        }
+
+        private void ShowDefInfoWindow(ThingDef thingDef, StoreItem storeItem)
+        {
+            Find.WindowStack.Add(new DefInfoWindow(thingDef, storeItem));
+        }
+    }
+
+    public class DefInfoWindow : Window
+    {
+        private ThingDef thingDef;
+        private StoreItem storeItem;
+        private Vector2 scrollPosition = Vector2.zero;
+
+        public override Vector2 InitialSize => new Vector2(600f, 700f);
+
+        public DefInfoWindow(ThingDef thingDef, StoreItem storeItem)
+        {
+            this.thingDef = thingDef;
+            this.storeItem = storeItem;
+            doCloseButton = true;
+            forcePause = true;
+            absorbInputAroundWindow = true;
+            resizeable = true;
+        }
+
+        public override void DoWindowContents(Rect inRect)
+        {
+            // Title
+            Rect titleRect = new Rect(0f, 0f, inRect.width, 35f);
+            Text.Font = GameFont.Medium;
+            Widgets.Label(titleRect, $"Def Information: {thingDef.LabelCap}");
+            Text.Font = GameFont.Small;
+
+            // Content area
+            Rect contentRect = new Rect(0f, 40f, inRect.width, inRect.height - 40f - CloseButSize.y);
+            DrawDefInfo(contentRect);
+        }
+
+        private void DrawDefInfo(Rect rect)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            // Always show at top
+            sb.AppendLine($"DefName: {thingDef.defName}");
+            sb.AppendLine($"BaseMarketValue: {thingDef.BaseMarketValue}");
+            sb.AppendLine($"");
+
+            // ThingDef properties
+            sb.AppendLine($"thingClass: {thingDef.thingClass?.Name ?? "null"}");
+            sb.AppendLine($"stackLimit: {thingDef.stackLimit}");
+            sb.AppendLine($"Size: {thingDef.size}");
+            sb.AppendLine($"TechLevel: {thingDef.techLevel}");
+            sb.AppendLine($"Tradeability: {thingDef.tradeability}");
+
+            // Boolean properties - only show if true
+            if (thingDef.IsIngestible) sb.AppendLine($"IsIngestible: {thingDef.IsIngestible}");
+            if (thingDef.IsMedicine) sb.AppendLine($"IsMedicine: {thingDef.IsMedicine}");
+            if (thingDef.IsStuff) sb.AppendLine($"IsStuff: {thingDef.IsStuff}");
+            if (thingDef.IsDrug) sb.AppendLine($"IsDrug: {thingDef.IsDrug}");
+            if (thingDef.IsPleasureDrug) sb.AppendLine($"IsPleasureDrug: {thingDef.IsPleasureDrug}");
+            if (thingDef.IsNonMedicalDrug) sb.AppendLine($"IsNonMedicalDrug: {thingDef.IsNonMedicalDrug}");
+            if (thingDef.IsApparel) sb.AppendLine($"IsApparel: {thingDef.IsApparel}");
+            if (thingDef.Claimable) sb.AppendLine($"Claimable: {thingDef.Claimable}");
+            if (thingDef.IsWeapon) sb.AppendLine($"IsWeapon: {thingDef.IsWeapon}");
+            if (thingDef.IsBuildingArtificial) sb.AppendLine($"IsBuildingArtificial: {thingDef.IsBuildingArtificial}");
+            if (thingDef.Minifiable) sb.AppendLine($"Minifiable: {thingDef.Minifiable}");
+            if (thingDef.smeltable) sb.AppendLine($"Smeltable: {thingDef.smeltable}");
+
+            sb.AppendLine($"");
+
+            // Ingestible properties if exists
+            if (thingDef.ingestible != null)
+            {
+                sb.AppendLine($"--- Ingestible Properties ---");
+                sb.AppendLine($"Nutrition: {thingDef.ingestible.CachedNutrition}");
+                sb.AppendLine($"FoodType: {thingDef.ingestible.foodType}");
+                sb.AppendLine($"Preferability: {thingDef.ingestible.preferability}");
+                sb.AppendLine($"");
+            }
+
+            // Apparel properties if exists
+            if (thingDef.apparel != null)
+            {
+                sb.AppendLine($"--- Apparel Properties ---");
+                sb.AppendLine($"Layers: {string.Join(", ", thingDef.apparel.layers)}");
+                sb.AppendLine($"BodyPartGroups: {string.Join(", ", thingDef.apparel.bodyPartGroups?.Select(g => g.defName) ?? new List<string>())}");
+                sb.AppendLine($"");
+            }
+
+            // StoreItem information
+            sb.AppendLine($"--- Store Item Data ---");
+            sb.AppendLine($"Base Price: {storeItem.BasePrice}");
+            sb.AppendLine($"Enabled: {storeItem.Enabled}");
+            sb.AppendLine($"Category: {storeItem.Category}");
+            sb.AppendLine($"Mod Source: {storeItem.ModSource}");
+            sb.AppendLine($"IsUsable: {storeItem.IsUsable}");
+            sb.AppendLine($"IsWearable: {storeItem.IsWearable}");
+            sb.AppendLine($"IsEquippable: {storeItem.IsEquippable}");
+            sb.AppendLine($"HasQuantityLimit: {storeItem.HasQuantityLimit}");
+            sb.AppendLine($"QuantityLimit: {storeItem.QuantityLimit}");
+
+            string fullText = sb.ToString();
+
+            // Calculate text height
+            float textHeight = Text.CalcHeight(fullText, rect.width - 20f);
+            Rect viewRect = new Rect(0f, 0f, rect.width - 20f, textHeight);
+
+            // Scroll view
+            Widgets.BeginScrollView(rect, ref scrollPosition, viewRect);
+            Widgets.Label(new Rect(0f, 0f, viewRect.width, textHeight), fullText);
+            Widgets.EndScrollView();
         }
     }
 

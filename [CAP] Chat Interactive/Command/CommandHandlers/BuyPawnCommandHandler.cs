@@ -29,11 +29,6 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                     {
                         return $"You already have a pawn in the colony: {existingPawn.Name}! Use !mypawn to check on them.";
                     }
-                    else
-                    {
-                        // Pawn is dead or doesn't exist, clear the assignment
-                        assignmentManager.UnassignPawn(user.Username);
-                    }
                 }
                 // Additionally, check if viewer has any pawns by name in the colony
                 if (DoesViewerHavePawnByName(user.Username))

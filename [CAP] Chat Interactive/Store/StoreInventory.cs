@@ -107,6 +107,7 @@ namespace CAP_ChatInteractive.Store
             int removedItems = 0;
             int updatedQuantityLimits = 0;
             int updatedCategories = 0;
+            int updatedTypeFlags = 0; // NEW: Track type flag updates
 
             // Add any new items that aren't in the store
             foreach (var thingDef in tradeableItems)
@@ -121,7 +122,7 @@ namespace CAP_ChatInteractive.Store
                 {
                     // Validate and update existing items
                     var existingItem = AllStoreItems[thingDef.defName];
-                    var tempStoreItem = new StoreItem(thingDef); // Create temp to get current category
+                    var tempStoreItem = new StoreItem(thingDef); // Create temp to get current values
 
                     // Special case: rename old "Animal" category to "Mechs" for mechanoids
                     if (existingItem.Category == "Animal" && thingDef.race?.IsMechanoid == true)
@@ -145,6 +146,17 @@ namespace CAP_ChatInteractive.Store
                         existingItem.HasQuantityLimit = true;
                         updatedQuantityLimits++;
                     }
+
+                    // NEW: Update type flags if they don't match current logic
+                    if (existingItem.IsUsable != tempStoreItem.IsUsable ||
+                        existingItem.IsWearable != tempStoreItem.IsWearable ||
+                        existingItem.IsEquippable != tempStoreItem.IsEquippable)
+                    {
+                        existingItem.IsUsable = tempStoreItem.IsUsable;
+                        existingItem.IsWearable = tempStoreItem.IsWearable;
+                        existingItem.IsEquippable = tempStoreItem.IsEquippable;
+                        updatedTypeFlags++;
+                    }
                 }
             }
 
@@ -165,13 +177,14 @@ namespace CAP_ChatInteractive.Store
             }
 
             // Log all changes
-            if (addedItems > 0 || removedItems > 0 || updatedQuantityLimits > 0 || updatedCategories > 0)
+            if (addedItems > 0 || removedItems > 0 || updatedQuantityLimits > 0 || updatedCategories > 0 || updatedTypeFlags > 0)
             {
                 StringBuilder changes = new StringBuilder("Store updated:");
                 if (addedItems > 0) changes.Append($" +{addedItems} items");
                 if (removedItems > 0) changes.Append($" -{removedItems} items");
                 if (updatedQuantityLimits > 0) changes.Append($" {updatedQuantityLimits} quantity limits fixed");
                 if (updatedCategories > 0) changes.Append($" {updatedCategories} categories updated");
+                if (updatedTypeFlags > 0) changes.Append($" {updatedTypeFlags} type flags updated"); // NEW
 
                 Logger.Message(changes.ToString());
                 SaveStoreToJson(); // Save changes

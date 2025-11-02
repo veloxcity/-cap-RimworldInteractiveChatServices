@@ -1,7 +1,8 @@
 ﻿// StoreItem.cs 
+using RimWorld;
 using System.Collections.Generic;
-using Verse;
 using UnityEngine;
+using Verse;
 
 namespace CAP_ChatInteractive.Store
 {
@@ -35,21 +36,20 @@ namespace CAP_ChatInteractive.Store
 
         public StoreItem() { }
 
-        // StoreItem.cs - In the constructor, change these lines:
         public StoreItem(ThingDef thingDef)
         {
             DefName = thingDef.defName;
             BasePrice = CalculateBasePrice(thingDef);
-            Category = GetCategoryFromThingDef(thingDef);
+            Category = GetCategoryFromThingDef(thingDef);  // This needs fixing
             ModSource = thingDef.modContentPack?.Name ?? "RimWorld";
 
-            // Set default properties based on thing type
+            // Set default properties based on thing type - IMPROVED LOGIC
             IsWeapon = thingDef.IsWeapon;
             IsMelee = thingDef.IsMeleeWeapon;
             IsRanged = thingDef.IsRangedWeapon;
             IsEquippable = thingDef.IsWeapon;
             IsWearable = thingDef.IsApparel;
-            IsUsable = IsItemUsable(thingDef);
+            IsUsable = IsItemUsable(thingDef);  
             IsStuffAllowed = thingDef.IsStuff;
 
             // FIX: Set default quantity limit to 1 stack instead of 0
@@ -60,16 +60,30 @@ namespace CAP_ChatInteractive.Store
         }
         private bool IsItemUsable(ThingDef thingDef)
         {
-            // Items that can be consumed or used
+            // Items that should NEVER be usable
+            if (thingDef.IsApparel || thingDef.IsWeapon || thingDef.IsBuildingArtificial)
+                return false;
+
+            // Items that can be consumed/used up when used
             return thingDef.IsIngestible ||
                    thingDef.IsMedicine ||
                    thingDef.IsDrug ||
+                   thingDef.IsPleasureDrug ||
                    thingDef.defName.Contains("Psytrainer") ||
                    thingDef.defName.Contains("Neuroformer") ||
                    thingDef.defName.Contains("Serum") ||
-                   thingDef.defName.Contains("Pack") ||
-                   thingDef.IsPleasureDrug;
+                   thingDef.defName.Contains("Pack");
         }
+
+        // New helper method for special usable items  
+        private bool IsUtilityItem(ThingDef thingDef)
+        {
+            // Items that can be equipped but aren't weapons (shields, tools, etc.)
+            return thingDef.equipmentType != EquipmentType.None &&
+                   !thingDef.IsWeapon &&
+                   thingDef.HasComp(typeof(CompEquippable));
+        }
+
 
         private int CalculateBasePrice(ThingDef thingDef)
         {
@@ -90,28 +104,31 @@ namespace CAP_ChatInteractive.Store
             if (thingDef.race != null)
             {
                 if (thingDef.race.IsMechanoid)
-                    return "Mechs"; // Changed from "Animal" to "Mechs"
+                    return "Mechs";
                 else if (thingDef.race.Animal)
-                    return "Animals"; // Biological animals
+                    return "Animals";
                 else
-                    return "Misc"; // Fallback for other race types
+                    return "Misc";
             }
 
-            // 3. Use the def's assigned ThingCategory if available
-            if (thingDef.FirstThingCategory != null)
-                return thingDef.FirstThingCategory.LabelCap;
-
-            // 4. Handle major built-in types
+            // 3. PRIORITIZE: Check specific item types before generic categories
+            if (thingDef.IsDrug || thingDef.IsPleasureDrug)
+                return "Drugs";
+            if (thingDef.IsMedicine)
+                return "Medicine";
             if (thingDef.IsWeapon)
                 return "Weapon";
             if (thingDef.IsApparel)
                 return "Apparel";
-            if (thingDef.IsMedicine)
-                return "Medicine";
-            if (thingDef.IsDrug)
-                return "Drug";
 
-            // 5. Fallback
+            // 4. REMOVE the special drug detection here - it's redundant
+            // Items that are properly flagged as drugs will be caught above
+
+            // 5. Use the def's assigned ThingCategory if available
+            if (thingDef.FirstThingCategory != null)
+                return thingDef.FirstThingCategory.LabelCap;
+
+            // 6. Fallback
             return "Misc";
         }
     }
