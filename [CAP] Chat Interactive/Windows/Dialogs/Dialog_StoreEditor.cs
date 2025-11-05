@@ -438,18 +438,28 @@ namespace CAP_ChatInteractive
             // Background
             Widgets.DrawMenuSection(rect);
 
-            // Header with item count
-            Rect headerRect = new Rect(rect.x, rect.y, rect.width, 30f);
+            // Header with item count and quantity controls
+            Rect headerRect = new Rect(rect.x, rect.y, rect.width, 55f); // Increased height from 30f to 55f
+
+            // Top row: Item count
+            Rect countRect = new Rect(headerRect.x, headerRect.y, headerRect.width, 25f);
             Text.Font = GameFont.Medium;
-            Text.Anchor = TextAnchor.MiddleCenter; // Add this to center the text
+            Text.Anchor = TextAnchor.MiddleCenter;
             string headerText = $"Items ({filteredItems.Count})";
             if (selectedCategory != "All") headerText += $" - {selectedCategory}";
-            Widgets.Label(headerRect, headerText);
-            Text.Anchor = TextAnchor.UpperLeft; // Reset anchor
+            Widgets.Label(countRect, headerText);
+            Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
 
+            // Bottom row: Quantity limit controls for all visible items
+            if (filteredItems.Count > 0)
+            {
+                Rect qtyControlsRect = new Rect(headerRect.x, headerRect.y + 25f, headerRect.width, 25f);
+                DrawBulkQuantityControls(qtyControlsRect);
+            }
+
             // Item list with virtual scrolling
-            Rect listRect = new Rect(rect.x, rect.y + 35f, rect.width, rect.height - 35f);
+            Rect listRect = new Rect(rect.x, rect.y + 60f, rect.width, rect.height - 60f); // Adjusted from 35f to 60f
             float rowHeight = 60f;
 
             // Handle empty filtered items case
@@ -487,6 +497,101 @@ namespace CAP_ChatInteractive
                 }
             }
             Widgets.EndScrollView();
+        }
+        private void DrawBulkQuantityControls(Rect rect)
+        {
+            Widgets.BeginGroup(rect);
+
+            float iconSize = 24f;
+            float spacing = 4f;
+            float centerY = (rect.height - iconSize) / 2f;
+            float x = rect.width / 2f - 150f; // Center the controls
+
+            // Label
+            Rect labelRect = new Rect(x, centerY, 80f, iconSize);
+            Text.Anchor = TextAnchor.MiddleRight;
+            Widgets.Label(labelRect, "Set All Qty:");
+            Text.Anchor = TextAnchor.UpperLeft;
+            x += 85f + spacing;
+
+            // Enable/disable toggle
+            Rect enableRect = new Rect(x, centerY, 24f, iconSize);
+            bool anyHasLimit = filteredItems.Any(item => item.HasQuantityLimit);
+            bool allHaveLimit = filteredItems.All(item => item.HasQuantityLimit);
+
+            // Use mixed state if some have limit and some don't
+            bool? mixedState = anyHasLimit && !allHaveLimit ? null : (bool?)allHaveLimit;
+
+            if (Widgets.ButtonInvisible(enableRect))
+            {
+                // If mixed or any disabled, enable all. If all enabled, disable all.
+                bool newState = !allHaveLimit;
+                EnableQuantityLimitForAllVisible(newState);
+            }
+
+            // Draw appropriate checkbox state
+            if (mixedState.HasValue)
+            {
+                bool state = mixedState.Value;
+                Widgets.Checkbox(enableRect.position, ref state, 24f);
+            }
+            else
+            {
+                // Draw mixed state (partially checked)
+                Texture2D mixedTex = ContentFinder<Texture2D>.Get("UI/Widgets/CheckBoxPartial", false);
+                if (mixedTex != null)
+                {
+                    Widgets.DrawTextureFitted(enableRect, mixedTex, 1f);
+                }
+                else
+                {
+                    // Fallback: draw empty checkbox with different background
+                    Widgets.DrawRectFast(enableRect, new Color(0.5f, 0.5f, 0.5f, 0.3f));
+                    Widgets.DrawBox(enableRect);
+                }
+            }
+
+            TooltipHandler.TipRegion(enableRect, "Enable/disable quantity limits for all visible items");
+            x += 28f + spacing;
+
+            // Stack preset buttons (only show if there are items with quantity limits)
+            if (anyHasLimit)
+            {
+                (string icon, string tooltip, int stacks)[] presets =
+                {
+            ("Stack1", "Set all visible items to 1 stack limit", 1),
+            ("Stack3", "Set all visible items to 3 stacks limit", 3),
+            ("Stack5", "Set all visible items to 5 stacks limit", 5)
+        };
+
+                foreach (var preset in presets)
+                {
+                    Texture2D icon = ContentFinder<Texture2D>.Get($"UI/Icons/{preset.icon}", false);
+                    Rect iconRect = new Rect(x, centerY, iconSize, iconSize);
+
+                    // Hover highlight
+                    if (Mouse.IsOver(iconRect))
+                        Widgets.DrawHighlight(iconRect);
+
+                    // Draw icon (fallback to text)
+                    if (icon != null)
+                        Widgets.DrawTextureFitted(iconRect, icon, 1f);
+                    else
+                        Widgets.ButtonText(iconRect, $"{preset.stacks}x");
+
+                    TooltipHandler.TipRegion(iconRect, preset.tooltip);
+
+                    // Click handler
+                    if (Widgets.ButtonInvisible(iconRect))
+                    {
+                        SetAllVisibleItemsQuantityLimit(preset.stacks);
+                    }
+
+                    x += iconSize + spacing;
+                }
+            }
+
+            Widgets.EndGroup();
         }
 
         private void DrawItemRow(Rect rect, StoreItem item, int index)
@@ -565,7 +670,6 @@ namespace CAP_ChatInteractive
                 GUI.color = Color.white;
             }
         }
-
 
         private void DrawItemTypeCheckboxes(Rect rect, StoreItem item)
         {
@@ -693,7 +797,6 @@ namespace CAP_ChatInteractive
             Widgets.EndGroup();
         }
 
-
         private void DrawUsableCheckbox(Rect rect, StoreItem item)
         {
             bool currentValue = item.IsUsable;
@@ -777,62 +880,6 @@ namespace CAP_ChatInteractive
                 {
                     item.BasePrice = (int)(thingDef.BaseMarketValue * 1.67f);
                     SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera(); // ✅ RimWorld native sound
-                    StoreInventory.SaveStoreToJson();
-                }
-            }
-
-            Widgets.EndGroup();
-        }
-
-        private void DrawQuantityLimitControls(Rect rect, StoreItem item)
-        {
-            Widgets.BeginGroup(rect);
-
-            float labelWidth = 100f;
-            float checkboxWidth = 20f;
-            float numericWidth = 50f;
-            float spacing = 5f;
-
-            // Checkbox for enabling/disabling quantity limit
-            Rect checkboxRect = new Rect(0f, 0f, checkboxWidth, 30f);
-            bool hasLimit = item.HasQuantityLimit;
-            Widgets.Checkbox(checkboxRect.position, ref hasLimit, 24f);
-            if (hasLimit != item.HasQuantityLimit)
-            {
-                item.HasQuantityLimit = hasLimit;
-                StoreInventory.SaveStoreToJson();
-            }
-
-            // Label next to the checkbox
-            Rect labelRect = new Rect(checkboxRect.xMax + spacing, 0f, labelWidth, 30f);
-            Widgets.Label(labelRect, "Qty Limit");
-
-            // Numeric field (active only if limit is on)
-            if (item.HasQuantityLimit)
-            {
-                Rect inputRect = new Rect(labelRect.xMax + spacing, 0f, numericWidth, 30f);
-                int limit = item.QuantityLimit;
-                string buffer = limit.ToString();
-
-                Widgets.TextFieldNumeric(inputRect, ref limit, ref buffer, 1, 9999); // clamp between 1 and 9999
-                if (limit != item.QuantityLimit)
-                {
-                    item.QuantityLimit = limit;
-                    StoreInventory.SaveStoreToJson();
-                }
-
-                // Optional: small "+" and "–" buttons for quick adjustment
-                float buttonSize = 20f;
-                Rect minusRect = new Rect(inputRect.xMax + 2f, 5f, buttonSize, buttonSize);
-                Rect plusRect = new Rect(minusRect.xMax + 2f, 5f, buttonSize, buttonSize);
-                if (Widgets.ButtonText(minusRect, "-"))
-                {
-                    item.QuantityLimit = Mathf.Max(1, item.QuantityLimit - 1);
-                    StoreInventory.SaveStoreToJson();
-                }
-                if (Widgets.ButtonText(plusRect, "+"))
-                {
-                    item.QuantityLimit = Mathf.Min(9999, item.QuantityLimit + 1);
                     StoreInventory.SaveStoreToJson();
                 }
             }
@@ -953,6 +1000,51 @@ namespace CAP_ChatInteractive
             }
             StoreInventory.SaveStoreToJson();
             FilterItems();
+        }
+
+        // Add these new methods to handle bulk quantity limit operations
+        private void SetAllVisibleItemsQuantityLimit(int stacks)
+        {
+            int affectedCount = 0;
+            foreach (var item in filteredItems)
+            {
+                var thingDef = DefDatabase<ThingDef>.GetNamedSilentFail(item.DefName);
+                if (thingDef != null)
+                {
+                    int baseStack = Mathf.Max(1, thingDef.stackLimit);
+                    item.QuantityLimit = Mathf.Clamp(baseStack * stacks, 1, 9999);
+                    item.HasQuantityLimit = true;
+                    affectedCount++;
+                }
+            }
+
+            if (affectedCount > 0)
+            {
+                StoreInventory.SaveStoreToJson();
+                Messages.Message($"Set quantity limit to {stacks} stacks for {affectedCount} items", MessageTypeDefOf.PositiveEvent);
+                SoundDefOf.Click.PlayOneShotOnCamera();
+            }
+        }
+
+        private void EnableQuantityLimitForAllVisible(bool enable)
+        {
+            int affectedCount = 0;
+            foreach (var item in filteredItems)
+            {
+                if (item.HasQuantityLimit != enable)
+                {
+                    item.HasQuantityLimit = enable;
+                    affectedCount++;
+                }
+            }
+
+            if (affectedCount > 0)
+            {
+                StoreInventory.SaveStoreToJson();
+                Messages.Message($"{(enable ? "Enabled" : "Disabled")} quantity limit for {affectedCount} items",
+                    MessageTypeDefOf.PositiveEvent);
+                SoundDefOf.Click.PlayOneShotOnCamera();
+            }
         }
 
         public override void PostClose()
