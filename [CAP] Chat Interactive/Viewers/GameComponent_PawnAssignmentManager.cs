@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿// GameComponent_PawnAssignmentManager.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Manages the assignment of pawns to chat viewers, including queueing and pending offers.
+using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;

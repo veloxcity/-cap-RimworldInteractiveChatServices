@@ -1,4 +1,8 @@
 ﻿// GenericIncidentHelper.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// A generic helper class for handling incidents triggered by chat commands.
 using RimWorld;
 using System.Collections.Generic;
 using System.Linq;

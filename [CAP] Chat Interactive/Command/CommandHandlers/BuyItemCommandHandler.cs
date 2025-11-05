@@ -1,4 +1,8 @@
 ﻿// BuyItemCommandHandler.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// Command handler for buying items from Rimazon store
 using CAP_ChatInteractive.Commands.ViewerCommands;
 using CAP_ChatInteractive.Store;
 using RimWorld;

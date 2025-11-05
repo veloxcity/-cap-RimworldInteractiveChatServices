@@ -1,4 +1,8 @@
 ﻿// IncidentWorker_CallForAid.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// Custom IncidentWorker to handle friendly military aid raids with improved faction selection and logging.
 using RimWorld;
 using System;
 using System.Collections.Generic;

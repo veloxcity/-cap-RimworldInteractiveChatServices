@@ -1,4 +1,7 @@
 ﻿// TabDrawer_Store.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Provides a user interface tab for managing the chat store inventory
 using CAP_ChatInteractive;
 using CAP_ChatInteractive.Store; // Add this line
 using System.Linq;

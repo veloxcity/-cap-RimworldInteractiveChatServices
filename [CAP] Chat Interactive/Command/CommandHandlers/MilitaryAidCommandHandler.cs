@@ -1,4 +1,8 @@
 ﻿// MilitaryAidCommandHandler.cs - Cleaned up version
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// Handles the !militaryaid command to call for military reinforcements in exchange for in-game currency.
 using CAP_ChatInteractive.Incidents;
 using LudeonTK;
 using RimWorld;

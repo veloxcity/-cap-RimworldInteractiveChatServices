@@ -1,4 +1,9 @@
-﻿using CAP_ChatInteractive.Utilities;
+﻿// TwitchService.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// Service to manage Twitch chat connection and messaging
+using CAP_ChatInteractive.Utilities;
 using RimWorld;
 using System;
 using System.Threading;

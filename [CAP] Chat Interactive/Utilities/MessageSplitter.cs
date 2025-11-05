@@ -1,4 +1,7 @@
 ﻿// MessageSplitter.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Utility class to split long messages for different chat platforms
 using System;
 using System.Collections.Generic;
 using System.Linq;

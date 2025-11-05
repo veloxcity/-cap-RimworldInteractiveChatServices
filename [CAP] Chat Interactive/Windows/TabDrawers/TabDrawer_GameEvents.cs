@@ -1,4 +1,7 @@
 ﻿// TabDrawer_GameEvents.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Draws the Game Events & Cooldowns tab in the mod settings window
 using CAP_ChatInteractive.Incidents;
 using CAP_ChatInteractive.Incidents.Weather;
 using CAP_ChatInteractive.Store;

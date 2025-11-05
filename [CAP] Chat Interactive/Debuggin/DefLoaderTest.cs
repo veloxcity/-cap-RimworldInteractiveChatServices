@@ -1,4 +1,7 @@
 ﻿// DefLoaderTest.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// A static constructor class to test if custom defs are loaded correctly
 using RimWorld;
 using System.Linq;
 using Verse;

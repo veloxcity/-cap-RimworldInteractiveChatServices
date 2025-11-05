@@ -1,4 +1,8 @@
 ﻿// IncidentCommandHandler.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// Handles the !event command for triggering incidents via chat
 using CAP_ChatInteractive.Commands.Cooldowns;
 using CAP_ChatInteractive.Incidents;
 using CAP_ChatInteractive.Utilities;

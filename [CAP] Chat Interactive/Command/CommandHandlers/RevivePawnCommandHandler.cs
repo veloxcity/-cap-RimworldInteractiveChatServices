@@ -1,4 +1,8 @@
 ﻿// RevivePawnCommandHandler.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// Handles the !revivepawn command to resurrect dead pawns for viewers using in-game currency.
 using CAP_ChatInteractive.Commands.ViewerCommands;
 using CAP_ChatInteractive.Store;
 using RimWorld;

@@ -1,4 +1,7 @@
 ﻿// Traits.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Manages the loading, saving, and retrieval of buyable traits for pawns.
 using RimWorld;
 using System;
 using System.Collections.Generic;

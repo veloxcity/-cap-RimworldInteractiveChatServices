@@ -1,4 +1,8 @@
-﻿using CAP_ChatInteractive;
+﻿// TabDrawer_Global.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Draws the Global Settings tab in the mod settings window
+using CAP_ChatInteractive;
 using UnityEngine;
 using Verse;
 

@@ -1,4 +1,8 @@
-﻿using CAP_ChatInteractive.Utilities;
+﻿// YouTubeChatService.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Service to connect to YouTube Live Chat, read messages, and send messages
+using CAP_ChatInteractive.Utilities;
 using Google.Apis.Services;
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;

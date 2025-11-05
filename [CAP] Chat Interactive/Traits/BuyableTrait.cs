@@ -1,4 +1,7 @@
 ﻿// BuyableTrait.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// A class representing a trait that can be bought or sold in the chat interaction system.
 using RimWorld;
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,9 @@
-﻿using CAP_ChatInteractive.Commands.CommandHandlers;
+﻿// ViewerCommands.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// Commands that viewers can use to interact with the game
+using CAP_ChatInteractive.Commands.CommandHandlers;
 using RimWorld;
 using System;
 using System.Collections.Generic;

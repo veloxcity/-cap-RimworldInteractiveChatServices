@@ -1,4 +1,7 @@
 ﻿// Utilities/ChatMessageLogger.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// A static class for logging and managing chat messages
 using CAP_ChatInteractive.Windows;
 using System;
 using System.Collections.Generic;

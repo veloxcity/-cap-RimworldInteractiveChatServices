@@ -1,4 +1,8 @@
-﻿// GameComponent_IncidentsInitializer.cs - UPDATED
+﻿// GameComponent_IncidentsInitializer.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// Initializes incident and weather systems when a game is loaded or started
 using CAP_ChatInteractive.Commands.ViewerCommands;
 using RimWorld;
 using Verse;

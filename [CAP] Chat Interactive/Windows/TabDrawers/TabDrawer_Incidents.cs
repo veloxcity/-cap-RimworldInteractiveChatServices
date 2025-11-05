@@ -1,4 +1,8 @@
-﻿using CAP_ChatInteractive.Incidents;
+﻿// TabDrawer_Incidents.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Provides a tab interface for managing incidents in the game
+using CAP_ChatInteractive.Incidents;
 using CAP_ChatInteractive.Incidents.Weather;
 using RimWorld;
 using System.Linq;

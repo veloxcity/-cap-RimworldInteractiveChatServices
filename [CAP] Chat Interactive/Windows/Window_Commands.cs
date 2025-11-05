@@ -1,4 +1,8 @@
 ﻿// Windows/Window_Commands.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// A window that displays available chat commands and their descriptions
 using RimWorld;
 using UnityEngine;
 using Verse;

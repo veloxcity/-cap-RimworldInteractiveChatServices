@@ -1,4 +1,10 @@
-﻿using RimWorld;
+﻿// CAPChatInteractive_GameComponent.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// A game component that handles periodic tasks such as awarding coins to active viewers and managing storyteller ticks.
+// Uses an efficient tick system to minimize performance impact.
+// Storyteller tick logic can be expanded as needed.
+using RimWorld;
 using Verse;
 
 namespace CAP_ChatInteractive

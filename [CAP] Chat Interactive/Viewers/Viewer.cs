@@ -1,4 +1,9 @@
 ﻿// Viewer.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Represents a viewer in the chat interaction system
+// with properties for roles, activity, economy, and platform-specific data.
+
 using System;
 using System.Collections.Generic;
 using RimWorld;

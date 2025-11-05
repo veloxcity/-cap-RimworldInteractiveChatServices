@@ -1,4 +1,7 @@
 ﻿// Windows/Window_Viewers.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Obosolete window to manage viewers
 using RimWorld;
 using UnityEngine;
 using Verse;

@@ -1,4 +1,8 @@
-﻿// BuyPawnCommandHandler.cs - Corrected version
+﻿// BuyPawnCommandHandler.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// Pawn purchase command handler
 using CAP_ChatInteractive.Commands.CommandHandlers;
 using RimWorld;
 using System;

@@ -1,4 +1,9 @@
-﻿using RimWorld;
+﻿// ChatCommandDefOf.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// Defines static references to chat command definitions for easy access throughout the mod.
+using RimWorld;
 
 namespace CAP_ChatInteractive
 {

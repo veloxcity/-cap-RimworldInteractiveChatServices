@@ -1,4 +1,7 @@
 ﻿// ChatInterfaceBase.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Abstract base class for chat interfaces to handle message parsing and system events
 using System;
 using Verse;
 

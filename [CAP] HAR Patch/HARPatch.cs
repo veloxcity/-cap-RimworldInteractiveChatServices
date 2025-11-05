@@ -1,4 +1,8 @@
-﻿using _CAP__Chat_Interactive.Interfaces;
+﻿// HARPatch.cs uses features available in C# 10.0, such as file-scoped namespaces.
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Provides compatibility with the Human and Alien Races (HAR) mod for trait and xenotype restrictions.
+using _CAP__Chat_Interactive.Interfaces;
 using AlienRace;
 using RimWorld;
 using System.Collections.Generic;

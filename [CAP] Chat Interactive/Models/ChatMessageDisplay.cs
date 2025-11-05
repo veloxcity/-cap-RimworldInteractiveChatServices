@@ -1,4 +1,7 @@
 ﻿// Models/ChatMessageDisplay.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// A model representing a chat message for display purposes
 using System;
 
 namespace CAP_ChatInteractive

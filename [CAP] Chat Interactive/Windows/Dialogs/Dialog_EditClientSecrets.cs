@@ -1,4 +1,8 @@
-﻿using RimWorld;
+﻿// Dialog_EditClientSecrets.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// A dialog window for editing YouTube OAuth 2.0 client secrets JSON
+using RimWorld;
 using System.IO;
 using UnityEngine;
 using Verse;

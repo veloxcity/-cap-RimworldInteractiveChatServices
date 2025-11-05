@@ -1,4 +1,8 @@
-﻿using System;
+﻿// TabWorker.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// A utility class to manage and render tabbed interfaces in the mod.
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Verse;

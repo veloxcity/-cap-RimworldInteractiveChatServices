@@ -1,4 +1,8 @@
 ﻿// AddonRegistry.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// This class manages the registry of Chat Interactive addons, loading enabled addons and providing access to their menus.
 using CAP_ChatInteractive.Interfaces;
 using System.Collections.Generic;
 using System.Linq;

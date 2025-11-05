@@ -1,4 +1,8 @@
 ﻿// PawnQueueCommandHandler.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// Handles pawn queue commands: !join, !leave, !queue, !accept
 using RimWorld;
 using System;
 using System.Collections.Generic;

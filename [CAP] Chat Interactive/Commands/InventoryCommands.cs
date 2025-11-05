@@ -1,4 +1,9 @@
-﻿using CAP_ChatInteractive.Commands.CommandHandlers;
+﻿// InventoryCommands.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// Commands for purchasing and using items from the in-game store.
+using CAP_ChatInteractive.Commands.CommandHandlers;
 using CAP_ChatInteractive.Store;
 using RimWorld;
 using System;

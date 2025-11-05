@@ -1,4 +1,8 @@
-﻿using CAP_ChatInteractive;
+﻿// TabDrawer_YouTube.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Draws the YouTube settings tab in the Chat Interactive settings window
+using CAP_ChatInteractive;
 using RimWorld;
 using UnityEngine;
 using Verse;

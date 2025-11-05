@@ -1,4 +1,7 @@
-﻿// UPDATED Dialog_PawnQueue.cs - Fixed spacing and layout issues
+﻿// Dialog_PawnQueue.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// A dialog window for managing the pawn assignment queue
 using RimWorld;
 using System.Collections.Generic;
 using System.Linq;

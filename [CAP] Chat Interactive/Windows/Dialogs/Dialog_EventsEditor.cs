@@ -1,4 +1,7 @@
 ﻿// Dialog_EventsEditor.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// A dialog window for editing and managing chat-interactive events
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;

@@ -1,4 +1,7 @@
 ﻿// StoreItem.cs 
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Represents an item available in the chat interactive store
 using RimWorld;
 using System.Collections.Generic;
 using UnityEngine;

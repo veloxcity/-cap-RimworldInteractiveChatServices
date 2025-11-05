@@ -1,4 +1,10 @@
-﻿using _CAP__Chat_Interactive.Interfaces;
+﻿// CAPChatInteractiveMod.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Main mod class for [CAP] Chat Interactive RimWorld mod
+// Handles initialization, settings, and service management.
+// Store, Traits, Weather, and other systems will be initialized when the game starts.
+using _CAP__Chat_Interactive.Interfaces;
 using Google.Apis.YouTube.v3;
 using RimWorld;
 using System;   

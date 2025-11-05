@@ -1,4 +1,7 @@
 ﻿// MainButtonDebug.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Debugging utility to log information about main buttons in the RimWorld UI
 using RimWorld;
 using Verse;
 

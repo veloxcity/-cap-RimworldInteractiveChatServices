@@ -1,4 +1,7 @@
 ﻿// Dialog_CommandManager.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// A dialog window for managing chat commands and their settings
 using Newtonsoft.Json;
 using RimWorld;
 using System;

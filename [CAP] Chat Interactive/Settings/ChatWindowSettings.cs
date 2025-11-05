@@ -1,4 +1,7 @@
 ﻿// Settings/ChatWindowSettings.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// A serializable class to hold settings for the chat window
 using RimWorld;
 using UnityEngine;
 using Verse;

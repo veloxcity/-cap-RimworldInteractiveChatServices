@@ -1,4 +1,9 @@
-﻿using System;
+﻿// ChatInteractiveAddonDef.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// This class defines the structure for Chat Interactive addons, including their menu class and enabled status.
+using System;
 using CAP_ChatInteractive.Interfaces;
 using Verse;
 

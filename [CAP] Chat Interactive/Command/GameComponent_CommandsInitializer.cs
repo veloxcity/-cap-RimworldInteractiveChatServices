@@ -1,4 +1,8 @@
 ﻿// GameComponent_CommandsInitializer.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// Initializes chat commands when a game is loaded or started.
 using RimWorld;
 using Verse;
 

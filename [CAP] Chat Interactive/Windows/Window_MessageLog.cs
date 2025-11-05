@@ -1,4 +1,7 @@
 ﻿// Windows/Window_MessageLog.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// A window to display the chat message log
 using RimWorld;
 using UnityEngine;
 using Verse;

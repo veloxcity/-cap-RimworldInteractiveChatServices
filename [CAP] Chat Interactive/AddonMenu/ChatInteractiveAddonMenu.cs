@@ -1,4 +1,8 @@
 ﻿// ChatInteractiveAddonMenu.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// This class implements the addon menu for Chat Interactive, providing various options for managing settings, events, economy, and more.
 using CAP_ChatInteractive.Interfaces;
 using CAP_ChatInteractive.Windows;
 using RimWorld;

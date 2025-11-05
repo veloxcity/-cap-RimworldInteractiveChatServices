@@ -1,4 +1,8 @@
-﻿using RimWorld;
+﻿// Dialog_PawnSettings.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// A dialog window for configuring pawn
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;

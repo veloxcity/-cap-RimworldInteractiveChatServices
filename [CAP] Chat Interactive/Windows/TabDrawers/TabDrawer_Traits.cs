@@ -1,4 +1,8 @@
-﻿using CAP_ChatInteractive;
+﻿// TabDrawer_Traits.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Draws the Traits management tab in the Chat Interactive mod UI
+using CAP_ChatInteractive;
 using CAP_ChatInteractive.Traits;
 using RimWorld;
 using System.Linq;

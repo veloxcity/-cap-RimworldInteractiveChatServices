@@ -1,4 +1,9 @@
-﻿using CAP_ChatInteractive;
+﻿// MyPawnCommandHandler.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// Handles the !mypawn command and its subcommands to provide detailed information about the viewer's assigned pawn.
+using CAP_ChatInteractive;
 using RimWorld;
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,9 @@
-﻿using CAP_ChatInteractive.Commands.CommandHandlers;
+﻿// MilitaryCommands.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// Commands for military aid and raids in RimWorld via chat interaction.
+using CAP_ChatInteractive.Commands.CommandHandlers;
 using RimWorld;
 using System;
 using System.Collections.Generic;

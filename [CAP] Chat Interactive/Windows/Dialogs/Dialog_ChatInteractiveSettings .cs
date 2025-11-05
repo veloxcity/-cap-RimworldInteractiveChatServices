@@ -1,4 +1,8 @@
-﻿using _CAP__Chat_Interactive;
+﻿// Dialog_ChatInteractiveSettings.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// A dialog window for configuring Chat Interactive settings with multiple tabs
+using _CAP__Chat_Interactive;
 using System.Collections.Generic;
 using UnityEngine;
 using Verse;

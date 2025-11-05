@@ -1,4 +1,8 @@
 ﻿// Viewers.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Manages viewer data including loading, saving, and updating viewer information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;

@@ -1,4 +1,8 @@
-﻿using System;
+﻿// YouTubeOAuthService.cs  
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// YouTube OAuth service for CAP Chat Interactive
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;

@@ -1,4 +1,9 @@
-﻿using CAP_ChatInteractive.Incidents;
+﻿// JsonFileManager.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+// Manages JSON file operations for the CAP Chat Interactive mod.
+// Handles loading, saving, and serialization/deserialization of various mod data types.
+using CAP_ChatInteractive.Incidents;
 using CAP_ChatInteractive.Store;
 using CAP_ChatInteractive.Traits;
 using Newtonsoft.Json;

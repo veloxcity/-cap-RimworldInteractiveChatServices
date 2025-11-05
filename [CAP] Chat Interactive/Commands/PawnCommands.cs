@@ -1,4 +1,8 @@
 ﻿// PawnCommands.cs
+// Copyright (c) Captolamia. All rights reserved.
+// Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
+//
+// Handles pawn-related chat commands: !pawn, !mypawn, trait commands, and queue management.
 using CAP_ChatInteractive.Commands.CommandHandlers;
 using CAP_ChatInteractive.Traits;
 using RimWorld;
