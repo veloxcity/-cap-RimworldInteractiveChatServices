@@ -489,6 +489,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
             var settings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
             return $"{amount}{currencySymbol}";
         }
+
         private static bool TryBackpackItem(Thing thing, Verse.Pawn pawn)
         {
             if (pawn.inventory.innerContainer.TryAdd(thing))
@@ -497,6 +498,22 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 return true;
             }
             return false;
+        }
+
+        public static bool IsItemSuitableForSurgery(StoreItem storeItem)
+        {
+            var thingDef = DefDatabase<ThingDef>.GetNamedSilentFail(storeItem.DefName);
+            if (thingDef == null) return false;
+
+            // Check if this is an implant, bionic part, or other surgical item
+            if (thingDef.isTechHediff) return true;
+            if (thingDef.defName.Contains("Bionic") || thingDef.defName.Contains("Prosthetic")) return true;
+            if (thingDef.defName.Contains("Implant")) return true;
+
+            // Check if there are any surgery recipes that use this item
+            return DefDatabase<RecipeDef>.AllDefs
+                .Where(r => r.IsSurgery)
+                .Any(r => r.ingredients.Any(i => i.filter.AllowedThingDefs.Contains(thingDef)));
         }
 
         public static class PurchaseHelper

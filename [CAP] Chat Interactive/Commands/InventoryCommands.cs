@@ -183,4 +183,29 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
             return $"Available items (sample): {itemList}. Use !buy <itemname> to purchase.";
         }
     }
+
+    public class Surgery : ChatCommand
+    {
+        public override string Name => "surgery";
+        public override string Description => "Purchases the implants specified and queues it for surgery on your pawn.";
+        public override string PermissionLevel => "everyone";
+        public override int CooldownSeconds
+        {
+            get
+            {
+                var settings = GetCommandSettings();
+                return settings?.CooldownSeconds ?? 0;
+            }
+        }
+
+        public override string Execute(ChatMessageWrapper user, string[] args)
+        {
+            if (!IsEnabled())
+            {
+                return "The Surgery command is currently disabled.";
+            }
+
+            return BuyItemCommandHandler.HandleSurgery(user, args);
+        }
+    }
 }
