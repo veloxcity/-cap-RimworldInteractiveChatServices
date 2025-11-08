@@ -84,7 +84,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 }
                 else
                 {
-                    return "Usage: !buy <item> [quality] [material] [quantity]";
+                    return "Usage: !buy/equip/wear <item> [quality] [material] [quantity]";
                 }
 
                 var settings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;

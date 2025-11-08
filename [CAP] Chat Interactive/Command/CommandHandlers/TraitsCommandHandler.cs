@@ -22,7 +22,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
             {
                 if (args.Length == 0)
                 {
-                    return "Usage: !trait <trait_name> - Look up information about a specific trait. Use !traits to list all available traits.";
+                    return "Usage: !trait <trait_name> - Look up information about a specific trait. Can also use !lookup trait to search for a trait";
                 }
 
                 string traitName = string.Join(" ", args).ToLower();
