@@ -229,7 +229,7 @@ namespace CAP_ChatInteractive
                 {
                     if (IsConnected)
                     {
-                        _client.SendMessage(e.Channel, "[CAP] Chat Interactive connected to chat!", false);
+                        _client.SendMessage(e.Channel, "[CAP] Rimwold Interactive Chat Service activated!", false);
                     }
                 });
             }

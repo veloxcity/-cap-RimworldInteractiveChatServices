@@ -15,4 +15,24 @@ namespace CAP_ChatInteractive.Commands.TestCommands
             return $"Hello {user.Username}! Thanks for testing the chat system! 🎉";
         }
     }
+
+    public class CaptoLamia : ChatCommand
+    {
+        public override string Name => "CaptoLamia";
+
+        public override string Execute(ChatMessageWrapper user, string[] args)
+        {
+            // Check if the user is you by username AND platform ID
+            bool isCaptoLamia = user.Username == "captolamia" &&
+                               user.PlatformUserId == "58513264" &&
+                               user.Platform.ToLowerInvariant() == "twitch";
+
+            if (!isCaptoLamia)
+            {
+                return $"Sorry {user.DisplayName}, this command is not available. 👀";
+            }
+
+            return $"😸 Hello {user.DisplayName}! Thanks for testing the chat system! 🎉 This is your special easter egg command!";
+        }
+    }
 }
