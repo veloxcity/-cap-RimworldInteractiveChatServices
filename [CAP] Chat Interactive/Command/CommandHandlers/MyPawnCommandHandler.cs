@@ -1034,9 +1034,15 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
         private static string HandleWorkInfo(Pawn pawn, string[] args)
         {
             // Check if pawn can work
-            if (pawn.workSettings?.EverWork == false)
+            if (pawn.workSettings == null || !pawn.workSettings.EverWork)
             {
                 return $"{pawn.Name} is not capable of work.";
+            }
+
+            // Ensure work settings are initialized using RimWorld's proper method
+            if (!pawn.workSettings.Initialized)
+            {
+                pawn.workSettings.EnableAndInitialize();
             }
 
             // Handle priority changes if arguments provided
@@ -1051,6 +1057,18 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
 
         private static string HandleWorkPriorityChanges(Pawn pawn, string[] args)
         {
+            // Check if work settings are enabled and initialized
+            if (pawn.workSettings == null || !pawn.workSettings.EverWork)
+            {
+                return $"{pawn.Name} is not capable of work.";
+            }
+
+            // Ensure work settings are initialized
+            if (!pawn.workSettings.Initialized)
+            {
+                pawn.workSettings.EnableAndInitialize();
+            }
+
             var changes = new List<string>();
 
             foreach (var arg in args)
@@ -1068,14 +1086,34 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                     return $"Invalid priority: {parts[1]}. Must be 0-4.";
                 }
 
-                // Find the work type
+                // Find the work type with proper null checking
                 var workType = DefDatabase<WorkTypeDef>.AllDefs
-                    .FirstOrDefault(w => w.defName.Equals(workTypeName, StringComparison.OrdinalIgnoreCase) ||
-                                        w.label.ToLower().Contains(workTypeName));
+                    .Where(w => w != null) // Ensure workType is not null
+                    .FirstOrDefault(w =>
+                        (!string.IsNullOrEmpty(w.defName) && w.defName.Equals(workTypeName, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrEmpty(w.defName) && w.defName.ToLower().Contains(workTypeName)) ||
+                        (!string.IsNullOrEmpty(w.label) && w.label.ToLower().Contains(workTypeName)));
 
                 if (workType == null)
                 {
-                    return $"Unknown work type: {workTypeName}. Use !mypawn work to see available types.";
+                    // Try a more flexible search
+                    workType = DefDatabase<WorkTypeDef>.AllDefs
+                        .Where(w => w != null)
+                        .FirstOrDefault(w =>
+                            (!string.IsNullOrEmpty(w.defName) && w.defName.ToLower().Replace("_", "").Replace(" ", "").Contains(workTypeName)) ||
+                            (!string.IsNullOrEmpty(w.label) && w.label.ToLower().Replace(" ", "").Contains(workTypeName)));
+                }
+
+                if (workType == null)
+                {
+                    // Get some available work types for the error message
+                    var sampleWorkTypes = WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder
+                        .Where(w => w != null && !string.IsNullOrEmpty(w.defName))
+                        .Take(5)
+                        .Select(w => w.defName)
+                        .ToList();
+
+                    return $"Unknown work type: '{workTypeName}'. Available types include: {string.Join(", ", sampleWorkTypes)}. Use !mypawn work to see all available work types.";
                 }
 
                 // Check if work type is disabled for this pawn
@@ -1084,11 +1122,12 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                     return $"{workType.label} is disabled for {pawn.Name}.";
                 }
 
-                // Change the priority
+                // Change the priority using RimWorld's API
                 int oldPriority = pawn.workSettings.GetPriority(workType);
                 pawn.workSettings.SetPriority(workType, newPriority);
 
-                changes.Add($"{workType.label}: {oldPriority}→{newPriority}");
+                string workLabel = string.IsNullOrEmpty(workType.label) ? workType.defName : workType.label;
+                changes.Add($"{workLabel}: {oldPriority}→{newPriority}");
             }
 
             return $"Work priorities updated: {string.Join(", ", changes)}";
@@ -1097,7 +1136,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
         private static string GetWorkPrioritySummary(Pawn pawn)
         {
             var report = new StringBuilder();
-            report.AppendLine($"💼 Work Priorities: "); // for {pawn.Name}:
+            report.AppendLine($"💼 Work Priorities: ");
 
             // Get all work types in priority order
             var workTypes = WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder
@@ -1120,15 +1159,30 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
             foreach (var priorityGroup in byPriority)
             {
                 string priorityName = GetPriorityName(priorityGroup.Key);
-                var workNames = priorityGroup.Select(x => StripTags(x.WorkType.label)).OrderBy(n => n);
+                var workNames = priorityGroup.Select(x =>
+                {
+                    string label = StripTags(x.WorkType.LabelCap);
+                    return string.IsNullOrEmpty(label) ? x.WorkType.defName : label;
+                })
+                .Where(name => !string.IsNullOrEmpty(name))
+                .OrderBy(n => n)
+                .ToList();
 
-                report.AppendLine($"• {priorityName}: {string.Join(", ", workNames)}");
+                if (workNames.Count > 0)
+                {
+                    report.AppendLine($"• {priorityName}: {string.Join(", ", workNames)}");
+                }
             }
 
             // Show disabled work types
             var disabledWork = workTypes
                 .Where(w => pawn.workSettings.GetPriority(w) == 0)
-                .Select(w => StripTags(w.label))
+                .Select(w =>
+                {
+                    string label = StripTags(w.LabelCap);
+                    return string.IsNullOrEmpty(label) ? w.defName : label;
+                })
+                .Where(name => !string.IsNullOrEmpty(name))
                 .OrderBy(n => n)
                 .ToList();
 
@@ -1158,6 +1212,16 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 1 => "👌 Low",
                 _ => "❌ Disabled"
             };
+        }
+
+        private static string GetAvailableWorkTypes(Pawn pawn)
+        {
+            var availableWorkTypes = WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder
+                .Where(w => w != null && !pawn.WorkTypeIsDisabled(w))
+                .Select(w => $"{w.defName} ({w.label})")
+                .ToList();
+
+            return string.Join(", ", availableWorkTypes.Take(10)); // Show first 10
         }
 
         // Helper method to check if pawn is valid and accessible

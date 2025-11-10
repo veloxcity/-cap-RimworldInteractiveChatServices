@@ -21,7 +21,7 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
         {
             if (args.Length == 0)
             {
-                return "Usage: !buy <item> [quality] [material] [quantity] OR !buy pawn <race> <xenotype> <gender> <age>";
+                return "Usage: !buy <item> [quality] [material] [quantity], only used for items.  Also !use !equip !wear";
             }
 
             // Check if this is a pawn purchase
