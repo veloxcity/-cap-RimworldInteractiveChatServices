@@ -131,16 +131,16 @@ namespace CAP_ChatInteractive
             var args = parts.Skip(1).ToArray();
             var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings as CAPGlobalChatSettings;
 
-            //// Prefix check (already have this)
-            //if (commandText.StartsWith(globalSettings.Prefix) ||
-            //    commandText.StartsWith(globalSettings.BuyPrefix))
-            //{
-            //    commandText = commandText.Substring(1);
-            //}
-            //else
-            //{
-            //    return;
-            //}
+            // Prefix check (already have this)
+            if (commandText.StartsWith(globalSettings.Prefix) ||
+                commandText.StartsWith(globalSettings.BuyPrefix))
+            {
+                commandText = commandText.Substring(1);
+            }
+            else
+            {
+                return;
+            }
 
             commandText = commandText.ToLowerInvariant();
             Logger.Debug($"Identified command: {commandText} with args: {string.Join(", ", args)}");

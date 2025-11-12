@@ -7,6 +7,7 @@ using _CAP__Chat_Interactive.Utilities;
 using CAP_ChatInteractive;
 using CAP_ChatInteractive.Commands.CommandHandlers;
 using RimWorld;
+using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -152,16 +153,6 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
 
                 var map = playerMaps.First();
 
-                // Find spawn location
-                if (!CellFinder.TryFindRandomEdgeCellWith(
-                    c => map.reachability.CanReachColony(c) && !c.Fogged(map),
-                    map,
-                    CellFinder.EdgeRoadChance_Neutral,
-                    out IntVec3 spawnLoc))
-                {
-                    return new BuyPawnResult(false, "Could not find valid spawn location.");
-                }
-
                 // Get pawn kind def for the race
                 var pawnKindDef = GetPawnKindDefForRace(raceName);
                 if (pawnKindDef == null)
@@ -179,10 +170,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
 
                     if (xenotypeDef == null)
                     {
-                        // Custom xenotype - you might need special handling here
                         Logger.Warning($"Custom xenotype '{xenotypeName}' detected. Custom xenotype support may vary.");
-                        // For custom xenotypes, we'd need to handle them differently
-                        // For now, we'll proceed without forcing a xenotype
                     }
                 }
 
@@ -227,8 +215,11 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                     pawn.Name = new NameSingle(username);
                 }
 
-                // Spawn pawn
-                GenSpawn.Spawn(pawn, spawnLoc, map, WipeMode.Vanish);
+                // Use improved pawn spawning that works for space biomes
+                if (!TrySpawnPawnInSpaceBiome(pawn, map))
+                {
+                    return new BuyPawnResult(false, "Could not find valid spawn location for pawn.");
+                }
 
                 // Send letter notification
                 TaggedString letterTitle = $"{username} Joins Colony";
@@ -245,7 +236,6 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 return new BuyPawnResult(false, $"Generation error: {ex.Message}");
             }
         }
-
         public static PawnKindDef GetPawnKindDefForRace(string raceName)
         {
             // Use centralized race lookup
@@ -586,6 +576,116 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 }
             }
             Viewers.SaveViewers();
+        }
+
+        // Helper methods
+
+        private static bool TrySpawnPawnInSpaceBiome(Pawn pawn, Map map)
+        {
+            try
+            {
+                Logger.Debug($"Attempting to spawn pawn in biome: {map.Biome.defName}");
+
+                // Strategy 1: Try standard edge spawning (works for ground maps)
+                if (CellFinder.TryFindRandomEdgeCellWith(
+                    c => map.reachability.CanReachColony(c) && !c.Fogged(map),
+                    map,
+                    CellFinder.EdgeRoadChance_Neutral,
+                    out IntVec3 spawnLoc))
+                {
+                    GenSpawn.Spawn(pawn, spawnLoc, map, WipeMode.Vanish);
+                    Logger.Debug($"Spawned pawn at edge cell: {spawnLoc}");
+                    return true;
+                }
+
+                // Strategy 2: For space biomes or when edge spawning fails, try near existing colonists
+                var existingColonist = map.mapPawns.FreeColonists.FirstOrDefault();
+                if (existingColonist != null)
+                {
+                    if (CellFinder.TryFindRandomCellNear(existingColonist.Position, map, 8,
+                        c => c.Standable(map) && !c.Fogged(map) && c.Walkable(map),
+                        out IntVec3 nearColonistPos))
+                    {
+                        GenSpawn.Spawn(pawn, nearColonistPos, map, WipeMode.Vanish);
+                        Logger.Debug($"Spawned pawn near colonist: {nearColonistPos}");
+                        return true;
+                    }
+                }
+
+                // Strategy 3: Try any valid cell in the player's base area
+                if (map.areaManager.Home.ActiveCells != null)
+                {
+                    var homeCells = map.areaManager.Home.ActiveCells.Where(c =>
+                        c.Standable(map) && !c.Fogged(map)).ToList();
+
+                    if (homeCells.Count > 0)
+                    {
+                        IntVec3 homePos = homeCells.RandomElement();
+                        GenSpawn.Spawn(pawn, homePos, map, WipeMode.Vanish);
+                        Logger.Debug($"Spawned pawn in home area: {homePos}");
+                        return true;
+                    }
+                }
+
+                // Strategy 4: Use drop pod delivery as last resort
+                Logger.Debug("Attempting drop pod delivery as fallback...");
+                return TryDropPodDelivery(pawn, map);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error in TrySpawnPawnInSpaceBiome: {ex}");
+                return false;
+            }
+        }
+
+        private static bool TryDropPodDelivery(Pawn pawn, Map map)
+        {
+            try
+            {
+                // Find a safe drop position
+                IntVec3 dropPos;
+                if (DropCellFinder.TryFindDropSpotNear(map.Center, map, out dropPos,
+                    allowFogged: false, canRoofPunch: true, maxRadius: 20))
+                {
+                    // Use RimWorld's built-in drop pod utility - much simpler!
+                    List<Thing> thingsToDeliver = new List<Thing> { pawn };
+
+                    DropPodUtility.DropThingsNear(
+                        dropPos,
+                        map,
+                        thingsToDeliver,
+                        openDelay: 110,
+                        leaveSlag: false,
+                        canRoofPunch: true,
+                        forbid: true,
+                        allowFogged: false
+                    );
+
+                    Logger.Debug($"Delivered pawn via drop pod at: {dropPos}");
+                    return true;
+                }
+
+                Logger.Error("Could not find valid drop position for pawn delivery");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error in drop pod delivery: {ex}");
+                return false;
+            }
+        }
+
+        // Helper method for finding cells inside an area
+        private static bool CellFinderTryFindRandomCellInsideWith(IEnumerable<IntVec3> cells, Map map, out IntVec3 result)
+        {
+            var validCells = cells.Where(c => c.InBounds(map) && c.Standable(map) && !c.Fogged(map)).ToList();
+            if (validCells.Any())
+            {
+                result = validCells.RandomElement();
+                return true;
+            }
+            result = IntVec3.Invalid;
+            return false;
         }
 
         // New method to handle the command with argument parsing
