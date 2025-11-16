@@ -436,8 +436,46 @@ namespace CAP_ChatInteractive
             Rect pawnHeaderRect = new Rect(leftPadding, y, width, sectionHeight);
             Widgets.Label(pawnHeaderRect, "Assigned Pawn:");
             y += sectionHeight;
-
+            Logger.Debug($"Before: GetViewerPawn result for {selectedViewer.Username}:");
             Pawn viewerPawn = GetViewerPawn(selectedViewer);
+
+            // DEBUG
+            Logger.Debug($"After: GetViewerPawn result for {selectedViewer.Username}:");
+            Logger.Debug($"  - viewerPawn is null: {viewerPawn == null}");
+            if (viewerPawn != null)
+            {
+                Logger.Debug($"  - Pawn Name: {viewerPawn.Name}");
+                Logger.Debug($"  - Pawn ThingID: {viewerPawn.ThingID}");
+                Logger.Debug($"  - Pawn Dead: {viewerPawn.Dead}");
+                Logger.Debug($"  - Pawn Spawned: {viewerPawn.Spawned}");
+                Logger.Debug($"  - Pawn Map: {viewerPawn.Map?.Parent?.Label ?? "None"}");
+            }
+            else
+            {
+                // Also debug what identifier we're looking for
+                string platformId = selectedViewer.GetPrimaryPlatformIdentifier();
+                Logger.Debug($"  - Platform ID used: {platformId}");
+
+                var assignmentManager = Current.Game.GetComponent<GameComponent_PawnAssignmentManager>();
+                bool hasAssignment = assignmentManager.viewerPawnAssignments.ContainsKey(platformId);
+                Logger.Debug($"  - Has assignment in dictionary: {hasAssignment}");
+
+                if (hasAssignment)
+                {
+                    string thingId = assignmentManager.viewerPawnAssignments[platformId];
+                    Logger.Debug($"  - Stored ThingID: {thingId}");
+
+                    // Try to find the pawn directly
+                    Pawn directPawn = GameComponent_PawnAssignmentManager.FindPawnByThingId(thingId);
+                    Logger.Debug($"  - Direct FindPawnByThingId result: {directPawn != null}");
+                    if (directPawn != null)
+                    {
+                        Logger.Debug($"  - Direct pawn Name: {directPawn.Name}");
+                        Logger.Debug($"  - Direct pawn ThingID: {directPawn.ThingID}");
+                    }
+                }
+            }
+
             bool hasPawn = viewerPawn != null && !viewerPawn.Dead;
 
             if (hasPawn)
@@ -848,8 +886,14 @@ namespace CAP_ChatInteractive
 
         private Pawn GetViewerPawn(Viewer viewer)
         {
-            var assignmentManager = Current.Game?.GetComponent<GameComponent_PawnAssignmentManager>();
-            return assignmentManager?.GetAssignedPawn(viewer.Username);
+            var assignmentManager = Current.Game.GetComponent<GameComponent_PawnAssignmentManager>();
+
+            // Get the platform ID (like "twitch:58513264")
+            string platformId = viewer.GetPrimaryPlatformIdentifier();
+            Logger.Debug($"At:  GetViewerPawn PVM:{platformId}");
+
+            // Use the internal method that takes the identifier directly
+            return assignmentManager.GetAssignedPawnIdentifier(platformId);
         }
 
         private bool HasAssignedPawn(Viewer viewer)

@@ -17,7 +17,8 @@ namespace CAP_ChatInteractive
         private string searchQuery = "";
         private string lastSearch = "";
         private Pawn selectedPawn = null;
-        private string selectedUsername = "";
+        private string selectedUsername = string.Empty;
+        private string selectedUserPlatformID = string.Empty;
         private List<Pawn> availablePawns = new List<Pawn>();
         private List<Pawn> filteredPawns = new List<Pawn>();
 
@@ -100,7 +101,7 @@ namespace CAP_ChatInteractive
             Rect offerRect = new Rect(x, controlsY, buttonWidth, controlsHeight);
             if (Widgets.ButtonText(offerRect, "Send Offer") && selectedPawn != null && !string.IsNullOrEmpty(selectedUsername))
             {
-                SendPawnOffer(selectedUsername, selectedPawn);
+                SendPawnOffer(selectedUsername, selectedUserPlatformID, selectedPawn);
             }
             x += buttonWidth + spacing;
 
@@ -325,7 +326,8 @@ namespace CAP_ChatInteractive
             Rect assignRect = new Rect(usernameRect.xMax + 5f, usernameRect.y, 95f, 25f);
             if (Widgets.ButtonText(assignRect, "Assign") && !string.IsNullOrEmpty(selectedUsername))
             {
-                SendPawnOffer(selectedUsername, pawn);
+                // Use direct assignment instead of sending offer
+                AssignPawnDirectly(selectedUsername,selectedUserPlatformID, pawn);
             }
         }
 
@@ -460,7 +462,11 @@ namespace CAP_ChatInteractive
                 float y = 0f;
                 for (int i = 0; i < queueList.Count; i++)
                 {
-                    string username = queueList[i];
+                    string platformId = queueList[i];
+
+                    // Convert platform ID to username for display
+                    string username = queueManager.GetUsernameFromPlatformId(platformId);
+                    string displayName = CapitalizeFirst(username);
                     Rect rowRect = new Rect(0f, y, viewRect.width, rowHeight - 2f);
 
                     // Alternate background
@@ -469,27 +475,34 @@ namespace CAP_ChatInteractive
                         Widgets.DrawLightHighlight(rowRect);
                     }
 
-                    // Position and username
+                    // Position and username (now showing actual username Capitalized as displayName )
                     Widgets.Label(new Rect(10f, y, 40f, rowHeight), $"#{i + 1}");
-                    Widgets.Label(new Rect(50f, y, 200f, rowHeight), username);
+                    Widgets.Label(new Rect(50f, y, 200f, rowHeight), displayName);
 
                     // Action buttons
                     Rect selectRect = new Rect(260f, y, 80f, rowHeight - 4f);
                     if (Widgets.ButtonText(selectRect, "Select"))
                     {
-                        selectedUsername = username;
+                        selectedUsername = username; // Store username for assignment
+                        selectedUserPlatformID = platformId;
                     }
 
                     Rect removeRect = new Rect(345f, y, 80f, rowHeight - 4f);
                     if (Widgets.ButtonText(removeRect, "Remove"))
                     {
-                        queueManager.RemoveFromQueue(username);
+                        queueManager.RemoveFromQueue(platformId); // Remove by platform ID
                     }
 
                     y += rowHeight;
                 }
             }
             Widgets.EndScrollView();
+        }
+
+        private string CapitalizeFirst(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
+            return char.ToUpper(text[0]) + (text.Length > 1 ? text.Substring(1) : "");
         }
 
         private void RefreshAvailablePawns()
@@ -564,20 +577,22 @@ namespace CAP_ChatInteractive
             Messages.Message($"Selected {randomViewer} from queue", MessageTypeDefOf.NeutralEvent);
         }
 
-        private void SendPawnOffer(string username, Pawn pawn)
+        private void SendPawnOffer(string username, string platformID, Pawn pawn)
         {
             var queueManager = GetQueueManager();
 
-            // Remove from queue and add as pending offer (DO NOT assign pawn yet)
-            queueManager.RemoveFromQueue(username);
-            queueManager.AddPendingOffer(username, pawn); // Pass the pawn to the offer
+            // Remove from queue using platform ID
+            queueManager.RemoveFromQueue(platformID);
 
-            // Get the actual timeout being used for the message
+            // Add pending offer using platform ID for security
+            queueManager.AddPendingOffer(username, platformID, pawn);
+
+            // Get timeout settings
             var settings = CAPChatInteractiveMod.Instance?.Settings?.GlobalSettings;
             int timeoutSeconds = settings?.PawnOfferTimeoutSeconds ?? 300;
             int timeoutMinutes = timeoutSeconds / 60;
 
-            // Send chat message with real timeout
+            // Send chat message TO USERNAME (user-facing)
             string offerMessage = $"🎉 You've been offered {pawn.Name}! Type !acceptpawn within {timeoutMinutes} minutes to claim your pawn!";
             ChatCommandProcessor.SendMessageToUsername(username, offerMessage);
 
@@ -587,12 +602,43 @@ namespace CAP_ChatInteractive
 
             // Clear selection
             selectedUsername = "";
+            selectedUserPlatformID = "";
             if (filteredPawns.Count > 0)
                 selectedPawn = filteredPawns[0];
             else
                 selectedPawn = null;
 
             Messages.Message($"Sent pawn offer to {username}", MessageTypeDefOf.PositiveEvent);
+        }
+
+        // NEW METHOD: Direct assignment without sending offer
+        private void AssignPawnDirectly(string username, string platformID, Pawn pawn)
+        {
+            var queueManager = GetQueueManager();
+
+            // Remove from queue using platform ID
+            queueManager.RemoveFromQueue(platformID);
+
+            // Directly assign the pawn using platform ID
+            queueManager.AssignPawnToViewer(platformID, pawn);
+
+            // Send confirmation message to chat (user-facing)
+            string assignMessage = $"🎉 You have been assigned {pawn.Name}! Use !mypawn to check your pawn's status.";
+            ChatCommandProcessor.SendMessageToUsername(username, assignMessage);
+
+            // Update UI
+            RefreshAvailablePawns();
+            FilterPawns();
+
+            // Clear selection
+            selectedUsername = "";
+            selectedUserPlatformID = "";
+            if (filteredPawns.Count > 0)
+                selectedPawn = filteredPawns[0];
+            else
+                selectedPawn = null;
+
+            Messages.Message($"Assigned pawn directly to {username}", MessageTypeDefOf.PositiveEvent);
         }
 
         private GameComponent_PawnAssignmentManager GetQueueManager()

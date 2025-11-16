@@ -78,27 +78,18 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
 
         public static string HandleQueueStatusCommand(ChatMessageWrapper user)
         {
-            try
-            {
-                var assignmentManager = CAPChatInteractiveMod.GetPawnAssignmentManager();
+            var assignmentManager = CAPChatInteractiveMod.GetPawnAssignmentManager();
 
-                // CHANGED: Use message-based check for queue membership
-                if (assignmentManager.IsInQueue(user.Username))
-                {
-                    int position = assignmentManager.GetQueuePosition(user.Username);
-                    int queueSize = assignmentManager.GetQueueSize();
-                    return $"You are in the pawn queue at position #{position} of {queueSize}.";
-                }
-                else
-                {
-                    int queueSize = assignmentManager.GetQueueSize();
-                    return $"You are not in the pawn queue. Current queue size: {queueSize}";
-                }
-            }
-            catch (Exception ex)
+            if (assignmentManager.IsInQueue(user.Username)) // Now this will work correctly
             {
-                Logger.Error($"Error checking queue status: {ex}");
-                return "Error checking queue status.";
+                int position = assignmentManager.GetQueuePosition(user.Username); // And this
+                int queueSize = assignmentManager.GetQueueSize();
+                return $"You are in the pawn queue at position #{position} of {queueSize}.";
+            }
+            else
+            {
+                int queueSize = assignmentManager.GetQueueSize();
+                return $"You are not in the pawn queue. Current queue size: {queueSize}";
             }
         }
 

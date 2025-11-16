@@ -273,12 +273,12 @@ namespace CAP_ChatInteractive
         // NEW: Helper method to get the primary platform identifier (matches assignment manager logic)
         public string GetPrimaryPlatformIdentifier()
         {
-            // Use the same logic as the assignment manager for consistency
+            // Match the assignment manager's GetViewerIdentifier logic
             if (PlatformUserIds.TryGetValue("twitch", out string twitchId))
                 return $"twitch:{twitchId}";
             if (PlatformUserIds.TryGetValue("youtube", out string youtubeId))
                 return $"youtube:{youtubeId}";
-            return PlatformUserIds.Values.FirstOrDefault() ?? $"username:{Username}";
+            return $"username:{Username.ToLowerInvariant()}"; // Only add prefix for username fallback
         }
 
         // NEW: Check if this viewer matches a chat message (for platform ID verification)

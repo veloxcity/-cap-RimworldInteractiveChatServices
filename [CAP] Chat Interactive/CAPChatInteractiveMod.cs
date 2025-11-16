@@ -39,6 +39,10 @@ namespace CAP_ChatInteractive
 
             Settings = GetSettings<CAPChatInteractiveSettings>();
 
+            // INITIALIZE ALIEN PROVIDER HERE - AT MOD STARTUP
+            Logger.Debug("=== INITIALIZING ALIEN COMPATIBILITY AT MOD STARTUP ===");
+            InitializeAlienCompatibilityProvider();
+
             if (Current.Game != null && Current.Game.components != null)
             {
                 var existingComponent = Current.Game.GetComponent<CAPChatInteractive_GameComponent>();
@@ -62,6 +66,7 @@ namespace CAP_ChatInteractive
 
             // Then initialize services (which will use the registered commands)
             InitializeServices();
+            InitializeAlienCompatibilityProvider(); // HAR
 
             Logger.Debug("CAPChatInteractiveMod constructor completed");
         }
@@ -72,20 +77,13 @@ namespace CAP_ChatInteractive
             {
                 Logger.Debug("=== INITIALIZING ALIEN COMPATIBILITY PROVIDER ===");
 
-                // Check if HAR mod is loaded
+                // Check if HAR mod is loaded AND if our patch assembly is available
                 if (ModLister.GetActiveModWithIdentifier("erdelf.HumanoidAlienRaces") != null)
                 {
-                    Logger.Debug("HAR mod detected, initializing compatibility provider");
-                    AlienProvider = FindAnyAlienCompatibilityProvider();
+                    Logger.Debug("HAR mod detected, checking for patch assembly");
 
-                    if (AlienProvider != null)
-                    {
-                        Logger.Debug($"HAR compatibility provider initialized: {AlienProvider.GetType().Name}");
-                    }
-                    else
-                    {
-                        Logger.Warning("No alien compatibility provider found");
-                    }
+                    // Try to load the patch assembly dynamically
+                    AlienProvider = LoadHARPatchConditionally();
                 }
                 else
                 {
@@ -98,6 +96,39 @@ namespace CAP_ChatInteractive
                 Logger.Error($"Error initializing alien compatibility provider: {ex}");
                 AlienProvider = null;
             }
+        }
+
+        private IAlienCompatibilityProvider LoadHARPatchConditionally()
+        {
+            try
+            {
+                // This will only succeed if the assembly is in the Optional folder
+                Assembly harPatchAssembly = AppDomain.CurrentDomain.GetAssemblies()
+                    .FirstOrDefault(a => a.GetName().Name == "[CAP] HAR Patch");
+
+                if (harPatchAssembly == null)
+                {
+                    Logger.Debug("HAR Patch assembly not found (not in Optional folder)");
+                    return null;
+                }
+
+                Type harPatchType = harPatchAssembly.GetType("CAP_ChatInteractive.Patch.HAR.HARPatch");
+                if (harPatchType != null)
+                {
+                    return Activator.CreateInstance(harPatchType) as IAlienCompatibilityProvider;
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                // This is expected if the patch isn't installed
+                Logger.Debug("HAR Patch assembly not found (optional dependency)");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error loading HAR patch: {ex}");
+            }
+
+            return null;
         }
 
         public IAlienCompatibilityProvider FindAnyAlienCompatibilityProvider()

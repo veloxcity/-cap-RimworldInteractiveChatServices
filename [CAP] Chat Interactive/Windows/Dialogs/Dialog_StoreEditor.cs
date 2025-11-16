@@ -588,25 +588,33 @@ namespace CAP_ChatInteractive
             {
                 (string icon, string tooltip, int stacks)[] presets =
                 {
-            ("Stack1", "Set all visible items to 1 stack limit", 1),
-            ("Stack3", "Set all visible items to 3 stacks limit", 3),
-            ("Stack5", "Set all visible items to 5 stacks limit", 5)
-        };
+                    ("Stack1", "Set all visible items to 1 stack limit", 1),
+                    ("Stack3", "Set all visible items to 3 stacks limit", 3),
+                    ("Stack5", "Set all visible items to 5 stacks limit", 5)
+                };
 
                 foreach (var preset in presets)
                 {
-                    Texture2D icon = ContentFinder<Texture2D>.Get($"UI/Icons/{preset.icon}", false);
+                    Texture2D icon = null;
+
+                    // Method 1: Try standard path
+                    icon = ContentFinder<Texture2D>.Get($"UI/Icons/{preset.icon}", false);
                     Rect iconRect = new Rect(x, centerY, iconSize, iconSize);
 
                     // Hover highlight
                     if (Mouse.IsOver(iconRect))
                         Widgets.DrawHighlight(iconRect);
 
-                    // Draw icon (fallback to text)
-                    if (icon != null)
-                        Widgets.DrawTextureFitted(iconRect, icon, 1f);
-                    else
+                    if (icon == null)
+                    {
+                        Log.Warning($"Could not load icon: UI/Icons/{preset.icon}");
+                        // Fallback to text
                         Widgets.ButtonText(iconRect, $"{preset.stacks}x");
+                    }
+                    else
+                    {
+                        Widgets.DrawTextureFitted(iconRect, icon, 1f);
+                    }
 
                     TooltipHandler.TipRegion(iconRect, preset.tooltip);
 

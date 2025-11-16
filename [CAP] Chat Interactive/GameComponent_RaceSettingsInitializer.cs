@@ -43,11 +43,11 @@ public class GameComponent_RaceSettingsInitializer : GameComponent
             Logger.Debug("=== INITIALIZING RACE SETTINGS WITH DELAY ===");
 
             // Ensure AlienProvider is initialized FIRST
-            if (CAPChatInteractiveMod.Instance != null)
-            {
-                Logger.Debug("Initializing AlienProvider...");
-                CAPChatInteractiveMod.Instance.InitializeAlienCompatibilityProvider();
-            }
+            //if (CAPChatInteractiveMod.Instance != null)
+            //{
+            //    Logger.Debug("Initializing AlienProvider...");
+            //    CAPChatInteractiveMod.Instance.InitializeAlienCompatibilityProvider();
+            //}
 
             // NOW initialize race settings (provider should be available)
             Logger.Debug("Initializing race settings...");

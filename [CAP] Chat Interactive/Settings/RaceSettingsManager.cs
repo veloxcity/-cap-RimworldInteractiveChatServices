@@ -175,7 +175,13 @@ namespace _CAP__Chat_Interactive.Utilities
                         // For HAR races, use whiteXenotypeList to determine which xenotypes to enable
                         // Turn ON xenotypes in whiteXenotypeList, turn OFF all others
                         defaultEnabled = allowedXenotypes.Contains(xenotype);
-                        Logger.Debug($"Race: {race.defName} Xeno: {xenotype} - Enabled: {defaultEnabled}");
+
+                        Logger.Debug($"Race: {race.defName} Xeno: {xenotype} - AllowedListCount: {allowedXenotypes.Count}, InList: {allowedXenotypes.Contains(xenotype)}, Enabled: {defaultEnabled}");
+
+                        if (allowedXenotypes.Contains(xenotype))
+                        {
+                            Logger.Debug($"  ^^^ FOUND IN ALLOWED LIST ^^^");
+                        }
 
                         // If this xenotype matches the race name, set it as the default
                         if (defaultEnabled && xenotype.Equals(race.defName, StringComparison.OrdinalIgnoreCase))
@@ -186,7 +192,8 @@ namespace _CAP__Chat_Interactive.Utilities
                     }
                     else
                     {
-                        // For non-HAR races, enable all xenotypes
+                        // This is likely where the problem is - we're falling through here
+                        Logger.Debug($"Race: {race.defName} - NO ALLOWED XENOTYPES LIST, defaulting all to TRUE");
                         defaultEnabled = true;
                     }
 

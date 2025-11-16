@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <RootNamespace>CAP_ChatInteractive.Patch.HAR</RootNamespace>
-    <OutputPath>C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\[CAP] Chat Interactive\1.6\Assemblies</OutputPath>
+    <OutputPath>C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\[CAP] Chat Interactive\Patches\1.6\Assemblies</OutputPath>
     <DebugType>none</DebugType>
     <CopyLocal>False</CopyLocal>
     <LangVersion>12</LangVersion>

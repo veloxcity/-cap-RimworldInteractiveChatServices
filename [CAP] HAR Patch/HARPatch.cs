@@ -3,7 +3,6 @@
 // Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
 // Provides compatibility with the Human and Alien Races (HAR) mod for trait and xenotype restrictions.
 using _CAP__Chat_Interactive.Interfaces;
-using _CAP__Chat_Interactive.Utilities;
 using AlienRace;
 using JetBrains.Annotations;
 using RimWorld;
@@ -15,7 +14,7 @@ using Verse;
 namespace CAP_ChatInteractive.Patch.HAR
 {
     [UsedImplicitly]
-    [StaticConstructorOnStartup]
+    // [StaticConstructorOnStartup]
     public class HARPatch: IAlienCompatibilityProvider
     {
         public string ModId => "erdelf.HumanoidAlienRaces";
@@ -142,6 +141,12 @@ namespace CAP_ChatInteractive.Patch.HAR
                 restriction.blackXenotypeList.Any(x => x.defName == xenotype.defName))
             {
                 return false;
+            }
+
+            // If whitelist exists, check if it's in the whitelist
+            if (restriction.whiteXenotypeList != null && restriction.whiteXenotypeList.Count > 0)
+            {
+                return restriction.whiteXenotypeList.Any(x => x.defName == xenotype.defName);
             }
 
             // If only race-restricted xenotypes are allowed, check the exclusive list

@@ -725,18 +725,6 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
             }
         }
 
-        // Helper method for finding cells inside an area
-        private static bool CellFinderTryFindRandomCellInsideWith(IEnumerable<IntVec3> cells, Map map, out IntVec3 result)
-        {
-            var validCells = cells.Where(c => c.InBounds(map) && c.Standable(map) && !c.Fogged(map)).ToList();
-            if (validCells.Any())
-            {
-                result = validCells.RandomElement();
-                return true;
-            }
-            result = IntVec3.Invalid;
-            return false;
-        }
 
         // New method to handle the command with argument parsing
         public static string HandleBuyPawnCommand(ChatMessageWrapper user, string[] args)

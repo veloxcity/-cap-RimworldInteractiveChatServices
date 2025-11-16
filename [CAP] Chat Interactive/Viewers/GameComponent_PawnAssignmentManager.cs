@@ -84,6 +84,25 @@ namespace CAP_ChatInteractive
             Logger.Debug($"Assigned pawn {pawn.ThingID} to viewer {identifier}");
         }
 
+        // NEW: Direct assignment method for dialog use
+        public void AssignPawnToViewer(string username, Pawn pawn)
+        {
+            string identifier = GetLegacyIdentifier(username);
+            viewerPawnAssignments[identifier] = pawn.ThingID;
+
+            // Set pawn name to username
+            if (pawn.Name is NameTriple nameTriple)
+            {
+                pawn.Name = new NameTriple(nameTriple.First, username, nameTriple.Last);
+            }
+            else
+            {
+                pawn.Name = new NameSingle(username);
+            }
+
+            Logger.Debug($"Directly assigned pawn {pawn.ThingID} to viewer {username}");
+        }
+
         // === GetAssignedPawn Methods ===
 
         public Pawn GetAssignedPawn(ChatMessageWrapper message)
@@ -114,8 +133,31 @@ namespace CAP_ChatInteractive
             return GetAssignedPawnIdentifier(identifier);
         }
 
+        public Pawn GetAssingedPawn(string identifier)
+        {
+            return GetAssignedPawnIdentifier(identifier);
+        }
+
+        public string GetUsernameFromPlatformId(string platformId)
+        {
+            // Find the viewer that has this platform ID
+            foreach (var viewer in Viewers.All)
+            {
+                foreach (var platformUserId in viewer.PlatformUserIds)
+                {
+                    string viewerPlatformId = $"{platformUserId.Key}:{platformUserId.Value}";
+                    if (viewerPlatformId == platformId)
+                    {
+                        return viewer.Username;
+                    }
+                }
+            }
+
+            return platformId; // Fallback to platform ID if not found
+        }
+
         // PRIVATE: Internal method that takes identifier directly
-        private Pawn GetAssignedPawnIdentifier(string identifier)
+        public Pawn GetAssignedPawnIdentifier(string identifier)
         {
             if (viewerPawnAssignments.TryGetValue(identifier, out string thingId))
             {
@@ -198,7 +240,7 @@ namespace CAP_ChatInteractive
             return viewerPawnAssignments.Keys.ToList();
         }
 
-        private static Pawn FindPawnByThingId(string thingId)
+        public static Pawn FindPawnByThingId(string thingId)
         {
             if (string.IsNullOrEmpty(thingId))
                 return null;
@@ -315,44 +357,31 @@ namespace CAP_ChatInteractive
         // NEW: Legacy overload
         public bool RemoveFromQueue(string username)
         {
-            string identifier = GetLegacyIdentifier(username);
-            bool removed = pawnQueue.Remove(identifier);
+            // Find the viewer and get their platform ID
+            var viewer = Viewers.GetViewer(username);
+            if (viewer == null) return false;
+
+            string platformId = viewer.GetPrimaryPlatformIdentifier();
+            bool removed = pawnQueue.Remove(platformId);
             if (removed)
             {
-                queueJoinTimes.Remove(identifier);
+                queueJoinTimes.Remove(platformId);
             }
             return removed;
         }
 
         public bool IsInQueue(string username)
         {
-            string identifier = GetLegacyIdentifier(username);
-            return pawnQueue.Contains(identifier);
+            // Find the viewer and get their platform ID
+            var viewer = Viewers.GetViewer(username);
+            if (viewer == null) return false;
+
+            string platformId = viewer.GetPrimaryPlatformIdentifier();
+            return pawnQueue.Contains(platformId);
         }
 
         // UPDATED: Pending offers to use platform IDs
-        public void AddPendingOffer(ChatMessageWrapper message, Pawn pawn, int timeoutSeconds = -1)
-        {
-            // Use global setting if not specified, default to 300 seconds (5 minutes)
-            if (timeoutSeconds == -1)
-            {
-                var settings = CAPChatInteractiveMod.Instance?.Settings?.GlobalSettings;
-                timeoutSeconds = settings?.PawnOfferTimeoutSeconds ?? 300;
-            }
 
-            string identifier = GetViewerIdentifier(message);
-
-            pendingOffers[identifier] = new PendingPawnOffer
-            {
-                Username = message.Username, // Keep username for display
-                PlatformIdentifier = identifier, // NEW: Store the platform identifier
-                OfferTime = Find.TickManager.TicksGame,
-                TimeoutTicks = timeoutSeconds * 60,
-                PawnThingId = pawn?.ThingID
-            };
-
-            Logger.Debug($"Added pending offer for {identifier}");
-        }
 
         public string GetNextInQueue()
         {
@@ -380,7 +409,12 @@ namespace CAP_ChatInteractive
 
         public int GetQueuePosition(string username)
         {
-            int position = pawnQueue.IndexOf(username.ToLowerInvariant());
+            // Find the viewer and get their platform ID
+            var viewer = Viewers.GetViewer(username);
+            if (viewer == null) return -1;
+
+            string platformId = viewer.GetPrimaryPlatformIdentifier();
+            int position = pawnQueue.IndexOf(platformId);
             return position >= 0 ? position + 1 : -1;
         }
 
@@ -395,7 +429,7 @@ namespace CAP_ChatInteractive
             queueJoinTimes.Clear();
         }
 
-        public void AddPendingOffer(string username, Pawn pawn, int timeoutSeconds = -1)
+        public void AddPendingOffer(string username, string platformID, Pawn pawn, int timeoutSeconds = -1)
         {
             // Use global setting if not specified, default to 300 seconds (5 minutes)
             if (timeoutSeconds == -1)
@@ -404,14 +438,19 @@ namespace CAP_ChatInteractive
                 timeoutSeconds = settings?.PawnOfferTimeoutSeconds ?? 300;
             }
 
-            pendingOffers[username.ToLowerInvariant()] = new PendingPawnOffer
+            // Use platform ID as key for security (prevents username spoofing)
+            pendingOffers[platformID] = new PendingPawnOffer
             {
                 Username = username,
+                PlatformIdentifier = platformID, // Store the actual platform ID
                 OfferTime = Find.TickManager.TicksGame,
                 TimeoutTicks = timeoutSeconds * 60,
-                PawnThingId = pawn?.ThingID // NEW: Store the pawn's ID
+                PawnThingId = pawn?.ThingID
             };
+
+            Logger.Debug($"Added pending offer for {username} with platform ID: {platformID}");
         }
+
         public bool HasPendingOffer(ChatMessageWrapper message)
         {
             string identifier = GetViewerIdentifier(message);
@@ -427,12 +466,15 @@ namespace CAP_ChatInteractive
 
         public Pawn AcceptPendingOffer(ChatMessageWrapper message)
         {
-            string identifier = GetViewerIdentifier(message);
-            if (pendingOffers.TryGetValue(identifier, out PendingPawnOffer offer))
+            string platformIdentifier = GetViewerIdentifier(message);
+
+            // Look for offer by platform ID (secure)
+            if (pendingOffers.TryGetValue(platformIdentifier, out PendingPawnOffer offer))
             {
+                pendingOffers.Remove(platformIdentifier);
+
                 // Find the pawn by its stored ThingID
                 Pawn pawn = FindPawnByThingId(offer.PawnThingId);
-                pendingOffers.Remove(identifier);
 
                 // Only assign if pawn is still valid
                 if (pawn != null && !pawn.Dead)
@@ -447,22 +489,20 @@ namespace CAP_ChatInteractive
                         pawn.Name = new NameSingle(message.Username);
                     }
 
-                    // Assign the pawn to the viewer
+                    // Assign the pawn to the viewer using platform ID for security
                     AssignPawnToViewer(message, pawn);
 
-                    // Debug logging
-                    Logger.Debug($"Successfully assigned pawn {pawn.Name} (ThingID: {pawn.ThingID}) to viewer {identifier}");
-
+                    Logger.Debug($"Successfully assigned pawn {pawn.Name} to viewer {message.Username}");
                     return pawn;
                 }
                 else
                 {
-                    Logger.Debug($"Pawn offer for {identifier} failed - pawn null: {pawn == null}, pawn dead: {(pawn != null && pawn.Dead)}");
+                    Logger.Debug($"Pawn offer for {message.Username} failed - pawn null or dead");
                     return null;
                 }
             }
 
-            Logger.Debug($"No pending offer found for {identifier}");
+            Logger.Debug($"No pending offer found for platform: {platformIdentifier}");
             return null;
         }
 
@@ -484,16 +524,16 @@ namespace CAP_ChatInteractive
                     expired.Add(offer.Key);
                     expiredOffers.Add(offer.Key);
 
-                    // Send timeout message to chat using the new broadcast function
+                    // Send timeout message to chat using the stored username
                     string timeoutMessage = $"⏰ Your pawn offer has expired! Join the queue again with !join";
                     ChatCommandProcessor.SendMessageToUsername(offer.Value.Username, timeoutMessage);
                 }
             }
 
             // Remove expired offers
-            foreach (string username in expired)
+            foreach (string key in expired)
             {
-                pendingOffers.Remove(username);
+                pendingOffers.Remove(key);
             }
         }
 
