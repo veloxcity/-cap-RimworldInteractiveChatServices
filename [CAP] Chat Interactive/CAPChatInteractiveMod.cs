@@ -68,7 +68,15 @@ namespace CAP_ChatInteractive
             InitializeServices();
             InitializeAlienCompatibilityProvider(); // HAR
 
+
+
             Logger.Debug("CAPChatInteractiveMod constructor completed");
+        }
+
+        private void RegisterAlerts()
+        {
+            // This will automatically be picked up by RimWorld's alert system
+            // since it's in the same assembly and inherits from Alert
         }
 
         public void InitializeAlienCompatibilityProvider()

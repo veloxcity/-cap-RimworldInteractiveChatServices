@@ -203,6 +203,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 {
                     return $"The trait '{buyableTrait.Name}' cannot be removed from pawns.";
                 }
+
                 // Check if pawn has this trait - get the TraitDef first  
                 TraitDef removeTraitDef = DefDatabase<TraitDef>.GetNamedSilentFail(buyableTrait.DefName);
                 var existingTrait = pawn.story.traits.allTraits.FirstOrDefault(t =>
@@ -210,6 +211,12 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 if (existingTrait == null)
                 {
                     return $"Your pawn does not have the trait '{buyableTrait.Name}'.";
+                }
+
+                // NEW CHECK: Prevent removal of forced traits (e.g., from genes)
+                if (existingTrait.ScenForced)
+                {
+                    return $"❌ The trait '{buyableTrait.Name}' is forced (e.g., from genes) and cannot be removed.";
                 }
 
                 // Check viewer's coins
