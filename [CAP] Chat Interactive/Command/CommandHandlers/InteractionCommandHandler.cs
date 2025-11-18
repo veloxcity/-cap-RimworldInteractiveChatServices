@@ -204,7 +204,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
             {
                 // Use the interaction worker to execute the interaction
                 var result = initiator.interactions.TryInteractWith(target, interaction);
-
+                Logger.Debug($"Interaction Results: {result}");
                 if (result)
                 {
                     string successMessage = GetSuccessMessage(initiator, target, interaction);

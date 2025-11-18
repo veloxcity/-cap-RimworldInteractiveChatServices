@@ -43,7 +43,8 @@ namespace CAP_ChatInteractive.Store
         public StoreItem(ThingDef thingDef)
         {
             DefName = thingDef.defName;
-            CustomName = thingDef.label.CapitalizeFirst().Replace("(", "").Replace(")", "");
+            CustomName = thingDef.label.CapitalizeFirst();
+            // CustomName = thingDef.label.CapitalizeFirst().Replace("(", "").Replace(")", "");
             BasePrice = CalculateBasePrice(thingDef);
             Category = GetCategoryFromThingDef(thingDef);  // This needs fixing
             ModSource = thingDef.modContentPack?.Name ?? "RimWorld";
@@ -113,14 +114,11 @@ namespace CAP_ChatInteractive.Store
             if (thingDef.IsApparel)
                 return "Apparel";
 
-            // 4. REMOVE the special drug detection here - it's redundant
-            // Items that are properly flagged as drugs will be caught above
-
-            // 5. Use the def's assigned ThingCategory if available
+            // 4. Use the def's assigned ThingCategory if available
             if (thingDef.FirstThingCategory != null)
                 return thingDef.FirstThingCategory.LabelCap;
 
-            // 6. Fallback
+            // 5. Fallback
             return "Misc";
         }
     }

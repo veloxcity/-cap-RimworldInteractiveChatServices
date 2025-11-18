@@ -107,8 +107,8 @@ namespace CAP_ChatInteractive.Utilities
                 // Remove/replace problematic characters with spaces
                 string cleanArg = arg.Replace("[", " ")
                                    .Replace("]", " ")
-                                   .Replace("(", " ")
-                                   .Replace(")", " ")
+                                 //  .Replace("(", " ")
+                                 //  .Replace(")", " ")
                                    .Replace(",", " ")
                                    .Replace(".", " ")
                                    .Replace(";", " ")

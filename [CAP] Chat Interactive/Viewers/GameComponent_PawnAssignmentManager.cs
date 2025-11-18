@@ -14,10 +14,10 @@ namespace CAP_ChatInteractive
     public class GameComponent_PawnAssignmentManager : GameComponent
     {
         // CHANGED: Use platform ID as primary key, with username as fallback
-        public Dictionary<string, string> viewerPawnAssignments; // PlatformID_or_Username -> ThingID
-        private List<string> pawnQueue; // PlatformID_or_Username in queue order
-        private Dictionary<string, float> queueJoinTimes; // PlatformID_or_Username -> join time (ticks)
-        private Dictionary<string, PendingPawnOffer> pendingOffers; // PlatformID_or_Username -> offer data
+        public Dictionary<string, string> viewerPawnAssignments; // PlatformID -> ThingID
+        private List<string> pawnQueue; // PlatformID in queue order
+        private Dictionary<string, float> queueJoinTimes; // PlatformID -> join time (ticks)
+        private Dictionary<string, PendingPawnOffer> pendingOffers; // PlatformID -> offer data
         private List<string> expiredOffers; // Offers that timed out
 
         public GameComponent_PawnAssignmentManager(Game game)
