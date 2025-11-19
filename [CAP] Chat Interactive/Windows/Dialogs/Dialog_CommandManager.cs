@@ -632,6 +632,62 @@ namespace CAP_ChatInteractive
                     y += sectionHeight;
                 }
 
+                // PASSION-SPECIFIC SETTINGS - Only show for passion command
+                if (selectedCommand != null && selectedCommand.commandText.ToLower() == "passion")
+                {
+                    y += 10f; // Extra spacing
+
+                    Rect passionHeaderRect = new Rect(leftPadding, y, viewRect.width, sectionHeight);
+                    Widgets.Label(passionHeaderRect, "Passion Command Settings:");
+                    y += sectionHeight;
+
+                    // Get global settings
+                    // var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
+
+                    // Min wager
+                    Rect minWagerRect = new Rect(leftPadding + 10f, y, viewRect.width - leftPadding - 100f, sectionHeight);
+                    Widgets.Label(minWagerRect, "Minimum wager:");
+                    Rect minWagerInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
+                    string minWagerBuffer = globalSettings.MinPassionWager.ToString();
+                    Widgets.TextFieldNumeric(minWagerInputRect, ref globalSettings.MinPassionWager, ref minWagerBuffer, 1, 10000);
+                    y += sectionHeight;
+
+                    // Max wager
+                    Rect maxWagerRect = new Rect(leftPadding + 10f, y, viewRect.width - leftPadding - 100f, sectionHeight);
+                    Widgets.Label(maxWagerRect, "Maximum wager:");
+                    Rect maxWagerInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
+                    string maxWagerBuffer = globalSettings.MaxPassionWager.ToString();
+                    Widgets.TextFieldNumeric(maxWagerInputRect, ref globalSettings.MaxPassionWager, ref maxWagerBuffer,
+                        globalSettings.MinPassionWager, 100000);
+                    y += sectionHeight;
+
+                    // Base success chance
+                    Rect baseChanceRect = new Rect(leftPadding + 10f, y, viewRect.width - leftPadding - 100f, sectionHeight);
+                    Widgets.Label(baseChanceRect, "Base success chance (%):");
+                    Rect baseChanceInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
+                    string baseChanceBuffer = globalSettings.BasePassionSuccessChance.ToString();
+                    Widgets.TextFieldNumeric(baseChanceInputRect, ref globalSettings.BasePassionSuccessChance, ref baseChanceBuffer, 1.0f, 100.0f);
+                    y += sectionHeight;
+
+                    // Max success chance
+                    Rect maxChanceRect = new Rect(leftPadding + 10f, y, viewRect.width - leftPadding - 100f, sectionHeight);
+                    Widgets.Label(maxChanceRect, "Max success chance (%):");
+                    Rect maxChanceInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
+                    string maxChanceBuffer = globalSettings.MaxPassionSuccessChance.ToString();
+                    Widgets.TextFieldNumeric(maxChanceInputRect, ref globalSettings.MaxPassionSuccessChance, ref maxChanceBuffer,
+                        globalSettings.BasePassionSuccessChance, 100.0f);
+                    y += sectionHeight;
+
+                    // Description
+                    Rect passionDescRect = new Rect(leftPadding + 10f, y, viewRect.width - leftPadding, 28f);
+                    Text.Font = GameFont.Tiny;
+                    GUI.color = new Color(0.7f, 0.7f, 0.7f);
+                    Widgets.Label(passionDescRect, "Higher wagers = better success chances. Base chance scales with wager amount.");
+                    Text.Font = GameFont.Small;
+                    GUI.color = Color.white;
+                    y += 20f;
+                }
+
             }
             Widgets.EndScrollView();
         }
@@ -702,6 +758,19 @@ namespace CAP_ChatInteractive
                 height += 28f; // Lootboxes per day
                 height += 28f; // Show welcome message
                 height += 28f; // Force open all
+                height += 28f; // Extra spacing
+            }
+
+            // PASSION-SPECIFIC SETTINGS HEIGHT
+            if (selectedCommand != null && selectedCommand.commandText.ToLower() == "passion")
+            {
+                height += 10f; // Extra spacing
+                height += 28f; // Passion header
+                height += 28f; // Min wager
+                height += 28f; // Max wager
+                height += 28f; // Base success chance
+                height += 28f; // Max success chance
+                height += 20f; // Description
                 height += 28f; // Extra spacing
             }
 

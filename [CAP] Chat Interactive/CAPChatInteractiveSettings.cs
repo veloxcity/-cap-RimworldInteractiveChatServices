@@ -127,6 +127,12 @@ namespace CAP_ChatInteractive
         public bool RequireResearch = false;
         public bool AllowUnresearchedItems = true;
 
+        // Passion Settings
+        public int MinPassionWager = 10;
+        public int MaxPassionWager = 1000;
+        public float BasePassionSuccessChance = 15.0f; // 15% base chance
+        public float MaxPassionSuccessChance = 60.0f; // 60% max chance
+
         public void ExposeData()
         {
             Scribe_Values.Look(ref EnableDebugLogging, "enableDebugLogging", false);
@@ -182,7 +188,12 @@ namespace CAP_ChatInteractive
             // Research settings
             Scribe_Values.Look(ref RequireResearch, "requireResearch", false);
             Scribe_Values.Look(ref AllowUnresearchedItems, "allowUnresearchedItems", true);
+
+            // Passion Command
+            Scribe_Values.Look(ref MinPassionWager, "minPassionWager", 10);
+            Scribe_Values.Look(ref MaxPassionWager, "maxPassionWager", 1000);
+            Scribe_Values.Look(ref BasePassionSuccessChance, "basePassionSuccessChance", 15.0f);
+            Scribe_Values.Look(ref MaxPassionSuccessChance, "maxPassionSuccessChance", 60.0f);
         }
     }
-
-}
+ }

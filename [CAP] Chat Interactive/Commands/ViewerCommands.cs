@@ -223,4 +223,14 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
             return ResearchCommandHandler.HandleResearchCommand(messageWrapper, args);
         }
     }
+
+    public class Passion : ChatCommand
+    {
+        public override string Name => "passion";
+
+        public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
+        {
+            return PassionCommandhandler.HandlePassionCommand(messageWrapper, args);
+        }
+    }
 }

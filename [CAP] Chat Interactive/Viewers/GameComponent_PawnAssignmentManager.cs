@@ -184,7 +184,7 @@ namespace CAP_ChatInteractive
             string identifier = FindViewerIdentifier(message.Username, message);
             if (viewerPawnAssignments.TryGetValue(identifier, out string thingId))
             {
-                Logger.Debug($"Checking assigned pawn for {identifier}, ThingID: {thingId}");
+                Logger.Debug($" Checking assigned pawn for {identifier}, ThingID: {thingId}");
                 Pawn pawn = FindPawnByThingId(thingId);
                 // Return true even if pawn is dead - we still want to allow resurrection
                 return pawn != null;
@@ -565,7 +565,7 @@ namespace CAP_ChatInteractive
             // Priority 2: Username (fallback for backwards compatibility)
             if (!string.IsNullOrEmpty(message.Username))
             {
-                return $"username:{message.Username.ToLowerInvariant()}";
+                return $"{message.Username.ToLowerInvariant()}";
             }
 
             // Priority 3: Display Name (last resort)
@@ -574,7 +574,7 @@ namespace CAP_ChatInteractive
 
         private string GetLegacyIdentifier(string username)
         {
-            return $"username:{username.ToLowerInvariant()}";
+            return $"{username.ToLowerInvariant()}";
         }
 
         private string FindViewerIdentifier(string username, ChatMessageWrapper message = null)
