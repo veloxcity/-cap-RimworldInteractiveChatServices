@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "[CAP] Chat Interactive", "[CAP] Chat Interactive\[CAP] Chat Interactive.csproj", "{931E9D4D-3A8D-4B9F-8B45-55CB9267242A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		..\1.6\Defs\JobDefs\JobDefs.xml = ..\1.6\Defs\JobDefs\JobDefs.xml
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "About", "About", "{0083D6CE-282C-4E30-BECE-19D430116E62}"
 	ProjectSection(SolutionItems) = preProject

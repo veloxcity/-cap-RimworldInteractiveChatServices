@@ -198,6 +198,17 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 List<Thing> spawnedItems = spawnResult.spawnedItems;
                 IntVec3 deliveryPos = spawnResult.deliveryPos;
 
+                // Set ownership for each spawned item if this is a direct pawn delivery
+                if (requireEquippable || requireWearable || addToInventory)
+                {
+                    //List<Thing> spawnedItems = spawnResult.spawnedItems;
+                    foreach (Thing spawnedItem in spawnedItems)
+                    {
+                        // spawnedItem.SetFactionDirect(Faction.OfPlayer);
+                        TrySetItemOwnership(spawnedItem, viewerPawn);
+                    }
+                }
+
                 // Create look targets - use the delivery position we know items will be at
                 LookTargets lookTargets = null;
 
@@ -921,25 +932,6 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 hediff.def?.defName?.Contains("Psychic") == true);
         }
 
-        private static IntVec3 FindAnimalSpawnPosition(Verse.Pawn viewerPawn)
-        {
-            if (viewerPawn == null || viewerPawn.Map == null)
-                return IntVec3.Invalid;
-
-            // Try to find a position near the viewer pawn where animals would spawn
-            if (CellFinder.TryFindRandomCellNear(viewerPawn.Position, viewerPawn.Map, 8,
-                (IntVec3 c) => c.Standable(viewerPawn.Map) && !c.Fogged(viewerPawn.Map) && c.Walkable(viewerPawn.Map),
-                out IntVec3 spawnPos))
-            {
-                Logger.Debug($"Found animal spawn position near viewer: {spawnPos}");
-                return spawnPos;
-            }
-
-            // Fallback to viewer position
-            Logger.Debug($"Using viewer position for animal spawn: {viewerPawn.Position}");
-            return viewerPawn.Position;
-        }
-
         // ===== BODY PART METHODS =====
         private static string GetBodyPartDisplayName(BodyPartRecord part)
         {
@@ -1347,6 +1339,104 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 string s when s.Contains("intellectual") => SkillDefOf.Intellectual,
                 _ => null
             };
+        }
+
+        // ===== PossessionsPlus  METHODS =====
+
+        private static void TrySetItemOwnership(Thing item, Verse.Pawn ownerPawn)
+        {
+            try
+            {
+                if (item == null || ownerPawn == null)
+                {
+                    Logger.Debug($"Cannot set ownership - item or pawn is null");
+                    return;
+                }
+
+                Logger.Debug($"Attempting to set ownership for {item.def.defName} to pawn {ownerPawn.Name}");
+
+                // Use reflection to get the PossessionsPlus ownership component
+                Type ownershipCompType = Type.GetType("PossessionsPlus.CompOwnedByPawn_Item, PossessionsPlus");
+
+                if (ownershipCompType == null)
+                {
+                    Logger.Debug("PossessionsPlus mod not found - ownership not set");
+                    return;
+                }
+
+                if (!(item is ThingWithComps thingWithComps))
+                {
+                    Logger.Debug($"Item {item.def.defName} is not a ThingWithComps - ownership not set");
+                    return;
+                }
+
+                // Get the ownership component from the item
+                var getCompMethod = typeof(ThingWithComps).GetMethod("GetComp")?.MakeGenericMethod(ownershipCompType);
+                if (getCompMethod == null)
+                {
+                    Logger.Debug("Could not find GetComp method - ownership not set");
+                    return;
+                }
+
+                var ownershipComp = getCompMethod.Invoke(thingWithComps, null);
+
+                if (ownershipComp == null)
+                {
+                    Logger.Debug($"Item {item.def.defName} does not have CompOwnedByPawn_Item component - ownership not set");
+                    return;
+                }
+
+                Logger.Debug($"Found ownership component for {item.def.defName}");
+
+                // Direct field assignment - bypasses all checks
+                var ownerField = ownershipCompType.GetField("owner", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
+                if (ownerField != null)
+                {
+                    ownerField.SetValue(ownershipComp, ownerPawn);
+                    Logger.Debug($"Owner field set to {ownerPawn.Name}");
+                }
+                else
+                {
+                    Logger.Debug("Could not find owner field - ownership not set");
+                    return;
+                }
+
+                // Set ownership start day
+                var startDayField = ownershipCompType.GetField("OwnershipStartDay", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
+                if (startDayField != null)
+                {
+                    int currentDay = GenLocalDate.DayOfYear(ownerPawn.MapHeld ?? Find.CurrentMap) + 1;
+                    startDayField.SetValue(ownershipComp, currentDay);
+                    Logger.Debug($"OwnershipStartDay set to {currentDay}");
+                }
+
+                // Optional: Add to inheritance history
+                try
+                {
+                    var inheritanceHistoryType = Type.GetType("PossessionsPlus.InheritanceHistoryComp, PossessionsPlus");
+                    if (inheritanceHistoryType != null)
+                    {
+                        var addHistoryMethod = inheritanceHistoryType.GetMethod("AddHistoryEntry",
+                            System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+
+                        if (addHistoryMethod != null)
+                        {
+                            addHistoryMethod.Invoke(null, new object[] { item, ownerPawn, "Purchased via Rimazon" });
+                            Logger.Debug("Added inheritance history entry");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Debug($"Could not add inheritance history (this is optional): {ex.Message}");
+                }
+
+                Logger.Debug($"Successfully set ownership of {item.def.defName} to {ownerPawn.Name}");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error setting item ownership: {ex}");
+            }
         }
 
         // ===== DEBUG METHODS =====

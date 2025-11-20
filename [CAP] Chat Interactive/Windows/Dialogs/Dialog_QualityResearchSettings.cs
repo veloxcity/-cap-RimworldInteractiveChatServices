@@ -1,5 +1,7 @@
 ﻿using CAP_ChatInteractive;
 using RimWorld;
+using System;
+using System.Security.Permissions;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -165,5 +167,28 @@ public class Dialog_QualityResearchSettings : Window
 
         Text.Font = GameFont.Small;
         GUI.color = Color.white;
+    }
+    public override void PostClose()
+    {
+        base.PostClose();
+
+        // Force save the settings when the dialog closes
+        if (settings != null)
+        {
+            try
+            {
+                // This will trigger the WriteSettings method in your mod class
+                CAPChatInteractiveMod.Instance.Settings.Write();
+
+                // Alternative: directly call the mod's WriteSettings
+                // CAPChatInteractiveMod.Instance.WriteSettings();
+
+                CAP_ChatInteractive.Logger.Debug("Quality research settings saved on dialog close");
+            }
+            catch (Exception ex)
+            {
+                CAP_ChatInteractive.Logger.Error($"Failed to save settings on dialog close: {ex}");
+            }
+        }
     }
 }

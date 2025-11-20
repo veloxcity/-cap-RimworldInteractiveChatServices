@@ -15,7 +15,7 @@ namespace CAP_ChatInteractive.Commands.TestCommands
 
             // Get command settings
             // var settingsCommand = GetCommandSettings();
-            return "[CAP] Rimwold Interactive Chat Service v1.0.5 beta 11/18/2023 - Twitch & YouTube integration for RimWorld!";
+            return "[CAP] Rimwold Interactive Chat Service v1.0.6 beta - For Git hub Releases:  https://github.com/ekudram/-cap-RimworldInteractiveChatServices/releases";
         }
     }
     public class Hello : ChatCommand

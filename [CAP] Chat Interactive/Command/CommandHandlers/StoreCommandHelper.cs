@@ -368,6 +368,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                     if (EquipItemOnPawn(thing, pawn))
                     {
                         Logger.Debug($"Item equipped on pawn");
+                        // BuyItemCommandHandler.TrySetItemOwnership(thing, pawn); // Set ownership here
                         spawnedThings.Add(thing);
                         deliveryPos = pawn.Position; // Use pawn position for targeting
                         return (spawnedThings, deliveryPos);
@@ -376,6 +377,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                     {
                         Logger.Debug($"Failed to equip item, falling back to backpack");
                         // Fall back to backpack/inventory
+                        // BuyItemCommandHandler.TrySetItemOwnership(thing, pawn); // Set ownership here
                         if (!TryBackpackItem(thing, pawn))
                         {
                             PurchaseHelper.SpawnItemAtTradeSpot(thing, pawn.Map);
@@ -389,6 +391,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                     if (WearApparelOnPawn(thing, pawn))
                     {
                         Logger.Debug($"Item worn by pawn");
+                        // BuyItemCommandHandler.TrySetItemOwnership(thing, pawn); // Set ownership here
                         spawnedThings.Add(thing);
                         deliveryPos = pawn.Position; // Use pawn position for targeting
                         return (spawnedThings, deliveryPos);
@@ -397,10 +400,12 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                     {
                         Logger.Debug($"Failed to wear item, falling back to backpack");
                         // Fall back to backpack/inventory
+
                         if (!TryBackpackItem(thing, pawn))
                         {
                             PurchaseHelper.SpawnItemAtTradeSpot(thing, pawn.Map);
                         }
+                        // BuyItemCommandHandler.TrySetItemOwnership(thing, pawn); // Set ownership here
                         spawnedThings.Add(thing);
                         deliveryPos = pawn.Position; // Use pawn position for targeting
                     }
@@ -413,6 +418,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                         // If inventory full, drop at pawn's position
                         Logger.Debug($"Inventory full, dropping at pawn position");
                         GenPlace.TryPlaceThing(thing, pawn.Position, pawn.Map, ThingPlaceMode.Near);
+                        // BuyItemCommandHandler.TrySetItemOwnership(thing, pawn); // Set ownership here
                         deliveryPos = pawn.Position; // Use pawn position for targeting
                     }
                     else

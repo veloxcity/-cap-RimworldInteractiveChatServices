@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- JobDefs.xml - Add to your Defs folder -->
+<JobDefs>
+  <JobDef ParentName="InteractWithPawnBase"
+           Class="CAP_ChatInteractive.JobDriver_SocialVisit"
+           DefName="CAP_SocialVisit"
+           reportString="Visiting {0}">
+    <driverClass>CAP_ChatInteractive.JobDriver_SocialVisit</driverClass>
+  </JobDef>
+</JobDefs>

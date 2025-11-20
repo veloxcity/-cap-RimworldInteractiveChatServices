@@ -28,6 +28,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
 
         public static string HandleInteractionCommand(ChatMessageWrapper user, InteractionDef interaction, string[] args)
         {
+         
             try
             {
                 // Get viewer data

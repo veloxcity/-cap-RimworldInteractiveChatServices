@@ -220,8 +220,8 @@ namespace CAP_ChatInteractive
             var settings = new JsonSerializerSettings
             {
                 Formatting = Formatting.Indented,
-                NullValueHandling = NullValueHandling.Ignore,
-                DefaultValueHandling = DefaultValueHandling.Ignore
+                NullValueHandling = NullValueHandling.Include  ,
+                DefaultValueHandling = DefaultValueHandling.Include
             };
 
             return JsonConvert.SerializeObject(traits, settings);
@@ -240,8 +240,8 @@ namespace CAP_ChatInteractive
                 var settings = new JsonSerializerSettings
                 {
                     Formatting = Formatting.Indented,
-                    NullValueHandling = NullValueHandling.Ignore,
-                    DefaultValueHandling = DefaultValueHandling.Ignore,
+                    NullValueHandling = NullValueHandling.Include,
+                    DefaultValueHandling = DefaultValueHandling.Include,
                     ReferenceLoopHandling = ReferenceLoopHandling.Ignore
                 };
 
@@ -316,8 +316,8 @@ namespace CAP_ChatInteractive
                 var settings = new JsonSerializerSettings
                 {
                     Formatting = Formatting.Indented,
-                    NullValueHandling = NullValueHandling.Ignore,
-                    DefaultValueHandling = DefaultValueHandling.Ignore
+                    NullValueHandling = NullValueHandling.Include,
+                    DefaultValueHandling = DefaultValueHandling.Include
                 };
 
                 return JsonConvert.SerializeObject(weather, settings);
@@ -354,7 +354,7 @@ namespace CAP_ChatInteractive
                 var settings = new JsonSerializerSettings
                 {
                     Formatting = Formatting.Indented,
-                    NullValueHandling = NullValueHandling.Ignore,
+                    NullValueHandling = NullValueHandling.Include,
                     DefaultValueHandling = DefaultValueHandling.Include
                 };
 
