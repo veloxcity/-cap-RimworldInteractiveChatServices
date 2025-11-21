@@ -397,7 +397,7 @@ namespace CAP_ChatInteractive
             Rect inputRect = new Rect(65f, 0f, 80f, 25f);
             int costBuffer = weather.BaseCost;
             string stringBuffer = costBuffer.ToString();
-            Widgets.TextFieldNumeric(inputRect, ref costBuffer, ref stringBuffer, 0, 1000000);
+            UIUtilities.TextFieldNumericFlexible(inputRect, ref costBuffer, ref stringBuffer, 0, 1000000);
 
             if (costBuffer != weather.BaseCost)
             {

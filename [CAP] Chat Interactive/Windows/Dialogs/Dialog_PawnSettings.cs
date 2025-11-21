@@ -376,8 +376,8 @@ namespace CAP_ChatInteractive
                 Rect priceInputRect = new Rect(leftPadding + columnWidth + 100f, y, 80f, sectionHeight);
                 int currentPrice = settings.BasePrice;
                 string priceBuffer = currentPrice.ToString();
-                // Use TextFieldNumeric for price since it's better for numbers
-                Widgets.TextFieldNumeric(priceInputRect, ref currentPrice, ref priceBuffer, 0, 100000);
+                
+                UIUtilities.TextFieldNumericFlexible(priceInputRect, ref currentPrice, ref priceBuffer, 0, 100000);
                 if (currentPrice != settings.BasePrice)
                 {
                     settings.BasePrice = currentPrice;

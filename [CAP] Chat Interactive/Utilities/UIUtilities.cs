@@ -201,5 +201,51 @@ namespace CAP_ChatInteractive
 
             return result;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="rect"></param>
+        /// <param name="value"></param>
+        /// <param name="buffer"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        public static void TextFieldNumericFlexible<T>(Rect rect, ref T value, ref string buffer, T min, T max) where T : struct
+        {
+            // Let user type freely without immediate clamping
+            string newBuffer = Widgets.TextField(rect, buffer);
+
+            // Only parse and validate when the input actually changes
+            if (newBuffer != buffer)
+            {
+                buffer = newBuffer;
+
+                // Try to parse the input
+                if (float.TryParse(buffer, out float floatValue))
+                {
+                    // Convert to the appropriate type and clamp
+                    if (typeof(T) == typeof(int))
+                    {
+                        int intValue = (int)floatValue;
+                        intValue = Mathf.Clamp(intValue, (int)(object)min, (int)(object)max);
+                        value = (T)(object)intValue;
+                        buffer = intValue.ToString();
+                    }
+                    else if (typeof(T) == typeof(float))
+                    {
+                        floatValue = Mathf.Clamp(floatValue, (float)(object)min, (float)(object)max);
+                        value = (T)(object)floatValue;
+                        buffer = floatValue.ToString("0.##");
+                    }
+                }
+                // If parsing fails but buffer is empty, set to min value
+                else if (string.IsNullOrEmpty(buffer))
+                {
+                    value = min;
+                    buffer = min.ToString();
+                }
+            }
+        }
+
     }
 }

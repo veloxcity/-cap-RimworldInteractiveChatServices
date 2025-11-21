@@ -836,7 +836,7 @@ namespace CAP_ChatInteractive
 
                     int limit = item.QuantityLimit;
                     string buffer = limit.ToString();
-                    Widgets.TextFieldNumeric(numRect, ref limit, ref buffer, 1, 9999);
+                    UIUtilities.TextFieldNumericFlexible(numRect, ref limit, ref buffer, 1, 9999);
                     if (limit != item.QuantityLimit)
                     {
                         item.QuantityLimit = limit;
@@ -915,7 +915,7 @@ namespace CAP_ChatInteractive
 
             // Store previous price to detect changes
             int previousPrice = currentPrice;
-            Widgets.TextFieldNumeric(inputRect, ref currentPrice, ref priceBuffer, 0, 1000000);
+            UIUtilities.TextFieldNumericFlexible(inputRect, ref currentPrice, ref priceBuffer, 0, 1000000);
 
             // Check if price changed and update property
             if (currentPrice != previousPrice)

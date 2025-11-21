@@ -549,7 +549,7 @@ namespace CAP_ChatInteractive
             Rect inputRect = new Rect(105f, 0f, 80f, 30f);
             int priceBuffer = currentPrice;
             string stringBuffer = priceBuffer.ToString();
-            Widgets.TextFieldNumeric(inputRect, ref priceBuffer, ref stringBuffer, 0, 1000000);
+            UIUtilities.TextFieldNumericFlexible(inputRect, ref priceBuffer, ref stringBuffer, 0, 1000000);
 
             if (priceBuffer != currentPrice)
             {

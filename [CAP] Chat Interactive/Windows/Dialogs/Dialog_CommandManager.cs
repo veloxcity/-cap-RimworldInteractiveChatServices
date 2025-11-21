@@ -359,7 +359,9 @@ namespace CAP_ChatInteractive
 
                 Rect cooldownInputRect = new Rect(leftPadding + 420f, y, 60f, sectionHeight);
                 string cooldownBuffer = settings.CooldownSeconds.ToString();
-                Widgets.TextFieldNumeric(cooldownInputRect, ref settings.CooldownSeconds, ref cooldownBuffer, 1, 60);
+
+                //Widgets.TextFieldNumeric(cooldownInputRect, ref settings.CooldownSeconds, ref cooldownBuffer, 1, 60);
+                UIUtilities.TextFieldNumericFlexible(cooldownInputRect, ref settings.CooldownSeconds, ref cooldownBuffer, 1, 60);
 
                 // Description below
                 Rect cooldownDescRect = new Rect(leftPadding + 10f, y + sectionHeight - 8f, viewRect.width - leftPadding, 14f);
@@ -380,7 +382,8 @@ namespace CAP_ChatInteractive
                     Widgets.Label(costRect, "Cost (coins):");
                     Rect costInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
                     string costBuffer = settings.Cost.ToString();
-                    Widgets.TextFieldNumeric(costInputRect, ref settings.Cost, ref costBuffer, 0, 10000);
+                    //Widgets.TextFieldNumeric(costInputRect, ref settings.Cost, ref costBuffer, 0, 10000);
+                    UIUtilities.TextFieldNumericFlexible(costInputRect, ref settings.Cost, ref costBuffer, 0, 10000);
                     y += sectionHeight;
                 }
 
@@ -435,7 +438,7 @@ namespace CAP_ChatInteractive
                     Widgets.Label(maxUsesRect, "Max uses (0 = unlimited):");
                     Rect maxUsesInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
                     string maxUsesBuffer = settings.MaxUsesPerStream.ToString();
-                    Widgets.TextFieldNumeric(maxUsesInputRect, ref settings.MaxUsesPerStream, ref maxUsesBuffer, 0, 10000000);
+                    UIUtilities.TextFieldNumericFlexible(maxUsesInputRect, ref settings.MaxUsesPerStream, ref maxUsesBuffer, 0, 10000000);
                     y += sectionHeight;
                 }
 
@@ -455,7 +458,7 @@ namespace CAP_ChatInteractive
 
                     Rect daysInputRect = new Rect(leftPadding + 420f, y, 60f, sectionHeight);
                     string daysBuffer = settings.GameDaysCooldown.ToString();
-                    Widgets.TextFieldNumeric(daysInputRect, ref settings.GameDaysCooldown, ref daysBuffer, 0, 30);
+                    UIUtilities.TextFieldNumericFlexible(daysInputRect, ref settings.GameDaysCooldown, ref daysBuffer, 0, 30);
                     y += sectionHeight;
 
                     // Description for game days cooldown
@@ -487,7 +490,7 @@ namespace CAP_ChatInteractive
                         Widgets.Label(eventUsesRect, "Max uses per cooldown period:");
                         Rect eventUsesInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
                         string eventUsesBuffer = settings.MaxUsesPerCooldownPeriod.ToString();
-                        Widgets.TextFieldNumeric(eventUsesInputRect, ref settings.MaxUsesPerCooldownPeriod, ref eventUsesBuffer, 0, 100);
+                        UIUtilities.TextFieldNumericFlexible(eventUsesInputRect, ref settings.MaxUsesPerCooldownPeriod, ref eventUsesBuffer, 0, 100);
                         y += sectionHeight;
 
                         // Respect global limits toggle
@@ -511,7 +514,7 @@ namespace CAP_ChatInteractive
                     Widgets.Label(wagerRect, "Default wager:");
                     Rect wagerInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
                     string wagerBuffer = settings.DefaultRaidWager.ToString();
-                    Widgets.TextFieldNumeric(wagerInputRect, ref settings.DefaultRaidWager, ref wagerBuffer,
+                    UIUtilities.TextFieldNumericFlexible(wagerInputRect, ref settings.DefaultRaidWager, ref wagerBuffer,
                         settings.MinRaidWager, settings.MaxRaidWager);
                     y += sectionHeight;
 
@@ -520,14 +523,14 @@ namespace CAP_ChatInteractive
                     Widgets.Label(minWagerRect, "Min wager:");
                     Rect minWagerInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
                     string minWagerBuffer = settings.MinRaidWager.ToString();
-                    Widgets.TextFieldNumeric(minWagerInputRect, ref settings.MinRaidWager, ref minWagerBuffer, 100, 5000);
+                    UIUtilities.TextFieldNumericFlexible(minWagerInputRect, ref settings.MinRaidWager, ref minWagerBuffer, 100, 5000);
                     y += sectionHeight;
 
                     Rect maxWagerRect = new Rect(leftPadding + 10f, y, viewRect.width - leftPadding - 100f, sectionHeight);
                     Widgets.Label(maxWagerRect, "Max wager:");
                     Rect maxWagerInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
                     string maxWagerBuffer = settings.MaxRaidWager.ToString();
-                    Widgets.TextFieldNumeric(maxWagerInputRect, ref settings.MaxRaidWager, ref maxWagerBuffer,
+                    UIUtilities.TextFieldNumericFlexible(maxWagerInputRect, ref settings.MaxRaidWager, ref maxWagerBuffer,
                         settings.MinRaidWager, 50000);
                     y += sectionHeight;
 
@@ -562,7 +565,7 @@ namespace CAP_ChatInteractive
                     Widgets.Label(wagerRect, "Default wager:");
                     Rect wagerInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
                     string wagerBuffer = settings.DefaultMilitaryAidWager.ToString();
-                    Widgets.TextFieldNumeric(wagerInputRect, ref settings.DefaultMilitaryAidWager, ref wagerBuffer,
+                    UIUtilities.TextFieldNumericFlexible(wagerInputRect, ref settings.DefaultMilitaryAidWager, ref wagerBuffer,
                         settings.MinMilitaryAidWager, settings.MaxMilitaryAidWager);
                     y += sectionHeight;
 
@@ -571,14 +574,14 @@ namespace CAP_ChatInteractive
                     Widgets.Label(minWagerRect, "Min wager:");
                     Rect minWagerInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
                     string minWagerBuffer = settings.MinMilitaryAidWager.ToString();
-                    Widgets.TextFieldNumeric(minWagerInputRect, ref settings.MinMilitaryAidWager, ref minWagerBuffer, 500, 5000);
+                    UIUtilities.TextFieldNumericFlexible(minWagerInputRect, ref settings.MinMilitaryAidWager, ref minWagerBuffer, 500, 5000);
                     y += sectionHeight;
 
                     Rect maxWagerRect = new Rect(leftPadding + 10f, y, viewRect.width - leftPadding - 100f, sectionHeight);
                     Widgets.Label(maxWagerRect, "Max wager:");
                     Rect maxWagerInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
                     string maxWagerBuffer = settings.MaxMilitaryAidWager.ToString();
-                    Widgets.TextFieldNumeric(maxWagerInputRect, ref settings.MaxMilitaryAidWager, ref maxWagerBuffer,
+                    UIUtilities.TextFieldNumericFlexible(maxWagerInputRect, ref settings.MaxMilitaryAidWager, ref maxWagerBuffer,
                         settings.MinMilitaryAidWager, 20000);
                     y += sectionHeight;
                 }
@@ -604,13 +607,13 @@ namespace CAP_ChatInteractive
                     Widgets.Label(coinMinRect, "Min:");
                     Rect coinMinInputRect = new Rect(leftPadding + 60f, y, 60f, sectionHeight);
                     string coinMinBuffer = globalSettings.LootBoxRandomCoinRange.min.ToString();
-                    Widgets.TextFieldNumeric(coinMinInputRect, ref globalSettings.LootBoxRandomCoinRange.min, ref coinMinBuffer, 1, 10000);
+                    UIUtilities.TextFieldNumericFlexible(coinMinInputRect, ref globalSettings.LootBoxRandomCoinRange.min, ref coinMinBuffer, 1, 10000);
 
                     Rect coinMaxRect = new Rect(leftPadding + 140f, y, 80f, sectionHeight);
                     Widgets.Label(coinMaxRect, "Max:");
                     Rect coinMaxInputRect = new Rect(leftPadding + 180f, y, 60f, sectionHeight);
                     string coinMaxBuffer = globalSettings.LootBoxRandomCoinRange.max.ToString();
-                    Widgets.TextFieldNumeric(coinMaxInputRect, ref globalSettings.LootBoxRandomCoinRange.max, ref coinMaxBuffer, 1, 10000);
+                    UIUtilities.TextFieldNumericFlexible(coinMaxInputRect, ref globalSettings.LootBoxRandomCoinRange.max, ref coinMaxBuffer, 1, 10000);
                     y += sectionHeight;
 
                     // Lootboxes per day
@@ -618,7 +621,7 @@ namespace CAP_ChatInteractive
                     Widgets.Label(perDayRect, "Lootboxes Per Day:");
                     Rect perDayInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
                     string perDayBuffer = globalSettings.LootBoxesPerDay.ToString();
-                    Widgets.TextFieldNumeric(perDayInputRect, ref globalSettings.LootBoxesPerDay, ref perDayBuffer, 1, 20);
+                    UIUtilities.TextFieldNumericFlexible(perDayInputRect, ref globalSettings.LootBoxesPerDay, ref perDayBuffer, 1, 20);
                     y += sectionHeight;
 
                     // Show welcome message
@@ -649,7 +652,7 @@ namespace CAP_ChatInteractive
                     Widgets.Label(minWagerRect, "Minimum wager:");
                     Rect minWagerInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
                     string minWagerBuffer = globalSettings.MinPassionWager.ToString();
-                    Widgets.TextFieldNumeric(minWagerInputRect, ref globalSettings.MinPassionWager, ref minWagerBuffer, 1, 10000);
+                    UIUtilities.TextFieldNumericFlexible(minWagerInputRect, ref globalSettings.MinPassionWager, ref minWagerBuffer, 1, 10000);
                     y += sectionHeight;
 
                     // Max wager
@@ -657,7 +660,7 @@ namespace CAP_ChatInteractive
                     Widgets.Label(maxWagerRect, "Maximum wager:");
                     Rect maxWagerInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
                     string maxWagerBuffer = globalSettings.MaxPassionWager.ToString();
-                    Widgets.TextFieldNumeric(maxWagerInputRect, ref globalSettings.MaxPassionWager, ref maxWagerBuffer,
+                    UIUtilities.TextFieldNumericFlexible(maxWagerInputRect, ref globalSettings.MaxPassionWager, ref maxWagerBuffer,
                         globalSettings.MinPassionWager, 100000);
                     y += sectionHeight;
 
@@ -666,7 +669,7 @@ namespace CAP_ChatInteractive
                     Widgets.Label(baseChanceRect, "Base success chance (%):");
                     Rect baseChanceInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
                     string baseChanceBuffer = globalSettings.BasePassionSuccessChance.ToString();
-                    Widgets.TextFieldNumeric(baseChanceInputRect, ref globalSettings.BasePassionSuccessChance, ref baseChanceBuffer, 1.0f, 100.0f);
+                    UIUtilities.TextFieldNumericFlexible(baseChanceInputRect, ref globalSettings.BasePassionSuccessChance, ref baseChanceBuffer, 1.0f, 100.0f);
                     y += sectionHeight;
 
                     // Max success chance
@@ -674,7 +677,7 @@ namespace CAP_ChatInteractive
                     Widgets.Label(maxChanceRect, "Max success chance (%):");
                     Rect maxChanceInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
                     string maxChanceBuffer = globalSettings.MaxPassionSuccessChance.ToString();
-                    Widgets.TextFieldNumeric(maxChanceInputRect, ref globalSettings.MaxPassionSuccessChance, ref maxChanceBuffer,
+                    UIUtilities.TextFieldNumericFlexible(maxChanceInputRect, ref globalSettings.MaxPassionSuccessChance, ref maxChanceBuffer,
                         globalSettings.BasePassionSuccessChance, 100.0f);
                     y += sectionHeight;
 

@@ -543,7 +543,7 @@ namespace CAP_ChatInteractive
             Rect inputRect = new Rect(65f, 0f, 80f, 25f);
             int costBuffer = incident.BaseCost;
             string stringBuffer = costBuffer.ToString();
-            Widgets.TextFieldNumeric(inputRect, ref costBuffer, ref stringBuffer, 0, 1000000);
+            UIUtilities.TextFieldNumericFlexible(inputRect, ref costBuffer, ref stringBuffer, 0, 1000000);
 
             if (costBuffer != incident.BaseCost)
             {
@@ -1190,7 +1190,7 @@ namespace CAP_ChatInteractive
 
             Widgets.Label(leftRect, label);
             string buffer = value.ToString();
-            Widgets.TextFieldNumeric(rightRect, ref value, ref buffer, min, max);
+            UIUtilities.TextFieldNumericFlexible(rightRect, ref value, ref buffer, min, max);
             listing.Gap(2f);
         }
     }

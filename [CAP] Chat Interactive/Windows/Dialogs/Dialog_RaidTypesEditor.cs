@@ -19,7 +19,7 @@ namespace CAP_ChatInteractive
         private static readonly List<string> AllRaidTypes = new List<string>
         {
             "standard", "drop", "dropcenter", "dropedge", "dropchaos", "dropgroups",
-            "mech", "mechcluster", "manhunter", "infestation", "water", "wateredge"
+            "mech", "mechcluster", "water", "wateredge"
         };
 
         public override Vector2 InitialSize => new Vector2(400f, 500f);
@@ -86,8 +86,6 @@ namespace CAP_ChatInteractive
                 "dropgroups" => "Edge Drop Groups",
                 "mech" => "Mechanoid Raid",
                 "mechcluster" => "Mech Cluster (Royalty)",
-                "manhunter" => "Manhunter Pack",
-                "infestation" => "Infestation",
                 "water" => "Water Edge (Biotech)",
                 "wateredge" => "Water Edge (Biotech)",
                 _ => raidType

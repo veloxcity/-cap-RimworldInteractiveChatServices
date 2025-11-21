@@ -619,7 +619,7 @@ namespace CAP_ChatInteractive
 
             // Numeric input field - FIXED: Using ref parameters to persist values
             Rect inputRect = new Rect(leftPadding + 200f, y, inputWidth, sectionHeight);
-            Widgets.TextFieldNumeric(inputRect, ref editAmount, ref editBuffer, 0, maxValue);
+            UIUtilities.TextFieldNumericFlexible(inputRect, ref editAmount, ref editBuffer, 0, maxValue);
 
             // Buttons
             float buttonsStartX = leftPadding + 200f + inputWidth + spacing;
@@ -975,7 +975,7 @@ namespace CAP_ChatInteractive
             // Input field - centered but not too wide
             float inputWidth = 120f;
             Rect inputRect = new Rect((inRect.width - inputWidth) / 2f, currentY, inputWidth, 35f);
-            Widgets.TextFieldNumeric(inputRect, ref currentValue, ref buffer, minValue, maxValue);
+            UIUtilities.TextFieldNumericFlexible(inputRect, ref currentValue, ref buffer, minValue, maxValue);
             currentY += 50f; // More space before button
 
             // Confirm button - centered below input
