@@ -132,8 +132,9 @@ namespace CAP_ChatInteractive
             var commandText = parts[0];
             var args = parts.Skip(1).ToArray();
             var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings as CAPGlobalChatSettings;
+            // Get cooldown manager early
 
-            // Prefix check (already have this)
+            // Prefix check NEED
             if (commandText.StartsWith(globalSettings.Prefix) ||
                 commandText.StartsWith(globalSettings.BuyPrefix))
             {
@@ -163,22 +164,6 @@ namespace CAP_ChatInteractive
                 return;
             }
 
-            // NEW: Fast exit: Command disabled
-            if (!command.IsEnabled())
-            {
-                SendMessageToUser(message, $"Command {commandText} is currently disabled.");
-                return;
-            }
-            // NEW: Global Cooldown Check (before individual user checks)
-            var cooldownManager = GetCooldownManager();
-            var commandSettings = command.GetCommandSettings();
-
-            if (!cooldownManager.CanUseCommand(command.Name, commandSettings, globalSettings))
-            {
-                SendGlobalCooldownMessage(message, command, cooldownManager);
-                return;
-            }
-
             // Get viewer (this creates if doesn't exist - no need to check)
             var viewer = Viewers.GetViewer(message);
 
@@ -189,18 +174,36 @@ namespace CAP_ChatInteractive
                 return; // Silent fail for banned users
             }
 
-            // Fast exit: Individual Cooldown (per-user)
+            // Fast exit: Command disabled
+            if (!command.IsEnabled())
+            {
+                SendMessageToUser(message, $"Command {commandText} is currently disabled.");
+                return;
+            }
+
+            // NEW: Global Cooldown Check (before individual user checks)
+            var cooldownManager = GetCooldownManager();
+            var commandSettings = command.GetCommandSettings();
+
+            // 1. Individual user cooldown (cheapest check first)
             if (IsOnCooldown(message.Username, command))
             {
                 SendCooldownMessage(message, command);
                 return;
             }
 
-            // Fast exit: Permissions
+            // 2. Permissions check
             if (!command.CanExecute(message))
             {
                 Logger.Debug($"Permission denied for {message.Username} on command {command.Name}. Required: {command.PermissionLevel}");
                 SendPermissionDeniedMessage(message, command);
+                return;
+            }
+
+            // 3. Global cooldowns (more expensive)
+            if (!cooldownManager.CanUseCommand(command.Name, commandSettings, globalSettings))
+            {
+                SendGlobalCooldownMessage(message, command, cooldownManager);
                 return;
             }
 
@@ -314,15 +317,29 @@ namespace CAP_ChatInteractive
         private static void SendGlobalCooldownMessage(ChatMessageWrapper message, ChatCommand command, GlobalCooldownManager cooldownManager)
         {
             var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings as CAPGlobalChatSettings;
-            string eventType = cooldownManager.GetEventTypeForCommand(command.Name);
+            var commandSettings = command.GetCommandSettings();
 
-            string cooldownMessage = eventType switch
+            string cooldownMessage;
+
+            if (commandSettings.UseEventCooldown && commandSettings.MaxUsesPerCooldownPeriod > 0)
             {
-                "good" => $"Global good event limit reached ({globalSettings.MaxGoodEvents} per {globalSettings.EventCooldownDays} days)",
-                "bad" => $"Global bad event limit reached ({globalSettings.MaxBadEvents} per {globalSettings.EventCooldownDays} days)",
-                "neutral" => $"Global event limit reached ({globalSettings.MaxNeutralEvents} per {globalSettings.EventCooldownDays} days)",
-                _ => $"Command {command.Name} is currently on global cooldown"
-            };
+                cooldownMessage = $"Command {command.Name} limit reached ({commandSettings.MaxUsesPerCooldownPeriod} per {globalSettings.EventCooldownDays} days)";
+            }
+            else if (globalSettings.EventCooldownsEnabled)
+            {
+                string eventType = cooldownManager.GetEventTypeForCommand(command.Name);
+                cooldownMessage = eventType switch
+                {
+                    "good" => $"Global good event limit reached ({globalSettings.MaxGoodEvents} per {globalSettings.EventCooldownDays} days)",
+                    "bad" => $"Global bad event limit reached ({globalSettings.MaxBadEvents} per {globalSettings.EventCooldownDays} days)",
+                    "neutral" => $"Global event limit reached ({globalSettings.MaxNeutralEvents} per {globalSettings.EventCooldownDays} days)",
+                    _ => $"Global event limit reached ({globalSettings.EventsperCooldown} total events per {globalSettings.EventCooldownDays} days)"
+                };
+            }
+            else
+            {
+                cooldownMessage = $"Command {command.Name} is currently unavailable";
+            }
 
             SendMessageToUser(message, cooldownMessage);
         }

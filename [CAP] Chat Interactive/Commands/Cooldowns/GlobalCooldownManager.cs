@@ -51,7 +51,7 @@ namespace CAP_ChatInteractive.Commands.Cooldowns
 
         public bool CanUseCommand(string commandName, CommandSettings settings, CAPGlobalChatSettings globalSettings)
         {
-            // Check per-command limits first (most restrictive)
+            // Check per-command game days cooldown first (applies in both modes)
             if (settings.UseEventCooldown && settings.MaxUsesPerCooldownPeriod > 0)
             {
                 var cmdRecord = GetOrCreateCommandRecord(commandName);
@@ -61,16 +61,54 @@ namespace CAP_ChatInteractive.Commands.Cooldowns
                     return false;
             }
 
-            // Check global event limits if command respects them
-            if (settings.RespectsGlobalEventCooldown && globalSettings.EventCooldownsEnabled)
+            // If per-command limit is 0 (unlimited), we break out here
+            if (settings.UseEventCooldown && settings.MaxUsesPerCooldownPeriod == 0)
             {
-                // Determine event type from command
-                string eventType = GetEventTypeForCommand(commandName);
-                if (!CanUseEvent(eventType, globalSettings))
-                    return false;
+                return true; // Unlimited uses for this command
             }
 
-            return true;
+            // Main event cooldown logic
+            if (globalSettings.EventCooldownsEnabled)
+            {
+                if (settings.UseGameDaysCooldown)
+                {
+                    // Game-day based individual command cooldowns
+                    // We already handled MaxUsesPerCooldownPeriod above, so just return true
+                    return true;
+                }
+                else
+                {
+                    // Traditional event cooldown system
+                    // 1. Check total event limit
+                    if (!CanUseGlobalEvents(globalSettings))
+                        return false;
+
+                    // 2. Check type-specific limits if enabled
+                    if (globalSettings.KarmaTypeLimitsEnabled)
+                    {
+                        string eventType = GetEventTypeForCommand(commandName);
+                        if (!CanUseEvent(eventType, globalSettings))
+                            return false;
+                    }
+
+                    return true;
+                }
+            }
+            else
+            {
+                // Event cooldowns disabled - only use per-command game day limits
+                // (which we already checked above)
+                return true;
+            }
+        }
+
+        // NEW: Check global event count limit
+        private bool CanUseGlobalEvents(CAPGlobalChatSettings settings)
+        {
+            if (settings.EventsperCooldown == 0) return true; // Unlimited
+
+            int totalEvents = data.EventUsage.Values.Sum(record => record.CurrentPeriodUses);
+            return totalEvents < settings.EventsperCooldown;
         }
 
         public void RecordEventUse(string eventType)
@@ -141,6 +179,37 @@ namespace CAP_ChatInteractive.Commands.Cooldowns
                 _ => "neutral"
             };
         }
+        public bool CanPurchaseItem(CAPGlobalChatSettings settings)
+        {
+            if (!settings.EventCooldownsEnabled) return true;
+
+            // Count all purchases across all item types
+            int totalPurchases = data.BuyUsage.Values.Sum(record => record.CurrentPeriodPurchases);
+
+            return totalPurchases < settings.MaxItemPurchases;
+        }
+
+        public void RecordItemPurchase(string itemType = "general")
+        {
+            var record = GetOrCreateBuyRecord(itemType);
+            record.PurchaseDays.Add(GenDate.DaysPassed);
+
+            // Also cleanup old records
+            CleanupOldPurchases(record, CAPChatInteractiveMod.Instance.Settings.GlobalSettings.EventCooldownDays);
+        }
+
+        private BuyUsageRecord GetOrCreateBuyRecord(string itemType)
+        {
+            if (!data.BuyUsage.ContainsKey(itemType))
+                data.BuyUsage[itemType] = new BuyUsageRecord { ItemType = itemType };
+            return data.BuyUsage[itemType];
+        }
+
+        private void CleanupOldPurchases(BuyUsageRecord record, int cooldownDays)
+        {
+            if (cooldownDays == 0) return;
+            record.PurchaseDays.RemoveAll(day => (GenDate.DaysPassed - day) > cooldownDays);
+        }
     }
 
     // Supporting data classes
@@ -148,11 +217,26 @@ namespace CAP_ChatInteractive.Commands.Cooldowns
     {
         public Dictionary<string, EventUsageRecord> EventUsage = new Dictionary<string, EventUsageRecord>();
         public Dictionary<string, CommandUsageRecord> CommandUsage = new Dictionary<string, CommandUsageRecord>();
+        public Dictionary<string, BuyUsageRecord> BuyUsage = new Dictionary<string, BuyUsageRecord>();
 
         public void ExposeData()
         {
             Scribe_Collections.Look(ref EventUsage, "eventUsage", LookMode.Value, LookMode.Deep);
             Scribe_Collections.Look(ref CommandUsage, "commandUsage", LookMode.Value, LookMode.Deep);
+            Scribe_Collections.Look(ref BuyUsage, "buyUsage", LookMode.Value, LookMode.Deep);
+        }
+    }
+
+    public class BuyUsageRecord : IExposable
+    {
+        public string ItemType; // "weapon", "apparel", "item", "surgery", etc.
+        public List<int> PurchaseDays = new List<int>(); // Game days when items were purchased
+        public int CurrentPeriodPurchases => PurchaseDays.Count;
+
+        public void ExposeData()
+        {
+            Scribe_Values.Look(ref ItemType, "itemType");
+            Scribe_Collections.Look(ref PurchaseDays, "purchaseDays", LookMode.Value);
         }
     }
 
@@ -181,4 +265,4 @@ namespace CAP_ChatInteractive.Commands.Cooldowns
             Scribe_Collections.Look(ref UsageDays, "usageDays", LookMode.Value);
         }
     }
-}
+  }

@@ -427,20 +427,6 @@ namespace CAP_ChatInteractive
                 GUI.color = Color.white;
                 y += 20f;
 
-                // Max uses per stream - WITH TOGGLE
-                Rect maxUsesToggleRect = new Rect(leftPadding + 10f, y, viewRect.width - leftPadding - 100f, sectionHeight);
-                Widgets.CheckboxLabeled(maxUsesToggleRect, "Limit uses per game session.  Resets each load.", ref settings.UseMaxUsesPerStream);
-                y += sectionHeight;
-
-                if (settings.UseMaxUsesPerStream)
-                {
-                    Rect maxUsesRect = new Rect(leftPadding + 20f, y, viewRect.width - leftPadding - 100f, sectionHeight);
-                    Widgets.Label(maxUsesRect, "Max uses (0 = unlimited):");
-                    Rect maxUsesInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
-                    string maxUsesBuffer = settings.MaxUsesPerStream.ToString();
-                    UIUtilities.TextFieldNumericFlexible(maxUsesInputRect, ref settings.MaxUsesPerStream, ref maxUsesBuffer, 0, 10000000);
-                    y += sectionHeight;
-                }
 
                 // Game days cooldown - WITH TOGGLE
                 Rect gameDaysToggleRect = new Rect(leftPadding + 10f, y, viewRect.width - leftPadding - 100f, sectionHeight);
@@ -713,7 +699,6 @@ namespace CAP_ChatInteractive
                 height += 14f; // Game days description
             }
             height += 28f; // Max uses toggle
-            if (settings.UseMaxUsesPerStream) height += 28f; // Max uses input
 
             // EVENT COMMAND SECTION HEIGHT
             if (selectedCommand != null && IsEventCommand(selectedCommand))

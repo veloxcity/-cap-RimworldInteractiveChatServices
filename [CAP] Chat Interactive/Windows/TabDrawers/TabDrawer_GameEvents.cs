@@ -69,13 +69,13 @@ namespace CAP_ChatInteractive
                 "When enabled, events will go on cooldown after being purchased");
 
             // Cooldown days
-            NumericField(listing, "Event cooldown duration (days):", ref settings.EventCooldownDays, 1, 30);
+            NumericField(listing, "Event cooldown duration in game days:", ref settings.EventCooldownDays, 1, 90);
             Text.Font = GameFont.Tiny;
-            listing.Label($"Events will be unavailable for {settings.EventCooldownDays} in-game days after purchase");
+            listing.Label($"All events will be unavailable for {settings.EventCooldownDays} in-game days.");
             Text.Font = GameFont.Small;
 
             // Events per cooldown period
-            NumericField(listing, "Events per cooldown period:", ref settings.EventsperCooldown, 1, 50);
+            NumericField(listing, "Events per cooldown period:", ref settings.EventsperCooldown, 1, 1000);
             Text.Font = GameFont.Tiny;
             listing.Label($"Limit of {settings.EventsperCooldown} event purchases per cooldown period");
             Text.Font = GameFont.Small;
@@ -84,7 +84,7 @@ namespace CAP_ChatInteractive
 
             // Karma type limits toggle
             listing.CheckboxLabeled("Limit events by karma type", ref settings.KarmaTypeLimitsEnabled,
-                "Restrict how many events of each karma type can be purchased within a period");
+                "Restrict how many events of each karma type can be purchased within the ");
 
             if (settings.KarmaTypeLimitsEnabled)
             {

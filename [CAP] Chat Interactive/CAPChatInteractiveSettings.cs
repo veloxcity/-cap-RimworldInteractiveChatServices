@@ -86,7 +86,7 @@ namespace CAP_ChatInteractive
 
         // Global event settings
         public bool EventCooldownsEnabled = true;
-        public int EventCooldownDays = 15;
+        public int EventCooldownDays = 1;
         public int EventsperCooldown = 5;
         public bool KarmaTypeLimitsEnabled = false;
         public int MaxBadEvents = 3;

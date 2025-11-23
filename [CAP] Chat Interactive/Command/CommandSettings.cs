@@ -24,8 +24,6 @@ public class CommandSettings
     public bool UseGameDaysCooldown = false;
     public bool RequiresConfirmation = false;
     public string CommandAlias = ""; // Now used for command alias (without prefix)
-    public int MaxUsesPerStream = 0;
-    public bool UseMaxUsesPerStream = false;  // Toggle for the feature
 
     public bool UseEventCooldown = false;           // Enable per-command event cooldown
     public int MaxUsesPerCooldownPeriod = 0;        // 0 = unlimited, 1+ = specific limit

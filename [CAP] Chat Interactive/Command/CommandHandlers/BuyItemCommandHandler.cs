@@ -3,6 +3,7 @@
 // Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
 //
 // Command handler for buying items from Rimazon store
+using CAP_ChatInteractive.Commands.Cooldowns;
 using CAP_ChatInteractive.Commands.ViewerCommands;
 using CAP_ChatInteractive.Store;
 using CAP_ChatInteractive.Utilities;
@@ -190,10 +191,14 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 if (requireEquippable || requireWearable)
                 {
                     spawnResult = StoreCommandHelper.SpawnItemForPawn(thingDef, quantity, quality, material, viewerPawn, false, requireEquippable, requireWearable);
+                    var cooldownManager = Current.Game.GetComponent<GlobalCooldownManager>();
+                    cooldownManager.RecordItemPurchase(storeItem.DefName); // or "apparel", "item", etc.
                 }
                 else
                 {
                     spawnResult = StoreCommandHelper.SpawnItemForPawn(thingDef, quantity, quality, material, viewerPawn, addToInventory);
+                    var cooldownManager = Current.Game.GetComponent<GlobalCooldownManager>();
+                    cooldownManager.RecordItemPurchase(storeItem.DefName); // or "apparel", "item", etc.
                 }
                 List<Thing> spawnedItems = spawnResult.spawnedItems;
                 IntVec3 deliveryPos = spawnResult.deliveryPos;
@@ -230,6 +235,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                     // For direct pawn interactions, target the pawn
                     lookTargets = viewerPawn != null ? new LookTargets(viewerPawn) : null;
                     Logger.Debug($"Created LookTargets for pawn: {viewerPawn?.Name}");
+
                 }
                 else if (deliveryPos.IsValid)
                 {
@@ -422,11 +428,15 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 // SPECIAL RESURRECTION: Handle resurrector serum differently
                 if (isResurrectorSerum && viewerPawn.Dead)
                 {
+                    var cooldownManager = Current.Game.GetComponent<GlobalCooldownManager>();
+                    cooldownManager.RecordItemPurchase(storeItem.DefName); // or "apparel", "item", etc.
                     ResurrectPawn(viewerPawn);
                 }
                 else
                 {
                     // Normal item usage
+                    var cooldownManager = Current.Game.GetComponent<GlobalCooldownManager>();
+                    cooldownManager.RecordItemPurchase(storeItem.DefName); // or "apparel", "item", etc.
                     UseItemImmediately(thingDef, quantity, rimworldPawn);
                 }
 
@@ -711,6 +721,8 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                     }
                     SoundDefOf.Standard_Pickup.PlayOneShot(new TargetInfo(pawn.Position, pawn.Map));
                 }
+                var cooldownManager = Current.Game.GetComponent<GlobalCooldownManager>();
+                cooldownManager.RecordItemPurchase(thingDef.defName); // or "apparel", "item", etc.
 
                 Logger.Debug($"Used item {thingDef.defName}, played sound effect");
             }

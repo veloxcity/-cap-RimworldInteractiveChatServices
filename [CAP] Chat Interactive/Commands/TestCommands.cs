@@ -15,7 +15,7 @@ namespace CAP_ChatInteractive.Commands.TestCommands
 
             // Get command settings
             // var settingsCommand = GetCommandSettings();
-            return "[CAP] Rimwold Interactive Chat Service v1.0.7 Release - For Git hub Releases:  https://github.com/ekudram/-cap-RimworldInteractiveChatServices/releases";
+            return "[CAP] Rimwold Interactive Chat Service v1.0.8 Testing - For Git hub Releases:  https://github.com/ekudram/-cap-RimworldInteractiveChatServices/releases";
         }
     }
     public class Hello : ChatCommand
