@@ -3,9 +3,10 @@
 // Licensed under the AGPLv3 License. See LICENSE file in the project root for full license information.
 //
 // Manages global cooldowns for chat events and commands in RimWorld.
+using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimWorld;
 using Verse;
 
 namespace CAP_ChatInteractive.Commands.Cooldowns
@@ -16,12 +17,65 @@ namespace CAP_ChatInteractive.Commands.Cooldowns
         private int lastCleanupDay = 0;
 
         // REQUIRED: GameComponent constructor
-        public GlobalCooldownManager(Game game) { }
+        public GlobalCooldownManager(Game game)
+        {
+            // Ensure data and its dictionaries are properly initialized
+            if (data == null)
+            {
+                data = new GlobalCooldownData();
+                Logger.Debug("GlobalCooldownData initialized in constructor");
+            }
+
+            // Double-check all dictionaries exist
+            if (data.BuyUsage == null)
+            {
+                data.BuyUsage = new Dictionary<string, BuyUsageRecord>();
+                Logger.Debug("BuyUsage initialized in constructor");
+            }
+
+            if (data.EventUsage == null)
+            {
+                data.EventUsage = new Dictionary<string, EventUsageRecord>();
+                Logger.Debug("EventUsage initialized in constructor");
+            }
+
+            if (data.CommandUsage == null)
+            {
+                data.CommandUsage = new Dictionary<string, CommandUsageRecord>();
+                Logger.Debug("CommandUsage initialized in constructor");
+            }
+        }
 
         public override void ExposeData()
         {
             Scribe_Deep.Look(ref data, "globalCooldownData");
             Scribe_Values.Look(ref lastCleanupDay, "lastCleanupDay");
+
+            // BACKWARD COMPATIBILITY: Initialize missing data structures
+            if (data == null)
+            {
+                data = new GlobalCooldownData();
+                Logger.Debug("GlobalCooldownData initialized in ExposeData (was null)");
+            }
+
+            // Ensure all dictionaries exist (for saves from older versions)
+            if (data.BuyUsage == null)
+            {
+                data.BuyUsage = new Dictionary<string, BuyUsageRecord>();
+                Logger.Debug("BuyUsage dictionary initialized for backward compatibility");
+            }
+
+            if (data.EventUsage == null)
+            {
+                data.EventUsage = new Dictionary<string, EventUsageRecord>();
+                Logger.Debug("EventUsage dictionary initialized for backward compatibility");
+            }
+
+            if (data.CommandUsage == null)
+            {
+                data.CommandUsage = new Dictionary<string, CommandUsageRecord>();
+                Logger.Debug("CommandUsage dictionary initialized for backward compatibility");
+            }
 
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
                 CleanupOldRecords();
@@ -175,14 +229,42 @@ namespace CAP_ChatInteractive.Commands.Cooldowns
                 _ => "neutral"
             };
         }
-        public bool CanPurchaseItem(CAPGlobalChatSettings settings)
+
+        public bool CanPurchaseItem()
         {
+            var settings = CAPChatInteractiveMod.Instance?.Settings?.GlobalSettings as CAPGlobalChatSettings;
+            if (settings == null)
+            {
+                Logger.Error("GlobalSettings is null in CanPurchaseItem");
+                return true; // Allow purchases as fallback
+            }
+
             if (!settings.EventCooldownsEnabled) return true;
 
-            // Count all purchases across all item types
-            int totalPurchases = data.BuyUsage.Values.Sum(record => record.CurrentPeriodPurchases);
+            // Defensive programming for backward compatibility
+            if (data == null)
+            {
+                Logger.Error("GlobalCooldownData is null in CanPurchaseItem");
+                return true; // Allow purchases as fallback
+            }
 
-            return totalPurchases < settings.MaxItemPurchases;
+            if (data.BuyUsage == null)
+            {
+                Logger.Error("BuyUsage dictionary is null in CanPurchaseItem");
+                data.BuyUsage = new Dictionary<string, BuyUsageRecord>();
+                return true; // Allow purchases as fallback
+            }
+
+            try
+            {
+                int totalPurchases = data.BuyUsage.Values.Sum(record => record.CurrentPeriodPurchases);
+                return totalPurchases < settings.MaxItemPurchases;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error calculating total purchases: {ex}");
+                return true; // Allow purchases as fallback
+            }
         }
 
         public void RecordItemPurchase(string itemType = "general")
@@ -207,58 +289,4 @@ namespace CAP_ChatInteractive.Commands.Cooldowns
             record.PurchaseDays.RemoveAll(day => (GenDate.DaysPassed - day) > cooldownDays);
         }
     }
-
-    // Supporting data classes
-    public class GlobalCooldownData : IExposable
-    {
-        public Dictionary<string, EventUsageRecord> EventUsage = new Dictionary<string, EventUsageRecord>();
-        public Dictionary<string, CommandUsageRecord> CommandUsage = new Dictionary<string, CommandUsageRecord>();
-        public Dictionary<string, BuyUsageRecord> BuyUsage = new Dictionary<string, BuyUsageRecord>();
-
-        public void ExposeData()
-        {
-            Scribe_Collections.Look(ref EventUsage, "eventUsage", LookMode.Value, LookMode.Deep);
-            Scribe_Collections.Look(ref CommandUsage, "commandUsage", LookMode.Value, LookMode.Deep);
-            Scribe_Collections.Look(ref BuyUsage, "buyUsage", LookMode.Value, LookMode.Deep);
-        }
-    }
-
-    public class BuyUsageRecord : IExposable
-    {
-        public string ItemType; // "weapon", "apparel", "item", "surgery", etc.
-        public List<int> PurchaseDays = new List<int>(); // Game days when items were purchased
-        public int CurrentPeriodPurchases => PurchaseDays.Count;
-
-        public void ExposeData()
-        {
-            Scribe_Values.Look(ref ItemType, "itemType");
-            Scribe_Collections.Look(ref PurchaseDays, "purchaseDays", LookMode.Value);
-        }
-    }
-
-    public class EventUsageRecord : IExposable
-    {
-        public string EventType; // "good", "bad", "neutral", "doom"
-        public List<int> UsageDays = new List<int>(); // Game days when events were used
-        public int CurrentPeriodUses => UsageDays.Count;
-
-        public void ExposeData()
-        {
-            Scribe_Values.Look(ref EventType, "eventType");
-            Scribe_Collections.Look(ref UsageDays, "usageDays", LookMode.Value);
-        }
-    }
-
-    public class CommandUsageRecord : IExposable
-    {
-        public string CommandName;
-        public List<int> UsageDays = new List<int>();
-        public int CurrentPeriodUses => UsageDays.Count;
-
-        public void ExposeData()
-        {
-            Scribe_Values.Look(ref CommandName, "commandName");
-            Scribe_Collections.Look(ref UsageDays, "usageDays", LookMode.Value);
-        }
-    }
-  }
+}

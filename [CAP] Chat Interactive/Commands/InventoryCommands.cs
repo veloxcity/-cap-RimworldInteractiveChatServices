@@ -8,6 +8,7 @@ using CAP_ChatInteractive.Commands.Cooldowns;
 using CAP_ChatInteractive.Store;
 using RimWorld;
 using RimWorld.BaseGen;
+using RuntimeAudioClipLoader;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
     public class Buy : ChatCommand
     {
         public override string Name => "buy";
-
+        
         public override string Execute(ChatMessageWrapper user, string[] args)
         {
             if (args.Length == 0)
@@ -34,14 +35,28 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
                 return pawnCommand.Execute(user, pawnArgs);
             }
 
-            var cooldownManager = Current.Game.GetComponent<GlobalCooldownManager>();
-            var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
-            if (!cooldownManager.CanPurchaseItem(globalSettings))
+            try
             {
-                return $"Store purchase limit reached ({globalSettings.MaxItemPurchases} per {globalSettings.EventCooldownDays} days)";
-            }
+                var cooldownManager = Current.Game.GetComponent<GlobalCooldownManager>();
+                if (cooldownManager == null)
+                {
+                    cooldownManager = new GlobalCooldownManager(Current.Game);
+                    Current.Game.components.Add(cooldownManager);
+                }
+                var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
 
-            return BuyItemCommandHandler.HandleBuyItem(user, args, false, false);
+                if (!cooldownManager.CanPurchaseItem())
+                {
+                  return $"Store purchase limit reached ({globalSettings.MaxItemPurchases} per {globalSettings.EventCooldownDays} days)";
+                }
+
+                return BuyItemCommandHandler.HandleBuyItem(user, args, false, false,false);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error in buy command: {ex}");
+                return $"Error purchasing item: {ex.Message}";
+            }
         }
     }
 
@@ -56,10 +71,15 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
                 return "Usage: !use <item> ";
             }
             var cooldownManager = Current.Game.GetComponent<GlobalCooldownManager>();
-            var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
-            if (!cooldownManager.CanPurchaseItem(globalSettings))
+            if (cooldownManager == null)
             {
-                return $"Store purchase limit reached ({globalSettings.MaxItemPurchases} per {globalSettings.EventCooldownDays} days)";
+                cooldownManager = new GlobalCooldownManager(Current.Game);
+                Current.Game.components.Add(cooldownManager);
+            }
+            var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
+            if (!cooldownManager.CanPurchaseItem())
+            {
+               return $"Store purchase limit reached ({globalSettings.MaxItemPurchases} per {globalSettings.EventCooldownDays} days)";
             }
             return BuyItemCommandHandler.HandleUseItem(user, args);
         }
@@ -77,8 +97,13 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
             }
 
             var cooldownManager = Current.Game.GetComponent<GlobalCooldownManager>();
+            if (cooldownManager == null)
+            {
+                cooldownManager = new GlobalCooldownManager(Current.Game);
+                Current.Game.components.Add(cooldownManager);
+            }
             var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
-            if (!cooldownManager.CanPurchaseItem(globalSettings))
+            if (!cooldownManager.CanPurchaseItem())
             {
                 return $"Store purchase limit reached ({globalSettings.MaxItemPurchases} per {globalSettings.EventCooldownDays} days)";
             }
@@ -99,8 +124,13 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
             }
 
             var cooldownManager = Current.Game.GetComponent<GlobalCooldownManager>();
+            if (cooldownManager == null)
+            {
+                cooldownManager = new GlobalCooldownManager(Current.Game);
+                Current.Game.components.Add(cooldownManager);
+            }
             var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
-            if (!cooldownManager.CanPurchaseItem(globalSettings))
+            if (!cooldownManager.CanPurchaseItem())
             {
                 return $"Store purchase limit reached ({globalSettings.MaxItemPurchases} per {globalSettings.EventCooldownDays} days)";
             }
@@ -119,8 +149,13 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
                 return "Usage: !backpack <item> [quality] [material]";
             }
             var cooldownManager = Current.Game.GetComponent<GlobalCooldownManager>();
+            if (cooldownManager == null)
+            {
+                cooldownManager = new GlobalCooldownManager(Current.Game);
+                Current.Game.components.Add(cooldownManager);
+            }
             var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
-            if (!cooldownManager.CanPurchaseItem(globalSettings))
+            if (!cooldownManager.CanPurchaseItem())
             {
                 return $"Store purchase limit reached ({globalSettings.MaxItemPurchases} per {globalSettings.EventCooldownDays} days)";
             }
@@ -149,8 +184,13 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
                 return "Usage: !surgery <item>";
             }
             var cooldownManager = Current.Game.GetComponent<GlobalCooldownManager>();
+                           if (cooldownManager == null)
+                {
+                    cooldownManager = new GlobalCooldownManager(Current.Game);
+                    Current.Game.components.Add(cooldownManager);
+                }
             var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
-            if (!cooldownManager.CanPurchaseItem(globalSettings))
+            if (!cooldownManager.CanPurchaseItem())
             {
                 return $"Store purchase limit reached ({globalSettings.MaxItemPurchases} per {globalSettings.EventCooldownDays} days)";
             }

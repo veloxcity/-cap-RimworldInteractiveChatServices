@@ -131,7 +131,7 @@ namespace CAP_ChatInteractive
 
             var commandText = parts[0];
             var args = parts.Skip(1).ToArray();
-            var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings as CAPGlobalChatSettings;
+            var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
             // Get cooldown manager early
 
             // Prefix check NEED
@@ -286,7 +286,7 @@ namespace CAP_ChatInteractive
             return onCooldown;
         }
 
-        private static GlobalCooldownManager GetCooldownManager()
+        public static GlobalCooldownManager GetCooldownManager()
         {
             var manager = Current.Game.GetComponent<GlobalCooldownManager>();
             if (manager == null)

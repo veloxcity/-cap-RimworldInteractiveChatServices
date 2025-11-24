@@ -239,32 +239,92 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
 
         public static int CalculateFinalPrice(StoreItem storeItem, int quantity, QualityCategory? quality, ThingDef material)
         {
-            int basePrice = storeItem.BasePrice * quantity;
-            float multiplier = 1.0f;
-
-            // Quality multiplier
-            if (quality.HasValue)
+            try
             {
-                multiplier *= quality.Value switch
+                // Get the thing def for accurate price calculation
+                var thingDef = DefDatabase<ThingDef>.GetNamedSilentFail(storeItem.DefName);
+                if (thingDef == null)
                 {
-                    QualityCategory.Awful => 0.5f,
-                    QualityCategory.Poor => 0.75f,
-                    QualityCategory.Normal => 1.0f,
-                    QualityCategory.Good => 1.5f,
-                    QualityCategory.Excellent => 2.0f,
-                    QualityCategory.Masterwork => 3.0f,
-                    QualityCategory.Legendary => 5.0f,
-                    _ => 1.0f
-                };
-            }
+                    Logger.Error($"ThingDef not found for store item: {storeItem.DefName}");
+                    return storeItem.BasePrice * quantity; // Fallback
+                }
 
-            // Material multiplier (if specified and different from default)
-            if (material != null)
+                // Start with the base market value from RimWorld
+                float baseCost = thingDef.BaseMarketValue;
+
+                Logger.Debug($"Base market value for {thingDef.defName}: {baseCost}");
+
+                // Apply material cost if it's a stuff-based item and material is specified
+                if (thingDef.MadeFromStuff && material != null)
+                {
+                    // RimWorld's formula: baseCost * (stuffMarketValue / defaultStuffMarketValue)
+                    float stuffCost = material.BaseMarketValue;
+
+                    // Get the default stuff for this item type (usually the cheapest valid material)
+                    ThingDef defaultStuff = GetDefaultStuffForThing(thingDef);
+                    float defaultStuffCost = defaultStuff?.BaseMarketValue ?? ThingDefOf.Steel.BaseMarketValue;
+
+                    float materialMultiplier = stuffCost / defaultStuffCost;
+
+                    // Apply the material multiplier to base cost
+                    baseCost *= materialMultiplier;
+
+                    Logger.Debug($"Material cost: {material.defName} ({stuffCost}) / default ({defaultStuff?.defName} = {defaultStuffCost}) = multiplier {materialMultiplier:F2}");
+                }
+
+                // Apply quality multiplier if the item supports quality
+                if (quality.HasValue && thingDef.HasComp(typeof(CompQuality)))
+                {
+                    float qualityMultiplier = GetQualityMultiplier(quality.Value);
+                    baseCost *= qualityMultiplier;
+                    Logger.Debug($"Quality multiplier for {quality.Value}: {qualityMultiplier}");
+                }
+
+                // Apply your store markup (1.67x as in your CalculateBasePrice method)
+                baseCost *= 1.33f;
+                Logger.Debug($"After store markup (1.33x): {baseCost}");
+
+                // Apply quantity and round to whole number
+                int finalPrice = (int)(baseCost * quantity);
+
+                Logger.Debug($"Final price for {quantity}x {thingDef.defName}: {finalPrice} (Base: {thingDef.BaseMarketValue}, Quality: {quality}, Material: {material?.defName})");
+
+                return Math.Max(1, finalPrice); // Ensure at least 1 coin
+            }
+            catch (Exception ex)
             {
-                multiplier *= (material.BaseMarketValue / 10f); // Adjust this factor as needed
+                Logger.Error($"Error calculating final price for {storeItem.DefName}: {ex}");
+                // Fallback to simple calculation
+                return storeItem.BasePrice * quantity;
             }
+        }
 
-            return (int)(basePrice * multiplier);
+        private static ThingDef GetDefaultStuffForThing(ThingDef thingDef)
+        {
+            if (thingDef == null || !thingDef.MadeFromStuff || thingDef.stuffCategories == null)
+                return ThingDefOf.Steel; // Fallback to steel
+
+            // Try to find the cheapest valid material for this item
+            var validMaterials = DefDatabase<ThingDef>.AllDefs
+                .Where(def => def.IsStuff && thingDef.stuffCategories.Any(sc => def.stuffProps?.categories?.Contains(sc) == true))
+                .ToList();
+
+            return validMaterials.OrderBy(def => def.BaseMarketValue).FirstOrDefault() ?? ThingDefOf.Steel;
+        }
+
+        private static float GetQualityMultiplier(QualityCategory quality)
+        {
+            return quality switch
+            {
+                QualityCategory.Awful => 0.5f,
+                QualityCategory.Poor => 0.75f,
+                QualityCategory.Normal => 1.0f,
+                QualityCategory.Good => 1.5f,
+                QualityCategory.Excellent => 2.0f,
+                QualityCategory.Masterwork => 3.0f,
+                QualityCategory.Legendary => 5.0f,
+                _ => 1.0f
+            };
         }
 
         public static Pawn GetViewerPawn(string username)

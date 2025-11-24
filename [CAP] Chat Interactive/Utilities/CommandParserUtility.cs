@@ -38,7 +38,7 @@ namespace CAP_ChatInteractive.Utilities
             // Step 1: Clean and normalize arguments
             var cleanedArgs = CleanArguments(args);
 
-            // Step 2: Parse from END to START (reverse order)
+            // Step 2: Parse from END to START (reverse order) but with multi-word material support
             var remainingArgs = new List<string>(cleanedArgs);
 
             // Parse quantity FIRST (last argument if it's a number)
@@ -55,12 +55,27 @@ namespace CAP_ChatInteractive.Utilities
                 remainingArgs.RemoveAt(remainingArgs.Count - 1);
             }
 
-            // Parse material (if allowed and available) - BUT check if it might be the actual item
-            string potentialMaterial = null;
-            if (allowMaterial && remainingArgs.Count > 0 && IsMaterialKeyword(remainingArgs[remainingArgs.Count - 1]))
+            // NEW: Check for multi-word materials before single-word materials
+            string foundMaterial = null;
+            if (allowMaterial && remainingArgs.Count > 0)
             {
-                potentialMaterial = remainingArgs[remainingArgs.Count - 1];
-                remainingArgs.RemoveAt(remainingArgs.Count - 1);
+                // Try 3-word material first, then 2-word, then 1-word
+                for (int wordCount = 3; wordCount >= 1; wordCount--)
+                {
+                    if (remainingArgs.Count >= wordCount)
+                    {
+                        var materialWords = remainingArgs.Skip(remainingArgs.Count - wordCount).Take(wordCount).ToArray();
+                        string potentialMaterial = string.Join(" ", materialWords);
+
+                        if (IsMaterialKeyword(potentialMaterial))
+                        {
+                            foundMaterial = potentialMaterial;
+                            // Remove the material words from remaining args
+                            remainingArgs.RemoveRange(remainingArgs.Count - wordCount, wordCount);
+                            break;
+                        }
+                    }
+                }
             }
 
             // Parse quality (if allowed and available)
@@ -70,16 +85,18 @@ namespace CAP_ChatInteractive.Utilities
                 remainingArgs.RemoveAt(remainingArgs.Count - 1);
             }
 
+            // Set the material we found (if any)
+            result.Material = foundMaterial ?? "random";
+
             // CRITICAL FIX: If no item name remains but we found a material, use the material as the item name
-            if (remainingArgs.Count == 0 && potentialMaterial != null)
+            if (remainingArgs.Count == 0 && foundMaterial != null)
             {
-                result.ItemName = potentialMaterial;
+                result.ItemName = foundMaterial;
                 result.Material = "random"; // Reset material since it was actually the item
             }
             else if (remainingArgs.Count > 0)
             {
                 result.ItemName = string.Join(" ", remainingArgs).Trim();
-                result.Material = potentialMaterial ?? "random"; // Use the material we found, or default
             }
             else
             {
@@ -157,29 +174,39 @@ namespace CAP_ChatInteractive.Utilities
                 var allStuffDefs = DefDatabase<ThingDef>.AllDefs.Where(def => def.IsStuff);
                 foreach (var stuffDef in allStuffDefs)
                 {
-                    // Add def name
+                    // Add def name (with underscores as spaces)
+                    string defNameWithSpaces = stuffDef.defName.Replace("_", " ");
+                    _materialKeywords.Add(defNameWithSpaces);
+
+                    // Add def name (original with underscores)
                     _materialKeywords.Add(stuffDef.defName);
 
-                    // Add label without spaces
+                    // Add label (this is the display name with spaces)
                     if (!string.IsNullOrEmpty(stuffDef.label))
                     {
+                        _materialKeywords.Add(stuffDef.label);
+
+                        // Also add label without spaces for backward compatibility
                         _materialKeywords.Add(stuffDef.label.Replace(" ", ""));
                     }
-
-                    // Add raw label
-                    _materialKeywords.Add(stuffDef.label);
                 }
 
                 Logger.Debug($"Initialized material keywords with {_materialKeywords.Count} entries");
+
+                // Log some examples for debugging
+                var blockMaterials = _materialKeywords.Where(k => k.Contains("block")).Take(5).ToList();
+                Logger.Debug($"Example block materials: {string.Join(", ", blockMaterials)}");
             }
             catch (Exception ex)
             {
                 Logger.Error($"Error initializing material keywords: {ex}");
-                // Fallback to common materials
+                // Fallback to common materials including multi-word ones
                 _materialKeywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "wood", "steel", "plasteel", "cloth", "leather", "synthread", "hyperweave",
-            "gold", "silver", "uranium", "jade", "component", "components"
+            "gold", "silver", "uranium", "jade", "component", "components",
+            "marble blocks", "granite blocks", "limestone blocks", "sandstone blocks",
+            "slate blocks", "steel blocks", "plasteel blocks", "wood logs"
         };
             }
         }
