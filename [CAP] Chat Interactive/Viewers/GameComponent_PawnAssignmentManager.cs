@@ -106,8 +106,8 @@ namespace CAP_ChatInteractive
         // NEW: Direct assignment method for dialog use
         public void AssignPawnToViewerDialog(string username, string platformID, Pawn pawn)
         {
-            string identifier = GetLegacyIdentifier(username);
-            viewerPawnAssignments[identifier] = pawn.ThingID;
+            // Now we can assume platformID is valid (checked by the caller)
+            viewerPawnAssignments[platformID] = pawn.ThingID;
 
             // Store original nickname before changing it
             if (pawn.Name is NameTriple nameOldTriple && !pawnOriginalNicknames.ContainsKey(pawn.ThingID))
@@ -125,7 +125,7 @@ namespace CAP_ChatInteractive
                 pawn.Name = new NameSingle(username);
             }
 
-            Logger.Debug($"Directly assigned pawn {pawn.ThingID} to viewer {username}");
+            Logger.Debug($"Directly assigned pawn {pawn.ThingID} to viewer {username} using platform ID: {platformID}");
         }
 
         // === GetAssignedPawn Methods ===
@@ -431,26 +431,6 @@ namespace CAP_ChatInteractive
             return true;
         }
 
-        // NEW: Legacy overload for username-only calls
-        public bool AddToQueue(string username)
-        {
-            string identifier = GetLegacyIdentifier(username);
-
-            if (pawnQueue.Contains(identifier))
-            {
-                return false;
-            }
-
-            if (HasAssignedPawn(username))
-            {
-                return false;
-            }
-
-            pawnQueue.Add(identifier);
-            queueJoinTimes[identifier] = Find.TickManager.TicksGame;
-            return true;
-        }
-
         // UPDATED: Remove from queue
         public bool RemoveFromQueue(ChatMessageWrapper message)
         {
@@ -671,7 +651,7 @@ namespace CAP_ChatInteractive
             {
                 return $"{message.Platform.ToLowerInvariant()}:{message.PlatformUserId}";
             }
-            
+
             // Priority 2: Username (fallback for backwards compatibility)
             if (!string.IsNullOrEmpty(message.Username))
             {
@@ -704,6 +684,86 @@ namespace CAP_ChatInteractive
 
             // If no assignments found, return the best available identifier
             return message != null ? GetViewerIdentifier(message) : legacyId;
+        }
+
+        // Fix Viewer Pawns
+        // Add this method to fix legacy pawn assignments
+        public void FixAllPawnAssignments()
+        {
+            int fixedCount = 0;
+            int removedCount = 0;
+            var assignmentsToRemove = new List<string>();
+            var assignmentsToAdd = new Dictionary<string, string>();
+
+            Logger.Debug("Starting pawn assignment fix...");
+
+            foreach (var assignment in viewerPawnAssignments.ToList())
+            {
+                string key = assignment.Key;
+                string thingId = assignment.Value;
+
+                // Check if this is a legacy username assignment (no platform prefix)
+                if (!key.Contains(":") && !key.StartsWith("username:"))
+                {
+                    Logger.Debug($"Found legacy assignment: {key} -> {thingId}");
+
+                    // Try to find the viewer by username
+                    Viewer viewer = Viewers.GetViewerNoAdd(key);
+                    if (viewer != null)
+                    {
+                        string platformId = viewer.GetPrimaryPlatformIdentifier();
+
+                        // Only proceed if we found a proper platform ID (not the fallback)
+                        if (platformId.Contains(":"))
+                        {
+                            Logger.Debug($"Found platform ID for {key}: {platformId}");
+
+                            // Mark legacy assignment for removal
+                            assignmentsToRemove.Add(key);
+
+                            // Add new assignment with platform ID
+                            assignmentsToAdd[platformId] = thingId;
+                            fixedCount++;
+
+                            Logger.Debug($"Fixed assignment: {key} -> {platformId}");
+                        }
+                        else
+                        {
+                            Logger.Debug($"No valid platform ID found for {key}, keeping legacy assignment");
+                        }
+                    }
+                    else
+                    {
+                        Logger.Debug($"Viewer {key} not found in database, removing assignment");
+                        assignmentsToRemove.Add(key);
+                        removedCount++;
+                    }
+                }
+            }
+
+            // Apply changes
+            foreach (string keyToRemove in assignmentsToRemove)
+            {
+                viewerPawnAssignments.Remove(keyToRemove);
+            }
+
+            foreach (var newAssignment in assignmentsToAdd)
+            {
+                viewerPawnAssignments[newAssignment.Key] = newAssignment.Value;
+            }
+
+            // Save the changes
+            if (fixedCount > 0 || removedCount > 0)
+            {
+                Logger.Debug($"Pawn assignment fix completed: {fixedCount} fixed, {removedCount} removed");
+                Messages.Message($"Fixed {fixedCount} pawn assignments and removed {removedCount} invalid assignments",
+                                fixedCount > 0 ? MessageTypeDefOf.PositiveEvent : MessageTypeDefOf.NeutralEvent);
+            }
+            else
+            {
+                Logger.Debug("No legacy pawn assignments found to fix");
+                Messages.Message("No legacy pawn assignments found to fix", MessageTypeDefOf.NeutralEvent);
+            }
         }
 
     }

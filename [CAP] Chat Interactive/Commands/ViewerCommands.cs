@@ -49,40 +49,6 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
         }
     }
 
-    // Event command
-    public class Event : ChatCommand
-    {
-        public override string Name => "event";
-
-        public override string Execute(ChatMessageWrapper user, string[] args)
-        {
-            if (args.Length == 0)
-            {
-                return "Usage: !event <event_name> or !event list. Examples: !event resourcepod, !event heatwave, !event psychicsoothe";
-            }
-
-            string incidentType = string.Join(" ", args).Trim();
-            return IncidentCommandHandler.HandleIncidentCommand(user, incidentType);
-        }
-    }
-
-    public class Weather : ChatCommand
-    {
-        public override string Name => "weather";
-
-        public override string Execute(ChatMessageWrapper user, string[] args)
-        {
-
-            if (args.Length == 0)
-            {
-                return "Usage: !weather <type>. Types: rain, snow, fog, thunderstorm, clear, etc.";
-            }
-
-            string weatherType = args[0].ToLower();
-            return WeatherCommandHandler.HandleWeatherCommand(user, weatherType);
-        }
-    }
-
     public class help : ChatCommand
     {
         public override string Name => "help";
@@ -240,4 +206,6 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
             return PassionCommandhandler.HandlePassionCommand(messageWrapper, args);
         }
     }
+
+
 }

@@ -94,13 +94,25 @@ namespace CAP_ChatInteractive.Commands.ModCommands
         }
     }
 
-    public class ToggleCoins : ChatCommand
+    public class ToggleStore : ChatCommand
     {
-        public override string Name => "togglecoins";
+        public override string Name => "togglestore";
         public override string Execute(ChatMessageWrapper user, string[] args)
         {
             // TODO: Implement coin toggling logic
-            return "Coin toggling functionality coming soon!";
+            return "TODO:  Tell Capto to fix this and make it work!";
+        }
+    }
+
+    public class FixAllPawns : ChatCommand
+    {
+        public override string Name => "fixallpawns";
+
+        public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
+        {
+            var assignmentManager = CAPChatInteractiveMod.GetPawnAssignmentManager();
+            assignmentManager.FixAllPawnAssignments();
+            return $"MOD {messageWrapper.Username} Fix all pawns executed.";
         }
     }
 

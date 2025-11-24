@@ -124,6 +124,26 @@ namespace CAP_ChatInteractive
                 ShowMassActionsMenu();
             }
 
+            // Debug gear icon - top right corner
+            Rect debugRect = new Rect(rect.width - 30f, 5f, 24f, 24f);
+            Texture2D gearIcon = ContentFinder<Texture2D>.Get("UI/Icons/Options/OptionsGeneral", false);
+            if (gearIcon != null)
+            {
+                if (Widgets.ButtonImage(debugRect, gearIcon))
+                {
+                    Find.WindowStack.Add(new Dialog_ViewerPawns());
+                }
+            }
+            else
+            {
+                // Fallback to the original gear icon
+                if (Widgets.ButtonImage(debugRect, TexButton.OpenInspector))
+                {
+                    Find.WindowStack.Add(new Dialog_ViewerPawns());
+                }
+            }
+            TooltipHandler.TipRegion(debugRect, "Open Viewier pawn Debug Information");
+
             Widgets.EndGroup();
         }
 

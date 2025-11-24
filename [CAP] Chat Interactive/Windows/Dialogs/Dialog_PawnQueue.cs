@@ -327,7 +327,7 @@ namespace CAP_ChatInteractive
             if (Widgets.ButtonText(assignRect, "Assign") && !string.IsNullOrEmpty(selectedUsername))
             {
                 // Use direct assignment instead of sending offer
-                AssignPawnDirectly(selectedUsername,selectedUserPlatformID, pawn);
+                AssignPawnDirectly(selectedUsername, selectedUserPlatformID, pawn);
             }
         }
 
@@ -616,11 +616,30 @@ namespace CAP_ChatInteractive
         {
             var queueManager = GetQueueManager();
 
+            // Validate that we have a valid platform ID
+            if (string.IsNullOrEmpty(platformID))
+            {
+                // Try to find the viewer and get their platform ID
+                Viewer viewer = Viewers.GetViewer(username);
+                if (viewer != null)
+                {
+                    platformID = viewer.GetPrimaryPlatformIdentifier();
+                    Logger.Debug($"Found platform ID for {username}: {platformID}");
+                }
+                else
+                {
+                    // Show warning and abort the assignment
+                    Messages.Message($"Cannot assign pawn - viewer '{username}' not found in database.", MessageTypeDefOf.RejectInput);
+                    Logger.Warning($"Cannot assign pawn to {username} - viewer not found in database");
+                    return; // Abort the assignment
+                }
+            }
+
             // Remove from queue using platform ID
             queueManager.RemoveFromQueue(platformID);
 
-            // Directly assign the pawn using platform ID
-            queueManager.AssignPawnToViewerDialog( username,  platformID, pawn);
+            // Directly assign the pawn - now we have a valid platformID
+            queueManager.AssignPawnToViewerDialog(username, platformID, pawn);
 
             // Send confirmation message to chat (user-facing)
             string assignMessage = $"🎉 You have been assigned {pawn.Name}! Use !mypawn to check your pawn's status.";
