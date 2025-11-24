@@ -16,12 +16,12 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
     {
         public override string Name => "bal";
 
-        public override string Execute(ChatMessageWrapper user, string[] args)
+        public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
         {
             // Get command settings
             var settingsCommand = GetCommandSettings();
 
-            var viewer = Viewers.GetViewer(user.Username);
+            var viewer = Viewers.GetViewer(messageWrapper.Username);
             if (viewer != null)
             {
                 var settings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
@@ -207,5 +207,30 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
         }
     }
 
+    public class ModInfo : ChatCommand
+    {
+        public override string Name => "modinfo";
 
+        public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
+        {
+            var settings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
+            var currencySymbol = settings.CurrencyName?.Trim() ?? "¢";
+
+            if (args.Length > 0 && args[0].ToLower() == "events")
+            {
+                if (!settings.EventCooldownsEnabled)
+                    return $"📊 Event cooldowns: OFF ❌ | Purchases: {settings.MaxItemPurchases}/period";
+
+                var response = $"📊 Events: {settings.EventsperCooldown}/{settings.EventCooldownDays}d";
+
+                if (settings.KarmaTypeLimitsEnabled)
+                    response += $" | Karma limits: 🔴{settings.MaxBadEvents} 🟢{settings.MaxGoodEvents} ⚪{settings.MaxNeutralEvents}";
+
+                response += $" | Purchases: {settings.MaxItemPurchases}/{settings.EventCooldownDays}d";
+                return response;
+            }
+
+            return $"👋 {messageWrapper.Username}! Base coins: {settings.BaseCoinReward} {currencySymbol} every 2 minutes | Max karma: {settings.MaxKarma} 🎯 | Use '!modinfo events' for cooldowns";
+        }
+    }
 }

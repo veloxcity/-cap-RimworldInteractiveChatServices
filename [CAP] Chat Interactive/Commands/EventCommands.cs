@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace _ChatInteractive.Commands.ViewerCommands
+namespace CAP_ChatInteractive.Commands.ViewerCommands
 {
     // Event command
     public class Event : ChatCommand
