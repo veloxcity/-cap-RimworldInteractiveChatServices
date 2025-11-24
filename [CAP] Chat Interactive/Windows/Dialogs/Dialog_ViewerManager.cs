@@ -358,7 +358,7 @@ namespace CAP_ChatInteractive
                 string platformLabel = "Platform IDs:";
                 if (selectedViewer.PlatformUserIds.Count == 0)
                 {
-                    platformLabel += " ⚠ NO PLATFORM IDs (User may be invalid)";
+                    platformLabel += " ⚠ NO PLATFORM IDs (User may be invalid) remove this viewer";
                     GUI.color = Color.yellow;
                 }
                 Widgets.Label(platformLabelRect, platformLabel);
@@ -380,7 +380,7 @@ namespace CAP_ChatInteractive
                             string testIdentifier = $"{platformId.Key}:{platformId.Value}";
                             if (assignmentManager.viewerPawnAssignments.ContainsKey(testIdentifier))
                             {
-                                platformText += " ✓ (Active Assignment)";
+                                platformText += " ✓ Has pawn assigned";
                             }
                         }
 
