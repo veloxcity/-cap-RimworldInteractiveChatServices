@@ -267,10 +267,6 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
 
         public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
         {
-            if (!IsEnabled())
-            {
-                return "The Revivepawn command is currently disabled.";
-            }
             return RevivePawnCommandHandler.HandleRevivePawn(messageWrapper, args);
         }
     }

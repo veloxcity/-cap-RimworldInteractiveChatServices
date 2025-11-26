@@ -365,38 +365,6 @@ namespace CAP_ChatInteractive
             }
         }
 
-        private void SendLetter(string label, string message)
-        {
-            try
-            {
-                // Use a neutral letter def that won't affect mood
-                LetterDef letterDef = LetterDefOf.NeutralEvent;
-
-                // Create a custom letter with better formatting
-                string formattedMessage = $"[{DateTime.Now:HH:mm}] {message}";
-
-                Find.LetterStack.ReceiveLetter(label, formattedMessage, letterDef);
-
-                Logger.Debug($"Sent letter: {label} - {message.Substring(0, Math.Min(50, message.Length))}...");
-            }
-            catch (Exception ex)
-            {
-                Logger.Error($"Failed to send letter: {ex.Message}");
-                // Ultimate fallback - game notification
-                Messages.Message($"[{label}] {message}", MessageTypeDefOf.NeutralEvent);
-            }
-        }
-
-        private void SendGameNotification(string message)
-        {
-            // Use RimWorld's notification system for urgent messages
-            Messages.Message(message, MessageTypeDefOf.NeutralEvent);
-
-            // ALSO send to our chat window system
-            ChatMessageLogger.AddSystemMessage(message);
-
-            Logger.Debug($"YouTube notification: {message}");
-        }
         private int _quotaUsedToday = 0;
         private DateTime _lastQuotaReset = DateTime.Today;
 

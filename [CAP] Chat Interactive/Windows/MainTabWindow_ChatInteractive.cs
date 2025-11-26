@@ -53,7 +53,8 @@ namespace CAP_ChatInteractive.Windows
 
         public override Vector2 RequestedTabSize => new Vector2(300f, 100f + (AddonRegistry.AddonDefs.Count * 32f));
 
-        public override MainTabWindowAnchor Anchor => MainTabWindowAnchor.Left;
+        // CHANGED: Force right anchor position
+        public override MainTabWindowAnchor Anchor => MainTabWindowAnchor.Right;
 
         public override void PostOpen()
         {

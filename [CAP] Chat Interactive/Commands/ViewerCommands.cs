@@ -207,9 +207,9 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
         }
     }
 
-    public class ModInfo : ChatCommand
+    public class ModSettings : ChatCommand
     {
-        public override string Name => "modinfo";
+        public override string Name => "modsettings";
 
         public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
         {
@@ -235,6 +235,17 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
             response += $" | 🎭Trait Max: {settings.MaxTraits}";
 
             return response;
+        }
+    }
+
+    public class ModInfo : ChatCommand
+    {
+        public override string Name => "modinfo";
+
+        public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
+        {
+            var globalChatSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
+            return $"RICS ver {globalChatSettings.modVersion} --- GitHub Releases:  https://github.com/ekudram/-cap-RimworldInteractiveChatServices/releases";
         }
     }
 }

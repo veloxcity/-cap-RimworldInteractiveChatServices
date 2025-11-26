@@ -69,10 +69,8 @@ namespace CAP_ChatInteractive
         /// </summary>
         public void RegisterCommand()
         {
-            if (!enabled)
-            {
-                return;
-            }
+            // FIX: Remove Def enabled check - register ALL commands so JSON settings control everything
+            // if (!enabled) return;
 
             try
             {
@@ -86,11 +84,8 @@ namespace CAP_ChatInteractive
                 if (Activator.CreateInstance(commandClass) is ChatCommand commandInstance)
                 {
                     var wrappedCommand = new DefBasedChatCommand(this, commandInstance);
-
-                    // Ensure settings are properly aligned between defName and command name
-                    EnsureSettingsAlignment(this, wrappedCommand);
-
                     ChatCommandProcessor.RegisterCommand(wrappedCommand);
+                    Logger.Debug($"Registered command: {commandText}");
                 }
                 else
                 {
@@ -128,11 +123,10 @@ namespace CAP_ChatInteractive
         }
     }
 
-
-/// <summary>
-/// Wrapper that adapts a ChatCommand instance to use Def-based properties
-/// </summary>
-public class DefBasedChatCommand : ChatCommand
+    /// <summary>
+    /// Wrapper that adapts a ChatCommand instance to use Def-based properties
+    /// </summary>
+    public class DefBasedChatCommand : ChatCommand
     {
         private readonly ChatCommandDef _def;
         private readonly ChatCommand _wrappedCommand;
@@ -149,23 +143,11 @@ public class DefBasedChatCommand : ChatCommand
 
         public override string Description => !string.IsNullOrEmpty(_def.commandDescription) ? _def.commandDescription : _wrappedCommand.Description;
 
-        public override string PermissionLevel
-        {
-            get
-            {
-                // Try to get from JSON settings first, fallback to XML def
-                var settings = GetCommandSettings();
-                if (!string.IsNullOrEmpty(settings?.PermissionLevel) && settings.PermissionLevel != "everyone")
-                {
-                    return settings.PermissionLevel;
-                }
-                return _def.permissionLevel;
-            }
-        }
+        // FIX: Only use JSON settings, never the Def
+        public override string PermissionLevel => GetCommandSettings()?.PermissionLevel ?? "everyone";
 
-        public override int CooldownSeconds => _def.cooldownSeconds;
+        public override int CooldownSeconds => GetCommandSettings()?.CooldownSeconds ?? 0;
 
-        public bool useCommandCooldown = false;  // Add this line
 
         public override string Execute(ChatMessageWrapper user, string[] args)
         {
@@ -174,10 +156,8 @@ public class DefBasedChatCommand : ChatCommand
 
         public override bool CanExecute(ChatMessageWrapper message)
         {
-            // Use the Def's permission system
             var viewer = Viewers.GetViewer(message);
             if (viewer == null) return false;
-
             return viewer.HasPermission(PermissionLevel);
         }
     }

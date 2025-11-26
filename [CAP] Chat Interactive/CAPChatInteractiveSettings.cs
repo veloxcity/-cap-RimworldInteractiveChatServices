@@ -66,6 +66,7 @@ namespace CAP_ChatInteractive
     public class CAPGlobalChatSettings : IExposable
     {
         // Existing properties...
+        public string modVersion = "1.0.9";
         public bool EnableDebugLogging = false;
         public bool LogAllMessages = true;
         public int MessageCooldownSeconds = 1;

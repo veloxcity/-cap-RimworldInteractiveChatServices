@@ -70,6 +70,7 @@ namespace CAP_ChatInteractive
             {
                 try
                 {
+                    // Load with commandText keys (what command processor uses)
                     commandSettings = JsonConvert.DeserializeObject<Dictionary<string, CommandSettings>>(json)
                                      ?? new Dictionary<string, CommandSettings>();
                 }
@@ -80,33 +81,32 @@ namespace CAP_ChatInteractive
                 }
             }
 
-            // Initialize settings for all commands
+            // Initialize settings for all commands using commandText as key
             foreach (var commandDef in DefDatabase<ChatCommandDef>.AllDefs)
             {
-                if (!commandSettings.ContainsKey(commandDef.defName))
+                if (!string.IsNullOrEmpty(commandDef.commandText))
                 {
-                    commandSettings[commandDef.defName] = new CommandSettings();
+                    string commandKey = commandDef.commandText.ToLowerInvariant();
+                    if (!commandSettings.ContainsKey(commandKey))
+                    {
+                        commandSettings[commandKey] = new CommandSettings();
+                    }
                 }
             }
         }
 
         public void SaveCommandSettings()
         {
-            // Delegate to the mod class for saving
-            var mod = CAPChatInteractiveMod.Instance;
-            if (mod != null)
+            try
             {
-                // You might need to make SaveCommandSettingsToJson public or use an event
-                // For now, we'll keep the save logic in the dialog but ensure it's consistent
-                try
-                {
-                    string json = JsonConvert.SerializeObject(commandSettings, Formatting.Indented);
-                    JsonFileManager.SaveFile("CommandSettings.json", json);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error($"Error saving command settings: {ex}");
-                }
+                // Save using the same commandText keys we loaded with
+                string json = JsonConvert.SerializeObject(commandSettings, Formatting.Indented);
+                JsonFileManager.SaveFile("CommandSettings.json", json);
+                Logger.Debug("Saved command settings to JSON");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error saving command settings: {ex}");
             }
         }
 
@@ -238,13 +238,14 @@ namespace CAP_ChatInteractive
                 for (int i = 0; i < filteredCommands.Count; i++)
                 {
                     var command = filteredCommands[i];
-                    var settings = commandSettings[command.defName];
+                    string commandKey = command.commandText?.ToLowerInvariant() ?? command.defName.ToLowerInvariant();
+                    var settings = commandSettings.ContainsKey(commandKey) ? commandSettings[commandKey] : new CommandSettings();
 
                     Rect buttonRect = new Rect(5f, y, viewRect.width - 10f, rowHeight - 2f);
 
                     // Command name with status indicator
                     string displayName = $"!{command.commandText}";
-                    if (!command.enabled || !settings.Enabled)
+                    if (!settings.Enabled)
                         displayName += " [DISABLED]";
 
                     // Color coding based on permission level
@@ -274,9 +275,13 @@ namespace CAP_ChatInteractive
 
         private Color GetCommandColor(ChatCommandDef command)
         {
-            if (!command.enabled) return Color.gray;
+            // Use commandText as key, not defName
+            string commandKey = command.commandText?.ToLowerInvariant() ?? command.defName.ToLowerInvariant();
 
-            var settings = commandSettings[command.defName];
+            if (!commandSettings.ContainsKey(commandKey))
+                return Color.gray;
+
+            var settings = commandSettings[commandKey];
             if (!settings.Enabled) return Color.gray;
 
             return command.permissionLevel switch
@@ -302,7 +307,12 @@ namespace CAP_ChatInteractive
                 return;
             }
 
-            var settings = commandSettings[selectedCommand.defName];
+            string commandKey = selectedCommand.commandText?.ToLowerInvariant() ?? selectedCommand.defName.ToLowerInvariant();
+            if (!commandSettings.TryGetValue(commandKey, out var settings))
+            {
+                settings = new CommandSettings();
+            }
+            // var settings = commandSettings.ContainsKey(commandKey) ? commandSettings[commandKey] : new CommandSettings();
 
             // Header with command name
             Rect headerRect = new Rect(rect.x, rect.y, rect.width, 40f);
@@ -310,7 +320,7 @@ namespace CAP_ChatInteractive
             Text.Anchor = TextAnchor.MiddleCenter;
 
             string headerText = $"!{selectedCommand.commandText}";
-            if (!selectedCommand.enabled || !settings.Enabled)
+            if (!settings.Enabled)
                 headerText += " 🚫 DISABLED";
 
             Widgets.Label(headerRect, headerText);

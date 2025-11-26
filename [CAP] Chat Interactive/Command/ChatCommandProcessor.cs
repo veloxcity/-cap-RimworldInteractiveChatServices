@@ -83,7 +83,7 @@ namespace CAP_ChatInteractive
                 if (lootboxComponent == null) return;
 
                 // Check if the openlootbox command is enabled before processing
-                if (_commands.TryGetValue("openlootbox", out var lootboxCommand) && lootboxCommand.IsEnabled())
+                if (CommandSettingsManager.GetSettings("openlootbox").Enabled)
                 {
                     // Process viewer message to check for daily lootboxes
                     lootboxComponent.ProcessViewerMessage(message.Username);
@@ -175,7 +175,7 @@ namespace CAP_ChatInteractive
             }
 
             // Fast exit: Command disabled
-            if (!command.IsEnabled())
+            if (!CommandSettingsManager.GetSettings(commandText).Enabled)
             {
                 SendMessageToUser(message, $"Command {commandText} is currently disabled.");
                 return;

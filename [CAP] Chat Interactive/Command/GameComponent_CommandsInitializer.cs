@@ -80,7 +80,6 @@ namespace CAP_ChatInteractive
         {
             try
             {
-                
                 // Load current settings
                 string jsonContent = JsonFileManager.LoadFile("CommandSettings.json");
                 var currentSettings = new Dictionary<string, CommandSettings>();
@@ -98,7 +97,8 @@ namespace CAP_ChatInteractive
                 {
                     if (!string.IsNullOrEmpty(def.commandText))
                     {
-                        string commandName = def.commandText.ToLower();
+                        // FIX: Use lowercase consistently
+                        string commandName = def.commandText.ToLowerInvariant();
                         if (!currentSettings.ContainsKey(commandName))
                         {
                             currentSettings[commandName] = new CommandSettings
@@ -125,77 +125,6 @@ namespace CAP_ChatInteractive
             catch (Exception ex)
             {
                 Logger.Error($"Error in ForceAddMissingCommands: {ex}");
-            }
-        }
-
-        private void CreateDefaultCommandSettings()
-        {
-            var commandDefs = DefDatabase<ChatCommandDef>.AllDefsListForReading;
-            var defaultSettings = new Dictionary<string, CommandSettings>();
-
-            foreach (var commandDef in commandDefs)
-            {
-                string commandName = commandDef.commandText?.ToLower() ?? commandDef.defName.ToLower();
-                defaultSettings[commandName] = new CommandSettings
-                {
-                    Enabled = commandDef.enabled,
-                    CooldownSeconds = commandDef.cooldownSeconds,
-                    PermissionLevel = commandDef.permissionLevel,
-                    useCommandCooldown = commandDef.useCommandCooldown
-                };
-            }
-
-            // Save the default settings
-            string json = JsonConvert.SerializeObject(defaultSettings, Formatting.Indented);
-            JsonFileManager.SaveFile("CommandSettings.json", json);
-        }
-
-
-        private bool LoadCommandSettingsFromJson()
-        {
-            string jsonContent = JsonFileManager.LoadFile("CommandSettings.json");
-            if (string.IsNullOrEmpty(jsonContent))
-                return false;
-
-            try
-            {
-                var loadedSettings = JsonConvert.DeserializeObject<Dictionary<string, CommandSettings>>(jsonContent);
-                // Store settings for later use
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Logger.Error($"Error loading command settings JSON: {ex.Message}");
-                return false;
-            }
-        }
-
-        private void SaveCommandSettingsToJson()
-        {
-            try
-            {
-                var commandDefs = DefDatabase<ChatCommandDef>.AllDefsListForReading;
-                var settingsToSave = new Dictionary<string, CommandSettings>();
-
-                foreach (var commandDef in commandDefs)
-                {
-                    string commandName = commandDef.commandText?.ToLower() ?? commandDef.defName.ToLower();
-                    settingsToSave[commandName] = new CommandSettings
-                    {
-                        Enabled = commandDef.enabled,
-                        CooldownSeconds = commandDef.cooldownSeconds,
-                        PermissionLevel = commandDef.permissionLevel
-                        // Add other default settings as needed
-                    };
-                }
-
-                string json = JsonConvert.SerializeObject(settingsToSave, Formatting.Indented);
-                JsonFileManager.SaveFile("CommandSettings.json", json);
-                Logger.Debug("Saved default command settings to JSON");
-            }
-            catch (Exception ex)
-            {
-                Logger.Error($"Error saving command settings: {ex}");
             }
         }
 

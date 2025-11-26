@@ -214,6 +214,8 @@ namespace CAP_ChatInteractive
 
         private void OnJoinedChannel(object sender, OnJoinedChannelArgs e)
         {
+            var settings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
+            string modVer = settings.modVersion;
             // NOW we're fully connected and in the channel
             _settings.IsConnected = true;
             _isConnecting = false;
@@ -229,7 +231,7 @@ namespace CAP_ChatInteractive
                 {
                     if (IsConnected)
                     {
-                        _client.SendMessage(e.Channel, "[CAP] Rimwold Interactive Chat Service activated!", false);
+                        _client.SendMessage(e.Channel, $"[CAP] Rimwold Interactive Chat Service version {modVer} activated!", false);
                     }
                 });
             }

@@ -13,7 +13,7 @@ namespace CAP_ChatInteractive
     {
         public Type menuClass = typeof(ChatInteractiveAddonMenu);
         public bool enabled = true;
-        public int displayOrder = 0;
+        public int displayOrder = 10;
 
         public override void ResolveReferences()
         {

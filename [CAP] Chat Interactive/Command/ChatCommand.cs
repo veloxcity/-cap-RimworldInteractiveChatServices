@@ -56,7 +56,7 @@ namespace CAP_ChatInteractive
 
             // Use the PermissionLevel property which now gets from JSON settings
             string requiredPermission = PermissionLevel;
-            Logger.Debug($"Permission check for {Name}: viewer '{message.Username}' needs '{requiredPermission}'");
+            // Logger.Debug($"Permission check for {Name}: viewer '{message.Username}' needs '{requiredPermission}'");
 
             return viewer.HasPermission(requiredPermission);
         }
@@ -68,9 +68,15 @@ namespace CAP_ChatInteractive
         }
 
         // Check if command is enabled in settings
-        public virtual bool IsEnabled()
+        public bool IsEnabled()
         {
+
             var settings = GetCommandSettings();
+            Logger.Debug($"=== Command '{Name}' Enabled Check ===");
+            Logger.Debug($"Settings found: {settings != null}");
+            Logger.Debug($"Settings.Enabled: {settings?.Enabled}");
+            Logger.Debug($"Final result: {settings?.Enabled ?? true}");
+
             return settings?.Enabled ?? true;
         }
 
@@ -112,24 +118,26 @@ namespace CAP_ChatInteractive
         {
             try
             {
-                //Logger.Debug($"=== Settings lookup for: '{commandName}' ===");
+                Logger.Debug($"=== GET SETTINGS FOR: '{commandName}' ===");
 
                 // Try to get from open dialog first
                 var dialog = Find.WindowStack?.WindowOfType<Dialog_CommandManager>();
                 if (dialog != null && dialog.commandSettings.ContainsKey(commandName))
                 {
-                    //Logger.Debug($"  -> Found in dialog settings");
+                    Logger.Debug($"  -> Found in dialog settings: Enabled={dialog.commandSettings[commandName].Enabled}");
                     return dialog.commandSettings[commandName];
                 }
 
                 // Fallback: Load directly from JSON
-                //Logger.Debug($"  -> Looking in JSON file");
-                return LoadSettingsFromJson(commandName);
+                Logger.Debug($"  -> Looking in JSON file");
+                var jsonSettings = LoadSettingsFromJson(commandName);
+                Logger.Debug($"  -> JSON result: Enabled={jsonSettings.Enabled}");
+                return jsonSettings;
             }
             catch (Exception ex)
             {
                 Logger.Error($"Error getting settings for {commandName}: {ex}");
-                return new CommandSettings(); // Return default settings
+                return new CommandSettings();
             }
         }
 
@@ -143,48 +151,36 @@ namespace CAP_ChatInteractive
                 {
                     var allSettings = JsonConvert.DeserializeObject<Dictionary<string, CommandSettings>>(json);
 
-                    // FIXED: Proper null checking for the debug output
                     if (allSettings != null)
                     {
-                       // Logger.Debug($"  -> JSON keys available: {string.Join(", ", allSettings.Keys)}");
-                    }
-                    else
-                    {
-                        Logger.Debug($"  -> JSON deserialized to null");
-                    }
+                        // Try multiple lookup strategies
+                        string commandNameLower = commandName.ToLowerInvariant();
 
-                    // FIRST: Try exact match
-                    if (allSettings != null && allSettings.ContainsKey(commandName))
-                    {
-                        // Logger.Debug($"  -> Found exact match for '{commandName}'");
-                        return allSettings[commandName];
-                    }
+                        // 1. Exact match
+                        if (allSettings.ContainsKey(commandName))
+                        {
+                            return allSettings[commandName];
+                        }
 
-                    // SECOND: Try to find by defName (case-insensitive)
-                    if (allSettings != null)
-                    {
+                        // 2. Case-insensitive match
                         var matchingKey = allSettings.Keys.FirstOrDefault(k =>
-                            string.Equals(k, commandName, StringComparison.OrdinalIgnoreCase));
+                            k.ToLowerInvariant() == commandNameLower);
 
                         if (matchingKey != null)
                         {
-                            // Logger.Debug($"  -> Found case-insensitive match: '{matchingKey}' -> '{commandName}'");
                             return allSettings[matchingKey];
                         }
-                    }
 
-                    Logger.Debug($"  -> No match found for '{commandName}'");
+                        Logger.Debug($"No settings found for '{commandName}' (tried: '{commandName}', case-insensitive)");
+                    }
                 }
                 catch (Exception ex)
                 {
                     Logger.Error($"Error loading settings from JSON for {commandName}: {ex}");
                 }
             }
-            else
-            {
-                Logger.Debug($"  -> JSON file is empty or doesn't exist");
-            }
 
+            // Return default settings (Enabled = true)
             return new CommandSettings();
         }
     }
