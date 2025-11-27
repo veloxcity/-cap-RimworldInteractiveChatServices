@@ -108,6 +108,8 @@ namespace CAP_ChatInteractive
                     var storeItem = kvp.Value;
                     var itemObject = new JObject();
 
+                    // ADD DefName to serialization
+                    itemObject["DefName"] = storeItem.DefName;
                     itemObject["CustomName"] = storeItem.CustomName ?? null;
                     itemObject["HasQuantityLimit"] = storeItem.HasQuantityLimit;
                     itemObject["IsMelee"] = storeItem.IsMelee;
@@ -115,18 +117,12 @@ namespace CAP_ChatInteractive
                     itemObject["IsStuffAllowed"] = storeItem.IsStuffAllowed;
                     itemObject["IsWeapon"] = storeItem.IsWeapon;
                     itemObject["QuantityLimit"] = storeItem.QuantityLimit;
-                    itemObject["LimitMode"] = storeItem.LimitMode.ToString(); // ADD THIS LINE - serialize as string
-                    itemObject["Weight"] = storeItem.Weight;
+                    itemObject["LimitMode"] = storeItem.LimitMode.ToString();
                     itemObject["ResearchOverrides"] = null;
                     itemObject["IsUsable"] = storeItem.IsUsable;
                     itemObject["IsEquippable"] = storeItem.IsEquippable;
                     itemObject["IsWearable"] = storeItem.IsWearable;
-                    itemObject["KarmaTypeForUsing"] = storeItem.KarmaTypeForUsing ?? null;
-                    itemObject["KarmaTypeForWearing"] = storeItem.KarmaTypeForWearing ?? null;
-                    itemObject["KarmaTypeForEquipping"] = storeItem.KarmaTypeForEquipping ?? null;
-                    itemObject["version"] = storeItem.Version;
                     itemObject["Mod"] = storeItem.ModSource ?? "RimWorld";
-                    itemObject["KarmaType"] = storeItem.KarmaType ?? null;
                     itemObject["BasePrice"] = storeItem.BasePrice;
                     itemObject["Category"] = storeItem.Category ?? "Misc";
                     itemObject["Enabled"] = storeItem.Enabled;
@@ -185,16 +181,10 @@ namespace CAP_ChatInteractive
                         storeItem.LimitMode = QuantityLimitMode.OneStack; // Default fallback
                     }
 
-                    storeItem.Weight = itemToken["Weight"]?.Value<float>() ?? 1.0f;
                     storeItem.IsUsable = itemToken["IsUsable"]?.Value<bool>() ?? true;
                     storeItem.IsEquippable = itemToken["IsEquippable"]?.Value<bool>() ?? false;
                     storeItem.IsWearable = itemToken["IsWearable"]?.Value<bool>() ?? false;
-                    storeItem.KarmaTypeForUsing = itemToken["KarmaTypeForUsing"]?.Value<string>();
-                    storeItem.KarmaTypeForWearing = itemToken["KarmaTypeForWearing"]?.Value<string>();
-                    storeItem.KarmaTypeForEquipping = itemToken["KarmaTypeForEquipping"]?.Value<string>();
-                    storeItem.Version = itemToken["version"]?.Value<int>() ?? 2;
                     storeItem.ModSource = itemToken["Mod"]?.Value<string>() ?? "RimWorld";
-                    storeItem.KarmaType = itemToken["KarmaType"]?.Value<string>();
                     storeItem.BasePrice = itemToken["BasePrice"]?.Value<int>() ?? 0;
                     storeItem.Category = itemToken["Category"]?.Value<string>() ?? "Misc";
                     storeItem.Enabled = itemToken["Enabled"]?.Value<bool>() ?? true;

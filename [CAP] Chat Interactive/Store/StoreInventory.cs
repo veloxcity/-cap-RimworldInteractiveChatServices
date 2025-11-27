@@ -104,6 +104,30 @@ namespace CAP_ChatInteractive.Store
             Logger.Message($"Created store with {AllStoreItems.Count} items");
         }
 
+        // Add this method to StoreInventory.cs
+        private static void MigrateStoreItemFormat(StoreItem storeItem, string defName)
+        {
+            // Ensure DefName is set (this was missing in old versions)
+            if (string.IsNullOrEmpty(storeItem.DefName))
+            {
+                storeItem.DefName = defName;
+            }
+
+            // Remove deprecated fields by ensuring they're set to default values
+            // These will be ignored during serialization since they no longer exist in the class
+
+            // The following properties are being removed:
+            // - Weight (always 1.0)
+            // - KarmaType (null)
+            // - KarmaTypeForUsing (null) 
+            // - KarmaTypeForWearing (null)
+            // - KarmaTypeForEquipping (null)
+            // - Version (always 2)
+
+            // No action needed - these properties will simply not be serialized in the new format
+        }
+
+        // Update the ValidateAndUpdateStore method to include migration
         private static void ValidateAndUpdateStore()
         {
             var tradeableItems = GetDefaultTradeableItems();
@@ -111,7 +135,8 @@ namespace CAP_ChatInteractive.Store
             int removedItems = 0;
             int updatedQuantityLimits = 0;
             int updatedCategories = 0;
-            int updatedTypeFlags = 0; // NEW: Track type flag updates
+            int updatedTypeFlags = 0;
+            int migratedItems = 0; // NEW: Track migrated items
 
             // Add any new items that aren't in the store
             foreach (var thingDef in tradeableItems)
@@ -127,6 +152,10 @@ namespace CAP_ChatInteractive.Store
                     // Validate and update existing items
                     var existingItem = AllStoreItems[thingDef.defName];
                     var tempStoreItem = new StoreItem(thingDef); // Create temp to get current values
+
+                    // MIGRATE: Update item format for existing items
+                    MigrateStoreItemFormat(existingItem, thingDef.defName);
+                    migratedItems++;
 
                     // Special case: rename old "Animal" category to "Mechs" for mechanoids
                     if (existingItem.Category == "Animal" && thingDef.race?.IsMechanoid == true)
@@ -151,7 +180,7 @@ namespace CAP_ChatInteractive.Store
                         updatedQuantityLimits++;
                     }
 
-                    // NEW: Update type flags if they don't match current logic
+                    // Update type flags if they don't match current logic
                     if (existingItem.IsUsable != tempStoreItem.IsUsable ||
                         existingItem.IsWearable != tempStoreItem.IsWearable ||
                         existingItem.IsEquippable != tempStoreItem.IsEquippable)
@@ -187,14 +216,15 @@ namespace CAP_ChatInteractive.Store
             }
 
             // Log all changes
-            if (addedItems > 0 || removedItems > 0 || updatedQuantityLimits > 0 || updatedCategories > 0 || updatedTypeFlags > 0)
+            if (addedItems > 0 || removedItems > 0 || updatedQuantityLimits > 0 || updatedCategories > 0 || updatedTypeFlags > 0 || migratedItems > 0)
             {
                 StringBuilder changes = new StringBuilder("Store updated:");
                 if (addedItems > 0) changes.Append($" +{addedItems} items");
                 if (removedItems > 0) changes.Append($" -{removedItems} items");
                 if (updatedQuantityLimits > 0) changes.Append($" {updatedQuantityLimits} quantity limits fixed");
                 if (updatedCategories > 0) changes.Append($" {updatedCategories} categories updated");
-                if (updatedTypeFlags > 0) changes.Append($" {updatedTypeFlags} type flags updated"); // NEW
+                if (updatedTypeFlags > 0) changes.Append($" {updatedTypeFlags} type flags updated");
+                if (migratedItems > 0) changes.Append($" {migratedItems} items migrated to new format"); // NEW
 
                 Logger.Message(changes.ToString());
                 SaveStoreToJson(); // Save changes

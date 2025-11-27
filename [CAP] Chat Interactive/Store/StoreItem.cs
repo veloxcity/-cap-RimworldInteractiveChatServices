@@ -18,7 +18,6 @@ namespace CAP_ChatInteractive.Store
         public bool HasQuantityLimit { get; set; } = true;
         public int QuantityLimit { get; set; } = 1;
         public QuantityLimitMode LimitMode { get; set; } = QuantityLimitMode.OneStack; // Changed from Each to OneStack
-        public float Weight { get; set; } = 1.0f;
         public bool IsUsable { get; set; } = true;
         public bool IsEquippable { get; set; }
         public bool IsWearable { get; set; }
@@ -26,14 +25,9 @@ namespace CAP_ChatInteractive.Store
         public bool IsMelee { get; set; }
         public bool IsRanged { get; set; }
         public bool IsStuffAllowed { get; set; }
-        public string KarmaType { get; set; }
-        public string KarmaTypeForUsing { get; set; }
-        public string KarmaTypeForWearing { get; set; }
-        public string KarmaTypeForEquipping { get; set; }
         public List<string> ResearchOverrides { get; set; }
         public string Category { get; set; }
         public string ModSource { get; set; }
-        public int Version { get; set; } = 2;
         public bool Enabled { get; set; } = true;
 
         // REMOVE the entire ExposeData method
