@@ -74,8 +74,8 @@ namespace CAP_ChatInteractive.Store
 
         private int CalculateBasePrice(ThingDef thingDef)
         {
-            // This should match the base calculation without quality/material modifiers
-            return (int)(Math.Max(thingDef.BaseMarketValue, 1f) * 1.33f);
+            // Price floor only - based on community discussion about minimum values
+            return Math.Max(1, (int)thingDef.BaseMarketValue);
         }
 
         private string GetCategoryFromThingDef(ThingDef thingDef)

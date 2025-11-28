@@ -308,36 +308,6 @@ namespace CAP_ChatInteractive
             SendMessageToUser(message, $"Command is on cooldown. Try again in {remaining.Seconds} seconds.");
         }
 
-        private static void SendGlobalCooldownMessage(ChatMessageWrapper message, ChatCommand command, GlobalCooldownManager cooldownManager)
-        {
-            var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings as CAPGlobalChatSettings;
-            var commandSettings = command.GetCommandSettings();
-
-            string cooldownMessage;
-
-            if (commandSettings.useCommandCooldown && commandSettings.MaxUsesPerCooldownPeriod > 0)
-            {
-                cooldownMessage = $"Command {command.Name} limit reached ({commandSettings.MaxUsesPerCooldownPeriod} per {globalSettings.EventCooldownDays} days)";
-            }
-            else if (globalSettings.EventCooldownsEnabled)
-            {
-                string eventType = cooldownManager.GetEventTypeForCommand(command.Name);
-                cooldownMessage = eventType switch
-                {
-                    "good" => $"Global good event limit reached ({globalSettings.MaxGoodEvents} per {globalSettings.EventCooldownDays} days)",
-                    "bad" => $"Global bad event limit reached ({globalSettings.MaxBadEvents} per {globalSettings.EventCooldownDays} days)",
-                    "neutral" => $"Global event limit reached ({globalSettings.MaxNeutralEvents} per {globalSettings.EventCooldownDays} days)",
-                    _ => $"Global event limit reached ({globalSettings.EventsperCooldown} total events per {globalSettings.EventCooldownDays} days)"
-                };
-            }
-            else
-            {
-                cooldownMessage = $"Command {command.Name} is currently unavailable";
-            }
-
-            SendMessageToUser(message, cooldownMessage);
-        }
-
         private static void SendPermissionDeniedMessage(ChatMessageWrapper message, ChatCommand command)
         {
             var settings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
