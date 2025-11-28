@@ -3,7 +3,7 @@
 This project stands on the shoulders of the open source community and the RimWorld modding ecosystem.
 
 ## Assets
-- **RimWorld Font**: Used for iconography with permission from Tynan Sylvester/Ludeon Studios. [Forum Link](https://ludeon.com/forums/index.php?topic=11022.0)
+- **RimWorld Font**: Used for iconography and other visuals. [Forum Link](https://ludeon.com/forums/index.php?topic=11022.0)
 
 ## Open Source Dependencies
 This project uses the following NuGet packages:
