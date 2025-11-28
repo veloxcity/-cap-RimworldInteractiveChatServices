@@ -1,9 +1,10 @@
 # Credits & Acknowledgments
 
-This project stands on the shoulders of the open source community and the RimWorld modding ecosystem.
+**Mod Disclaimer:** This mod is designed for use with RimWorld and interfaces with RimWorld's assets and systems. This mod is not official and is not endorsed by Ludeon Studios. RimWorld is a trademark and copyrighted work of Ludeon Studios Inc. All rights reserved by Ludeon.
 
 ## Assets
-- **RimWorld Font**: Used for iconography and other visuals. [Forum Link](https://ludeon.com/forums/index.php?topic=11022.0)
+- **RimWorld Font**: Used with explicit permission from Tynan Sylvester for modder use. [Forum Link](https://ludeon.com/forums/index.php?topic=11022.0)
+- **Game Icons**: References RimWorld's built-in icon assets (not distributed with this mod)
 
 ## Open Source Dependencies
 This project uses the following NuGet packages:
