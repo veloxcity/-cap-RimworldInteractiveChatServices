@@ -20,6 +20,7 @@ using CAP_ChatInteractive.Helpers;
 using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Verse;
 
@@ -90,24 +91,33 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
         {
             string colorHex = ColorUtility.ToHtmlStringRGBA(color);
 
+            // Check cache first
             if (GeneratedColors.TryGetValue(colorHex, out ColorDef colorDef))
                 return colorDef;
 
-            // Create a new dynamic ColorDef
-            colorDef = new ColorDef
-            {
-                defName = $"RICS_Color_{colorHex}",
-                label = colorHex,
-                color = color,
-                colorType = ColorType.Misc,
-                displayInStylingStationUI = false,
-                randomlyPickable = false,
-                displayOrder = -1
-            };
+            // Always use closest existing ColorDef - never create new ones
+            colorDef = DefDatabase<ColorDef>.AllDefs
+                .Where(def => def.colorType == ColorType.Misc || def.colorType == ColorType.Hair)
+                .OrderBy(def => ColorDistance(def.color, color))
+                .FirstOrDefault();
 
-            GeneratedColors[colorHex] = colorDef;
-            return colorDef;
+            if (colorDef != null)
+            {
+                GeneratedColors[colorHex] = colorDef;
+                return colorDef;
+            }
+
+            // Fallback to a safe default
+            return DefDatabase<ColorDef>.GetNamed("White");
         }
+
+        private static float ColorDistance(Color a, Color b)
+        {
+            // Calculate a simple color distance (Manhattan distance)
+            return Math.Abs(a.r - b.r) + Math.Abs(a.g - b.g) + Math.Abs(a.b - b.b);
+        }
+
+
 
         private static string GetColorName(Color color)
         {

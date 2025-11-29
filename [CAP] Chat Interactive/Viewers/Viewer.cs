@@ -1,4 +1,4 @@
-﻿// Viewer.cs
+﻿// Viewer.cs  
 // Copyright (c) Captolamia
 // This file is part of CAP Chat Interactive.
 // 
@@ -14,7 +14,19 @@
 // 
 // You should have received a copy of the GNU Affero General Public License
 // along with CAP Chat Interactive. If not, see <https://www.gnu.org/licenses/>.
-// with properties for roles, activity, economy, and platform-specific data.
+
+/*
+ * CONCEPTUAL INSPIRATION:
+ * Viewer data model concept inspired by hodlhodl1132's TwitchToolkit (AGPLv3)
+ * This implementation includes significant architectural differences:
+ * - Platform ID system for cross-platform user identification
+ * - Enhanced role tracking with multi-platform support
+ * - Different activity tracking mechanisms
+ * - Expanded permission system
+ * 
+ * Original TwitchToolkit Copyright: 2019 hodlhodl1132
+ * Community Preservation Modifications © 2025 Captolamia
+ */
 
 using RimWorld;
 using System;

@@ -16,6 +16,15 @@
 // along with CAP Chat Interactive. If not, see <https://www.gnu.org/licenses/>.
 //
 // Service to manage Twitch chat connection and messaging
+
+/*
+ * IMPLEMENTATION NOTES:
+ * - Twitch role hierarchy dictated by platform API requirements
+ * - Karma systems are standard industry practice (non-protectable)
+ * - Virtual currency management follows functional necessities
+ * - All platform-specific structures follow external constraints
+ */
+
 using CAP_ChatInteractive.Utilities;
 using RimWorld;
 using System;

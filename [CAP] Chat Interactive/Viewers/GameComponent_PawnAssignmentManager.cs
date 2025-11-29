@@ -14,13 +14,25 @@
 // 
 // You should have received a copy of the GNU Affero General Public License
 // along with CAP Chat Interactive. If not, see <https://www.gnu.org/licenses/>.
+//
 // Manages the assignment of pawns to chat viewers, including queueing and pending offers.
+//
+/*
+ * ARCHITECTURAL NOTES:
+ * - Platform-based identification system (vs username-only)
+ * - Secure assignment using platform user IDs  
+ * - Multi-platform role derivation (Twitch + YouTube)
+ * - Queue management with fairness algorithms
+ * - Timeout-based pending offer system
+ * - These represent substantial architectural differences from basic pawn assignment
+ */
+
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Verse;
-using CAP_ChatInteractive.Commands;
+
 
 namespace CAP_ChatInteractive
 {

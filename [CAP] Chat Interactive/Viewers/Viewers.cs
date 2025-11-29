@@ -16,6 +16,28 @@
 // along with CAP Chat Interactive. If not, see <https://www.gnu.org/licenses/>.
 // Manages viewer data including loading, saving, and updating viewer information.
 
+/*
+ * CONCEPTUAL INSPIRATION:
+ * Viewer management concept inspired by hodlhodl1132's TwitchToolkit (AGPLv3)
+ * However, this implementation includes substantial architectural differences:
+ * - Platform-based user identification system
+ * - Enhanced serialization with Newtonsoft.Json
+ * - Multi-platform viewer tracking
+ * - Different data persistence model
+ * - Queue management and pending offer systems
+ * 
+ * Original TwitchToolkit Copyright: 2019 hodlhodl1132
+ * Community Preservation Modifications © 2025 Captolamia
+ */
+
+/*
+ * IMPLEMENTATION NOTES:
+ * - Twitch role hierarchy dictated by platform API requirements
+ * - Karma systems are standard industry practice (non-protectable)
+ * - Virtual currency management follows functional necessities
+ * - All platform-specific structures follow external constraints
+ */
+
 using System;
 using System.Collections.Generic;
 using System.IO;

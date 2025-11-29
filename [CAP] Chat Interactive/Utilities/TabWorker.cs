@@ -1,5 +1,4 @@
-﻿// TabWorker.cs
-// Copyright (c) Captolamia
+﻿// Copyright (c) Captolamia
 // This file is part of CAP Chat Interactive.
 // 
 // CAP Chat Interactive is free software: you can redistribute it and/or modify
@@ -15,6 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with CAP Chat Interactive. If not, see <https://www.gnu.org/licenses/>.
 // A utility class to manage and render tabbed interfaces in the mod.
+
+/*
+ * IMPLEMENTATION NOTES:
+ * - Standard UI tab pattern implementation for RimWorld modding
+ * - Self-contained rendering system (vs external UI dependencies)
+ * - Custom visual design and interaction handling
+ * - Common solution to tabbed interface requirements
+ */
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
