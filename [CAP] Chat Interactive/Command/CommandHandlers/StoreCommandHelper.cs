@@ -141,9 +141,6 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 return true;
             }
 
-            // DEBUG METHOD
-            DebugResearchPrerequisites(thingDef);
-
             // Check research prerequisites
             if (thingDef.researchPrerequisites != null && thingDef.researchPrerequisites.Count > 0)
             {
@@ -1016,7 +1013,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
         public static string FormatCurrencyMessage(int amount, string currencySymbol)
         {
             var settings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
-            return $"{amount}{currencySymbol}";
+            return $"{amount} {currencySymbol}";
         }
 
         private static bool TryBackpackItem(Thing thing, Verse.Pawn pawn)
@@ -1190,6 +1187,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 return (false, spawnPosition);
             }
         }
+
         private static IntVec3 FindPawnSpawnPosition(Map map, IntVec3 preferredPos, Pawn viewerPawn = null)
         {
             // First priority: try to spawn near the viewer's pawn if available
@@ -1244,58 +1242,6 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 Logger.Debug($"Dropping item at trade spot {dropPos}");
                 GenDrop.TryDropSpawn(thing, dropPos, map, ThingPlaceMode.Near, out Thing resultingThing);
             }
-        }
-
-        // === DEBUG METHODS ===
-        public static void DebugResearchPrerequisites(ThingDef thingDef)
-        {
-            if (thingDef == null)
-            {
-                Logger.Debug("DebugResearchPrerequisites: ThingDef is null");
-                return;
-            }
-
-            Logger.Debug($"=== RESEARCH DEBUG for {thingDef.defName} ===");
-
-            if (thingDef.researchPrerequisites != null)
-            {
-                Logger.Debug($"Research prerequisites count: {thingDef.researchPrerequisites.Count}");
-                foreach (var research in thingDef.researchPrerequisites)
-                {
-                    if (research != null)
-                    {
-                        Logger.Debug($"  - {research.defName}: Finished={research.IsFinished}");
-                    }
-                }
-            }
-            else
-            {
-                Logger.Debug($"No research prerequisites found");
-            }
-
-            if (thingDef.recipeMaker != null && thingDef.recipeMaker.researchPrerequisite != null)
-            {
-                Logger.Debug($"Recipe research: {thingDef.recipeMaker.researchPrerequisite.defName}: Finished={thingDef.recipeMaker.researchPrerequisite.IsFinished}");
-            }
-
-            Logger.Debug($"=== END RESEARCH DEBUG ===");
-        }
-
-        // Add to StoreCommandHelper.cs
-        public static void DebugSettings()
-        {
-            var settings = CAPChatInteractiveMod.Instance?.Settings?.GlobalSettings;
-            if (settings == null)
-            {
-                Logger.Debug("DebugSettings: No settings found");
-                return;
-            }
-
-            Logger.Debug($"=== SETTINGS DEBUG ===");
-            Logger.Debug($"RequireResearch: {settings.RequireResearch}");
-            Logger.Debug($"AllowUnresearchedItems: {settings.AllowUnresearchedItems}");
-            Logger.Debug($"Quality Settings - Awful:{settings.AllowAwfulQuality}, Poor:{settings.AllowPoorQuality}, Normal:{settings.AllowNormalQuality}, Good:{settings.AllowGoodQuality}, Excellent:{settings.AllowExcellentQuality}, Masterwork:{settings.AllowMasterworkQuality}, Legendary:{settings.AllowLegendaryQuality}");
-            Logger.Debug($"=== END SETTINGS DEBUG ===");
         }
     }
 }
