@@ -42,6 +42,9 @@ namespace CAP_ChatInteractive
         private Dictionary<string, (int baseCost, string karmaType)> originalSettings = new Dictionary<string, (int, string)>();
         private EventListViewType listViewType = EventListViewType.ModSource;
 
+        private CAPGlobalChatSettings settingsGlobalChat;
+        private Dictionary<string, string> numericBuffers = new Dictionary<string, string>();
+
         public override Vector2 InitialSize => new Vector2(1200f, 700f);
 
         public Dialog_EventsEditor()
@@ -555,8 +558,17 @@ namespace CAP_ChatInteractive
             // Cost input
             Rect inputRect = new Rect(65f, 0f, 80f, 25f);
             int costBuffer = incident.BaseCost;
-            string stringBuffer = costBuffer.ToString();
-            UIUtilities.TextFieldNumericFlexible(inputRect, ref costBuffer, ref stringBuffer, 0, 1000000);
+
+            // Create a unique buffer key for this incident's cost
+            string bufferKey = $"Cost_{incident.DefName}";
+            if (!numericBuffers.ContainsKey(bufferKey))
+            {
+                numericBuffers[bufferKey] = costBuffer.ToString();
+            }
+
+            // Use standard Widgets.TextFieldNumeric with the buffer from dictionary
+            string _numBufferString = numericBuffers[bufferKey];
+            Widgets.TextFieldNumeric(inputRect, ref costBuffer, ref _numBufferString, 0, 1000000);
 
             if (costBuffer != incident.BaseCost)
             {
@@ -569,6 +581,8 @@ namespace CAP_ChatInteractive
             if (Widgets.ButtonText(resetRect, "Reset"))
             {
                 incident.BaseCost = CalculateDefaultCost(incident);
+                // Also update the buffer when resetting
+                numericBuffers[bufferKey] = incident.BaseCost.ToString();
                 IncidentsManager.SaveIncidentsToJson();
             }
 
@@ -1028,7 +1042,8 @@ namespace CAP_ChatInteractive
     {
         private CAPGlobalChatSettings settings;
         private Vector2 scrollPosition = Vector2.zero;
-
+        // private CAPGlobalChatSettings settingsGlobalChat;
+        private Dictionary<string, string> numericBuffers = new Dictionary<string, string>();
         public override Vector2 InitialSize => new Vector2(500f, 600f);
 
         public Dialog_EventSettings()
@@ -1202,8 +1217,15 @@ namespace CAP_ChatInteractive
             Rect rightRect = rect.RightHalf().Rounded();
 
             Widgets.Label(leftRect, label);
-            string buffer = value.ToString();
-            UIUtilities.TextFieldNumericFlexible(rightRect, ref value, ref buffer, min, max);
+
+            // Create a unique key based on the label
+            string bufferKey = $"Settings_{label.GetHashCode()}";
+            if (!numericBuffers.ContainsKey(bufferKey))
+            {
+                numericBuffers[bufferKey] = value.ToString();
+            }
+            string _numBufferString = numericBuffers[bufferKey];
+            Widgets.TextFieldNumeric(rightRect, ref value, ref _numBufferString, min, max);
             listing.Gap(2f);
         }
     }

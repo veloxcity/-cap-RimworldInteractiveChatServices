@@ -262,17 +262,12 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 {
                     // RimWorld's formula: baseCost * (stuffMarketValue / defaultStuffMarketValue)
                     float stuffCost = material.BaseMarketValue;
-
-                    // Get the default stuff for this item type (usually the cheapest valid material)
-                    ThingDef defaultStuff = GetDefaultStuffForThing(thingDef);
-                    float defaultStuffCost = defaultStuff?.BaseMarketValue ?? ThingDefOf.Steel.BaseMarketValue;
-
-                    float materialMultiplier = stuffCost / defaultStuffCost;
+                    float materialMultiplier = stuffCost;
 
                     // Apply the material multiplier to base cost
                     baseCost *= materialMultiplier;
 
-                    Logger.Debug($"Material cost: {material.defName} ({stuffCost}) / default ({defaultStuff?.defName} = {defaultStuffCost}) = multiplier {materialMultiplier:F2}");
+                    Logger.Debug($"Material cost: {material.defName} ({stuffCost}) = multiplier {materialMultiplier:F2}");
                 }
 
                 // Apply quality multiplier if the item supports quality
@@ -282,10 +277,6 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                     baseCost *= qualityMultiplier;
                     Logger.Debug($"Quality multiplier for {quality.Value}: {qualityMultiplier}");
                 }
-
-                // Apply your store markup (1.67x as in your CalculateBasePrice method)
-                baseCost *= 1.33f;
-                Logger.Debug($"After store markup (1.33x): {baseCost}");
 
                 // Apply quantity and round to whole number
                 int finalPrice = (int)(baseCost * quantity);
@@ -300,19 +291,6 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 // Fallback to simple calculation
                 return storeItem.BasePrice * quantity;
             }
-        }
-
-        private static ThingDef GetDefaultStuffForThing(ThingDef thingDef)
-        {
-            if (thingDef == null || !thingDef.MadeFromStuff || thingDef.stuffCategories == null)
-                return ThingDefOf.Steel; // Fallback to steel
-
-            // Try to find the cheapest valid material for this item
-            var validMaterials = DefDatabase<ThingDef>.AllDefs
-                .Where(def => def.IsStuff && thingDef.stuffCategories.Any(sc => def.stuffProps?.categories?.Contains(sc) == true))
-                .ToList();
-
-            return validMaterials.OrderBy(def => def.BaseMarketValue).FirstOrDefault() ?? ThingDefOf.Steel;
         }
 
         private static float GetQualityMultiplier(QualityCategory quality)
