@@ -29,7 +29,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
 {
     public static class TraitsCommandHandler
     {
-        public static string HandleLookupTraitCommand(ChatMessageWrapper user, string[] args)
+        public static string HandleLookupTraitCommand(ChatMessageWrapper messageWrapper, string[] args)
         {
             try
             {
@@ -88,24 +88,24 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
             return description.Substring(0, maxLength - 3) + "...";
         }
 
-        public static string HandleAddTraitCommand(ChatMessageWrapper user, string[] args)
+        public static string HandleAddTraitCommand(ChatMessageWrapper messageWrapper, string[] args)
         {
             try
             {
                 if (args.Length == 0)
                 {
-                    return "Usage: !addtrait <trait_name> - Add a trait to your pawn.";
+                    return "Usage: !addtrait [trait_name] - Add a trait to your pawn.";
                 }
 
                 // Get the viewer and their pawn
-                var viewer = Viewers.GetViewer(user);
+                var viewer = Viewers.GetViewer(messageWrapper);
                 if (viewer == null)
                 {
                     return "Could not find your viewer data.";
                 }
 
                 var assignmentManager = CAPChatInteractiveMod.GetPawnAssignmentManager();
-                Pawn pawn = assignmentManager.GetAssignedPawn(user);
+                Pawn pawn = assignmentManager.GetAssignedPawn(messageWrapper);
 
                 if (pawn == null || pawn.Dead)
                 {
@@ -179,7 +179,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
             }
         }
 
-        public static string HandleRemoveTraitCommand(ChatMessageWrapper user, string[] args)
+        public static string HandleRemoveTraitCommand(ChatMessageWrapper messageWrapper, string[] args)
         {
             try
             {
@@ -189,14 +189,14 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 }
 
                 // Get the viewer and their pawn
-                var viewer = Viewers.GetViewer(user);
+                var viewer = Viewers.GetViewer(messageWrapper);
                 if (viewer == null)
                 {
                     return "Could not find your viewer data.";
                 }
 
                 var assignmentManager = CAPChatInteractiveMod.GetPawnAssignmentManager();
-                Pawn pawn = assignmentManager.GetAssignedPawn(user);
+                Pawn pawn = assignmentManager.GetAssignedPawn(messageWrapper);
 
                 if (pawn == null || pawn.Dead)
                 {
@@ -257,7 +257,196 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
             }
         }
 
-        public static string HandleListTraitsCommand(ChatMessageWrapper user, string[] args)
+        public static string HandleReplaceTraitCommand(ChatMessageWrapper messageWrapper, string[] args)
+        {
+            try
+            {
+                if (args.Length < 2)
+                {
+                    return "Usage: !replacetrait <old_trait_name> <new_trait_name> - Replace one trait with another on your pawn.";
+                }
+
+                // Get the viewer and their pawn
+                var viewer = Viewers.GetViewer(messageWrapper);
+                if (viewer == null)
+                {
+                    return "Could not find your viewer data.";
+                }
+
+                var assignmentManager = CAPChatInteractiveMod.GetPawnAssignmentManager();
+                Pawn pawn = assignmentManager.GetAssignedPawn(messageWrapper);
+
+                if (pawn == null || pawn.Dead)
+                {
+                    return "You don't have an active pawn in the colony. Use !pawn to purchase one!";
+                }
+
+                // SIMPLE PARSING: First arg = old trait, rest = new trait
+                //string oldTraitName = args[0].ToLower();
+                //string newTraitName = string.Join(" ", args.Skip(1)).ToLower();
+
+                string oldTraitName = ParseTraitNames(args, out string newTraitName);
+
+                if (string.IsNullOrEmpty(oldTraitName) || string.IsNullOrEmpty(newTraitName))
+                {
+                    return "Could not parse trait names. Try: !replacetrait \"old trait\" \"new trait\"";
+                }
+
+                Logger.Debug($"ReplaceTrait: old='{oldTraitName}', new='{newTraitName}'");
+
+                // Find the traits in the database
+                var oldBuyableTrait = FindBuyableTrait(oldTraitName);
+                var newBuyableTrait = FindBuyableTrait(newTraitName);
+
+                if (oldBuyableTrait == null)
+                {
+                    return $"Trait '{oldTraitName}' not found. Use !traits to see available traits.";
+                }
+
+                if (newBuyableTrait == null)
+                {
+                    return $"Trait '{newTraitName}' not found. Use !traits to see available traits.";
+                }
+
+                // Check if old trait can be removed
+                if (!oldBuyableTrait.CanRemove)
+                {
+                    return $"The trait '{oldBuyableTrait.Name}' cannot be removed from pawns.";
+                }
+
+                // Check if new trait can be added
+                if (!newBuyableTrait.CanAdd)
+                {
+                    return $"The trait '{newBuyableTrait.Name}' cannot be added to pawns.";
+                }
+
+                // Get the TraitDefs
+                TraitDef oldTraitDef = DefDatabase<TraitDef>.GetNamedSilentFail(oldBuyableTrait.DefName);
+                TraitDef newTraitDef = DefDatabase<TraitDef>.GetNamedSilentFail(newBuyableTrait.DefName);
+
+                if (oldTraitDef == null)
+                {
+                    return $"Error: Trait definition for '{oldBuyableTrait.Name}' not found.";
+                }
+
+                if (newTraitDef == null)
+                {
+                    return $"Error: Trait definition for '{newBuyableTrait.Name}' not found.";
+                }
+
+                // Check if pawn has the old trait
+                var existingTrait = pawn.story.traits.allTraits.FirstOrDefault(t =>
+                    t.def.defName == oldBuyableTrait.DefName && t.Degree == oldBuyableTrait.Degree);
+
+                if (existingTrait == null)
+                {
+                    return $"Your pawn does not have the trait '{oldBuyableTrait.Name}'.";
+                }
+
+                // NEW CHECK: Prevent removal of forced traits (e.g., from genes)
+                if (existingTrait.ScenForced)
+                {
+                    return $"❌ The trait '{oldBuyableTrait.Name}' is forced (e.g., from genes) and cannot be replaced.";
+                }
+
+                // Check if pawn already has the new trait (different from old trait)
+                if (oldBuyableTrait.DefName != newBuyableTrait.DefName || oldBuyableTrait.Degree != newBuyableTrait.Degree)
+                {
+                    if (pawn.story.traits.allTraits.Any(t =>
+                        t.def.defName == newBuyableTrait.DefName && t.Degree == newBuyableTrait.Degree))
+                    {
+                        return $"Your pawn already has the trait '{newBuyableTrait.Name}'.";
+                    }
+                }
+
+                // Check for conflicts with other existing traits (excluding the one being replaced)
+                var otherTraits = pawn.story.traits.allTraits.Where(t => t != existingTrait).ToList();
+                foreach (var otherTrait in otherTraits)
+                {
+                    if (newTraitDef.ConflictsWith(otherTrait) || otherTrait.def.ConflictsWith(newTraitDef))
+                    {
+                        return $"❌ {newBuyableTrait.Name} conflicts with your pawn's existing trait {otherTrait.Label}.";
+                    }
+                }
+
+                // Calculate total cost
+                int totalCost = oldBuyableTrait.RemovePrice + newBuyableTrait.AddPrice;
+
+                // Check viewer's coins
+                if (viewer.Coins < totalCost)
+                {
+                    return $"You need {totalCost} coins to replace {oldBuyableTrait.Name} with {newBuyableTrait.Name}, but you only have {viewer.Coins} coins.";
+                }
+
+                // Remove old trait
+                pawn.story.traits.RemoveTrait(existingTrait);
+
+                // Add new trait
+                Trait newTrait = new Trait(newTraitDef, newBuyableTrait.Degree, false);
+                pawn.story.traits.GainTrait(newTrait);
+
+                // Deduct coins
+                viewer.TakeCoins(totalCost);
+
+                return $"✅ Replaced trait '{oldBuyableTrait.Name}' with '{newBuyableTrait.Name}' on {pawn.Name} for {totalCost} coins!";
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error in ReplaceTrait command handler: {ex}");
+                return "An error occurred while replacing the trait.";
+            }
+        }
+
+        // Helper method to parse trait names (add this as a private static method)
+        private static string ParseTraitNames(string[] args, out string newTraitName)
+        {
+            newTraitName = null;
+
+            if (args.Length == 2)
+            {
+                // Simple case: !replacetrait greedy jogger
+                newTraitName = args[1].ToLower();
+                return args[0].ToLower();
+            }
+
+            // Complex case with multi-word trait names
+            // Strategy: Find the split point by checking all possible combinations
+            for (int splitPoint = 1; splitPoint < args.Length; splitPoint++)
+            {
+                string potentialOldTrait = string.Join(" ", args.Take(splitPoint));
+                string potentialNewTrait = string.Join(" ", args.Skip(splitPoint));
+
+                // Check if both are valid traits
+                var oldTrait = FindBuyableTrait(potentialOldTrait);
+                var newTrait = FindBuyableTrait(potentialNewTrait);
+
+                if (oldTrait != null && newTrait != null)
+                {
+                    newTraitName = potentialNewTrait.ToLower();
+                    return potentialOldTrait.ToLower();
+                }
+            }
+
+            // Fallback: If we can't find a clear split, assume first word is old trait, rest is new trait
+            if (args.Length > 1)
+            {
+                string potentialOldTrait = args[0];
+                string potentialNewTrait = string.Join(" ", args.Skip(1));
+
+                var oldTrait = FindBuyableTrait(potentialOldTrait);
+                var newTrait = FindBuyableTrait(potentialNewTrait);
+
+                if (oldTrait != null)
+                {
+                    newTraitName = potentialNewTrait.ToLower();
+                    return potentialOldTrait.ToLower();
+                }
+            }
+
+            return null;
+        }
+
+        public static string HandleListTraitsCommand(ChatMessageWrapper messageWrapper, string[] args)
         {
             try
             {

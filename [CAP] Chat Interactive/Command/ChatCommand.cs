@@ -138,20 +138,20 @@ namespace CAP_ChatInteractive
         {
             try
             {
-                Logger.Debug($"=== GET SETTINGS FOR: '{commandName}' ===");
+                //Logger.Debug($"=== GET SETTINGS FOR: '{commandName}' ===");
 
                 // Try to get from open dialog first
                 var dialog = Find.WindowStack?.WindowOfType<Dialog_CommandManager>();
                 if (dialog != null && dialog.commandSettings.ContainsKey(commandName))
                 {
-                    Logger.Debug($"  -> Found in dialog settings: Enabled={dialog.commandSettings[commandName].Enabled}");
+                    //Logger.Debug($"  -> Found in dialog settings: Enabled={dialog.commandSettings[commandName].Enabled}");
                     return dialog.commandSettings[commandName];
                 }
 
                 // Fallback: Load directly from JSON
-                Logger.Debug($"  -> Looking in JSON file");
+                //Logger.Debug($"  -> Looking in JSON file");
                 var jsonSettings = LoadSettingsFromJson(commandName);
-                Logger.Debug($"  -> JSON result: Enabled={jsonSettings.Enabled}");
+                //Logger.Debug($"  -> JSON result: Enabled={jsonSettings.Enabled}");
                 return jsonSettings;
             }
             catch (Exception ex)

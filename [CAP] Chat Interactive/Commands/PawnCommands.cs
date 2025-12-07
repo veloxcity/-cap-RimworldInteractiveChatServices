@@ -32,7 +32,7 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
     {
         public override string Name => "pawn";
 
-        public override string Execute(ChatMessageWrapper user, string[] args)
+        public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
         {
             // Logger.Debug($"Pawn command executed by {user.Username} with args: [{string.Join(", ", args)}]");
 
@@ -47,17 +47,17 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
             // Handle list commands
             if (firstArg == "list" || firstArg == "races" || firstArg == "xenotypes")
             {
-                return HandleListCommand(user, args);
+                return HandleListCommand(messageWrapper, args);
             }
 
             // Handle mypawn command
             if (firstArg == "mypawn")
             {
-                return HandleMyPawnCommand(user);
+                return HandleMyPawnCommand(messageWrapper);
             }
 
             // Handle purchase - delegate ALL parsing to BuyPawnCommandHandler
-            return BuyPawnCommandHandler.HandleBuyPawnCommand(user, args);
+            return BuyPawnCommandHandler.HandleBuyPawnCommand(messageWrapper, args);
         }
 
         private string ShowPawnHelp()
@@ -96,7 +96,7 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
     {
         public override string Name => "mypawn";
 
-        public override string Execute(ChatMessageWrapper user, string[] args)
+        public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
         {
             // Get command settings
             var settingsCommand = GetCommandSettings();
@@ -109,7 +109,7 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
             string subCommand = args[0].ToLower();
             string[] subArgs = args.Length > 1 ? args.Skip(1).ToArray() : Array.Empty<string>();
 
-            return MyPawnCommandHandler.HandleMyPawnCommand(user, subCommand, subArgs);
+            return MyPawnCommandHandler.HandleMyPawnCommand(messageWrapper, subCommand, subArgs);
         }
 
         private string ShowMyPawnHelp()
@@ -123,9 +123,9 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
     {
         public override string Name => "trait";
 
-        public override string Execute(ChatMessageWrapper user, string[] args)
+        public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
         {
-            return TraitsCommandHandler.HandleLookupTraitCommand(user, args);
+            return TraitsCommandHandler.HandleLookupTraitCommand(messageWrapper, args);
         }
     }
 
@@ -133,9 +133,9 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
     {
         public override string Name => "addtrait";
 
-        public override string Execute(ChatMessageWrapper user, string[] args)
+        public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
         {
-            return TraitsCommandHandler.HandleAddTraitCommand(user, args);
+            return TraitsCommandHandler.HandleAddTraitCommand(messageWrapper, args);
         }
     }
 
@@ -143,19 +143,20 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
     {
         public override string Name => "removetrait";
 
-        public override string Execute(ChatMessageWrapper user, string[] args)
+        public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
         {
-            return TraitsCommandHandler.HandleRemoveTraitCommand(user, args);
+            return TraitsCommandHandler.HandleRemoveTraitCommand(messageWrapper, args);
         }
     }
 
+    // ReplaceTrait Command - Complete Implementation
     public class ReplaceTrait : ChatCommand
     {
         public override string Name => "replacetrait";
 
-        public override string Execute(ChatMessageWrapper user, string[] args)
+        public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
         {
-            return ""; // TraitsCommandHandler.HandleRemoveTraitCommand(user, args);
+            return TraitsCommandHandler.HandleReplaceTraitCommand(messageWrapper, args);
         }
     }
 
@@ -163,9 +164,9 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
     {
         public override string Name => "traits";
 
-        public override string Execute(ChatMessageWrapper user, string[] args)
+        public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
         {
-            return TraitsCommandHandler.HandleListTraitsCommand(user, args);
+            return TraitsCommandHandler.HandleListTraitsCommand(messageWrapper, args);
         }
     }
 
@@ -173,18 +174,18 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
     {
         public override string Name => "leave";
 
-        public override string Execute(ChatMessageWrapper user, string[] args)
+        public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
         {
             var assignmentManager = CAPChatInteractiveMod.GetPawnAssignmentManager();
 
             // Check if user has a pawn assigned
-            if (!assignmentManager.HasAssignedPawn(user))
+            if (!assignmentManager.HasAssignedPawn(messageWrapper))
             {
                 return "You don't have a pawn assigned to release.";
             }
 
             // Get the pawn info before unassigning for the message
-            Verse.Pawn pawn = assignmentManager.GetAssignedPawn(user);
+            Verse.Pawn pawn = assignmentManager.GetAssignedPawn(messageWrapper);
             string pawnName = pawn?.Name?.ToStringShort ?? "your pawn";
             string pawnStatus = (pawn == null || pawn.Dead) ? " (deceased)" : "";
 
@@ -195,10 +196,10 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
             }
 
             // Release the pawn
-            assignmentManager.UnassignPawn(user);
+            assignmentManager.UnassignPawn(messageWrapper);
 
             // Send storytelling letter
-            SendDepartureLetter(user.Username, pawn, pawnName);
+            SendDepartureLetter(messageWrapper.Username, pawn, pawnName);
 
             return $"✅ You have released {pawnName}{pawnStatus}. You can now get a new pawn with !pawn command.";
         }
