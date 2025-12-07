@@ -62,7 +62,7 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
 
         private string ShowPawnHelp()
         {
-            return "Usage: !pawn <race> [xenotype] [gender] [age] OR !pawn list <races|xenotypes> OR !pawn mypawn";
+            return "Usage: !pawn [race] [xenotype] [gender] [age] OR !pawn list [races|xenotypes] OR !pawn mypawn";
         }
 
         private string HandleListCommand(ChatMessageWrapper user, string[] args)
@@ -114,7 +114,7 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
 
         private string ShowMyPawnHelp()
         {
-            return "!mypawn <type>: body, gear, kills, needs, relations, skills, stats, story, traits, work\n" +
+            return "!mypawn [type]: body, gear, kills, needs, relations, skills, stats, story, traits, work\n" +
                 "Ex: !mypawn health, !mypawn skills, !mypawn stats shooting melee";
         }
     }
@@ -146,6 +146,16 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
         public override string Execute(ChatMessageWrapper user, string[] args)
         {
             return TraitsCommandHandler.HandleRemoveTraitCommand(user, args);
+        }
+    }
+
+    public class ReplaceTrait : ChatCommand
+    {
+        public override string Name => "replacetrait";
+
+        public override string Execute(ChatMessageWrapper user, string[] args)
+        {
+            return ""; // TraitsCommandHandler.HandleRemoveTraitCommand(user, args);
         }
     }
 

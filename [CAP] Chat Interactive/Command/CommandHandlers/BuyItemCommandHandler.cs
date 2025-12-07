@@ -624,8 +624,11 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                     Logger.Debug($"Awarded {karmaEarned} karma for {finalPrice} coin surgery");
                 }
 
-                // Spawn the implant items in pawn's inventory
-                StoreCommandHelper.SpawnItemForPawn(thingDef, quantity, null, null, viewerPawn, true); // Add to inventory
+                for (int i = 0; i < quantity; i++)
+                {
+                    StoreCommandHelper.SpawnItemForPawn(thingDef, 1, null, null, viewerPawn, true); // Add to inventory
+                    Logger.Debug($"Spawned surgery item {i + 1} of {quantity}: {thingDef.defName}");
+                }
 
                 // Schedule the surgeries
                 ScheduleSurgeries(viewerPawn, recipe, bodyParts.Take(quantity).ToList());

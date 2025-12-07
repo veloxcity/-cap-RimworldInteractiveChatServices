@@ -169,55 +169,55 @@ namespace _CAP__Chat_Interactive
 
             listing.Gap(24f);
 
-            // OAuth Section (Optional - for sending messages)
-            Text.Font = GameFont.Medium;
-            listing.Label("OAuth 2.0 (Optional - For Sending Messages)");
-            Text.Font = GameFont.Small;
-            listing.GapLine(6f);
+//            // OAuth Section (Optional - for sending messages)
+//            Text.Font = GameFont.Medium;
+//            listing.Label("OAuth 2.0 (Optional - For Sending Messages)");
+//            Text.Font = GameFont.Small;
+//            listing.GapLine(6f);
 
-            Rect oauthWarningRect = listing.GetRect(40f);
-            GUI.color = Color.red;
-            Widgets.Label(oauthWarningRect, "⚠ WARNING: OAuth often requires Google verification!");
-            GUI.color = Color.white;
-            listing.Gap(4f);
+//            Rect oauthWarningRect = listing.GetRect(40f);
+//            GUI.color = Color.red;
+//            Widgets.Label(oauthWarningRect, "⚠ WARNING: OAuth often requires Google verification!");
+//            GUI.color = Color.white;
+//            listing.Gap(4f);
 
-            Rect oauthHelpRect = listing.GetRect(50f);
-            string oauthHelp = @"<b>OAuth 2.0 is ONLY needed if you want to:</b>
-• Send messages to chat
-• Reply to viewers
-• Moderate chat
+//            Rect oauthHelpRect = listing.GetRect(50f);
+//            string oauthHelp = @"<b>OAuth 2.0 is ONLY needed if you want to:</b>
+//• Send messages to chat
+//• Reply to viewers
+//• Moderate chat
 
-<b>For just reading chat, skip OAuth!</b>
-Use API Key + Channel ID above.";
-            Widgets.Label(oauthHelpRect, oauthHelp);
+//<b>For just reading chat, skip OAuth!</b>
+//Use API Key + Channel ID above.";
+//            Widgets.Label(oauthHelpRect, oauthHelp);
 
-            if (listing.ButtonText("Configure OAuth 2.0 (Advanced)"))
-            {
-                // This would open your OAuth configuration tab or dialog
-                var mainWindow = Find.WindowStack.WindowOfType<Dialog_ChatInteractiveSettings>();
-                if (mainWindow != null)
-                {
-                    // Switch to OAuth tab - you'll need to implement tab switching
-                    Messages.Message("Switch to OAuth tab to configure OAuth 2.0", MessageTypeDefOf.SilentInput);
-                }
-                else
-                {
-                    Find.WindowStack.Add(new Dialog_EditClientSecrets());
-                }
-            }
+//            if (listing.ButtonText("Configure OAuth 2.0 (Advanced)"))
+//            {
+//                // This would open your OAuth configuration tab or dialog
+//                var mainWindow = Find.WindowStack.WindowOfType<Dialog_ChatInteractiveSettings>();
+//                if (mainWindow != null)
+//                {
+//                    // Switch to OAuth tab - you'll need to implement tab switching
+//                    Messages.Message("Switch to OAuth tab to configure OAuth 2.0", MessageTypeDefOf.SilentInput);
+//                }
+//                else
+//                {
+//                    Find.WindowStack.Add(new Dialog_EditClientSecrets());
+//                }
+//            }
 
-            listing.Gap(24f);
+//            listing.Gap(24f);
 
-            // Connection Settings
-            Text.Font = GameFont.Medium;
-            listing.Label("Connection Settings");
-            Text.Font = GameFont.Small;
-            listing.GapLine(6f);
+//            // Connection Settings
+//            Text.Font = GameFont.Medium;
+//            listing.Label("Connection Settings");
+//            Text.Font = GameFont.Small;
+//            listing.GapLine(6f);
 
-            listing.CheckboxLabeled("Auto-connect on startup", ref settings.AutoConnect);
-            TooltipHandler.TipRegion(listing.GetRect(0f),
-                "Automatically connect to YouTube when RimWorld starts\n\n" +
-                "Requires valid API Key and Channel ID");
+//            listing.CheckboxLabeled("Auto-connect on startup", ref settings.AutoConnect);
+//            TooltipHandler.TipRegion(listing.GetRect(0f),
+//                "Automatically connect to YouTube when RimWorld starts\n\n" +
+//                "Requires valid API Key and Channel ID");
 
             // Connection status and controls
             listing.Gap(12f);

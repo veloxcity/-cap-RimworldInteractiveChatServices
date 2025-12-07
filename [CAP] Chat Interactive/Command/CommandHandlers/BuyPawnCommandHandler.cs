@@ -749,7 +749,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 // Validate that we have at least a race name
                 if (string.IsNullOrEmpty(raceName))
                 {
-                    return "You must specify a race. Usage: !pawn <race> [xenotype] [gender] [age]";
+                    return "You must specify a race. Usage: !pawn [race] [xenotype] [gender] [age]";
                 }
 
                 // Call the existing handler with parsed parameters
@@ -758,7 +758,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
             catch (Exception ex)
             {
                 Logger.Error($"Error parsing pawn command: {ex}");
-                return "Error parsing command. Usage: !pawn <race> [xenotype] [gender] [age]";
+                return "Error parsing command. Usage: !pawn [race] [xenotype] [gender] [age]";
             }
         }
 

@@ -67,12 +67,12 @@ namespace CAP_ChatInteractive
             });
 
 
-            _tabWorker.AddTab(new TabItem
-            {
-                Label = "OAuth",
-                Tooltip = "Configure YouTube OAuth settings",
-                ContentDrawer = TabDrawer_OAuth.Draw
-            });
+            //_tabWorker.AddTab(new TabItem
+            //{
+            //    Label = "OAuth",
+            //    Tooltip = "Configure YouTube OAuth settings",
+            //    ContentDrawer = TabDrawer_OAuth.Draw
+            //});
 
             _tabWorker.AddTab(new TabItem
             {
