@@ -70,7 +70,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
 
                 var response = $"🔍 {searchType.ToUpper()} results for '{searchTerm}': ";
                 response += string.Join(" | ", results.Select(r =>
-                    $"{TextUtilities.StripTags(r.Name)} ({r.Type}): {r.Cost}{currencySymbol}"));
+                    $"{TextUtilities.StripTags(r.Name)} ({r.Type}): {r.Cost} {currencySymbol}"));
 
                 return response;
             }
