@@ -101,13 +101,21 @@ namespace CAP_ChatInteractive
             float controlsY = titleRect.yMax + 5f;
             float controlsHeight = 30f;
 
-            // Search bar with label - similar to PawnQueue
-            Rect searchLabelRect = new Rect(0f, controlsY, 80f, controlsHeight);
-            Text.Font = GameFont.Medium; // Medium font for the label
-            Widgets.Label(searchLabelRect, "Search:");
-            Text.Font = GameFont.Small;
+            // Search bar with icon
+            float searchY = controlsY;
+            Rect searchIconRect = new Rect(0f, searchY, 24f, 24f);
+            Texture2D searchIcon = ContentFinder<Texture2D>.Get("UI/Widgets/Search", false);
+            if (searchIcon != null)
+            {
+                Widgets.DrawTextureFitted(searchIconRect, searchIcon, 1f);
+            }
+            else
+            {
+                // Fallback to text if icon not found
+                Widgets.Label(new Rect(0f, searchY, 40f, 30f), "Search:");
+            }
 
-            Rect searchRect = new Rect(85f, controlsY, 250f, controlsHeight);
+            Rect searchRect = new Rect(30f, searchY, 170f, 24f); // Adjusted position for icon
             searchQuery = Widgets.TextField(searchRect, searchQuery);
 
             // Sort buttons - adjusted position
@@ -117,6 +125,45 @@ namespace CAP_ChatInteractive
             // Action buttons - adjusted position
             Rect actionsRect = new Rect(695f, controlsY, 430f, controlsHeight);
             DrawActionButtons(actionsRect);
+
+            // Settings gear icon - top right corner
+            Rect settingsRect = new Rect(rect.width - 30f, 5f, 24f, 24f);
+            Texture2D gearIcon = ContentFinder<Texture2D>.Get("UI/Icons/Options/OptionsGeneral", false);
+            if (gearIcon != null)
+            {
+                if (Widgets.ButtonImage(settingsRect, gearIcon))
+                {
+                    Find.WindowStack.Add(new Dialog_EventSettings());
+                }
+            }
+            else
+            {
+                // Fallback text button
+                if (Widgets.ButtonText(new Rect(rect.width - 80f, 5f, 75f, 24f), "Settings"))
+                {
+                    Find.WindowStack.Add(new Dialog_EventSettings());
+                }
+            }
+
+            // Info help icon - next to settings gear
+            Rect infoRect = new Rect(rect.width - 60f, 5f, 24f, 24f); // Positioned left of the gear
+            Texture2D infoIcon = ContentFinder<Texture2D>.Get("UI/Buttons/InfoButton", false);
+            if (infoIcon != null)
+            {
+                if (Widgets.ButtonImage(infoRect, infoIcon))
+                {
+                    Find.WindowStack.Add(new Dialog_StoreEditorHelp());
+                }
+                TooltipHandler.TipRegion(infoRect, "Events Editor Help");
+            }
+            else
+            {
+                // Fallback text button
+                if (Widgets.ButtonText(new Rect(rect.width - 110f, 5f, 45f, 24f), "Help"))
+                {
+                    Find.WindowStack.Add(new Dialog_StoreEditorHelp());
+                }
+            }
 
             Widgets.EndGroup();
         }
@@ -485,15 +532,24 @@ namespace CAP_ChatInteractive
             Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
 
-            // Bottom row: Quantity limit controls for all visible items
+            // Bottom rows: Bulk controls for all visible items
             if (filteredItems.Count > 0)
             {
+                // First row: Quantity controls
                 Rect qtyControlsRect = new Rect(headerRect.x, headerRect.y + 25f, headerRect.width, 25f);
                 DrawBulkQuantityControls(qtyControlsRect);
+
+                // Second row: Category price controls (only show when a specific category is selected)
+                if (selectedCategory != "All")
+                {
+                    Rect priceControlsRect = new Rect(headerRect.x, headerRect.y + 50f, headerRect.width, 25f);
+                    DrawCategoryPriceControls(priceControlsRect);
+                }
             }
 
             // Item list with virtual scrolling
-            Rect listRect = new Rect(rect.x, rect.y + 60f, rect.width, rect.height - 60f); // Adjusted from 35f to 60f
+            Rect listRect = new Rect(rect.x, rect.y + (selectedCategory != "All" ? 85f : 60f), rect.width,
+                rect.height - (selectedCategory != "All" ? 85f : 60f));
             float rowHeight = 60f;
 
             // Handle empty filtered items case
@@ -953,6 +1009,120 @@ namespace CAP_ChatInteractive
 
             Widgets.EndGroup();
         }
+
+        // Add this method to your Dialog_StoreEditor class:
+        private void DrawCategoryPriceControls(Rect rect)
+        {
+            Widgets.BeginGroup(rect);
+
+            float centerY = (rect.height - 30f) / 2f;
+            float x = 0f;
+
+            // Label
+            Rect labelRect = new Rect(x, centerY, 180f, 30f);
+            Text.Anchor = TextAnchor.MiddleRight;
+            Widgets.Label(labelRect, "Category Price:");
+            Text.Anchor = TextAnchor.UpperLeft;
+            x += 190f;
+
+            // Price input for the category
+            Rect priceRect = new Rect(x, centerY, 80f, 30f);
+            int categoryPriceBuffer = 0;
+            string categoryPriceBufferKey = $"cat_price_{selectedCategory}";
+
+            // Get or initialize buffer
+            if (!numericBuffers.ContainsKey(categoryPriceBufferKey))
+            {
+                numericBuffers[categoryPriceBufferKey] = "0";
+            }
+
+            string buffer = numericBuffers[categoryPriceBufferKey];
+            Widgets.TextFieldNumeric(priceRect, ref categoryPriceBuffer, ref buffer, 0, 1000000);
+            numericBuffers[categoryPriceBufferKey] = buffer;
+            x += 85f;
+
+            // Set Price button
+            Rect setButtonRect = new Rect(x, centerY, 110f, 30f);
+            if (Widgets.ButtonText(setButtonRect, "Set All"))
+            {
+                if (categoryPriceBuffer >= 0)
+                {
+                    Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
+                        $"Set price to {categoryPriceBuffer} for all {filteredItems.Count} items in '{selectedCategory}' category?",
+                        () => SetCategoryPrice(categoryPriceBuffer)
+                    ));
+                }
+                else
+                {
+                    Messages.Message("Price cannot be negative", MessageTypeDefOf.RejectInput);
+                }
+            }
+            x += 115f;
+
+            // Reset Category button
+            Rect resetButtonRect = new Rect(x, centerY, 110f, 30f);
+            if (Widgets.ButtonText(resetButtonRect, "Reset All"))
+            {
+                Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
+                    $"Reset all prices to default for {filteredItems.Count} items in '{selectedCategory}' category?",
+                    () => ResetCategoryPrices()
+                ));
+            }
+
+            Widgets.EndGroup();
+        }
+
+        // Add this method to set category price:
+        private void SetCategoryPrice(int price)
+        {
+            int changedCount = 0;
+            foreach (var item in filteredItems)
+            {
+                if (item.BasePrice != price)
+                {
+                    item.BasePrice = price;
+                    changedCount++;
+                }
+            }
+
+            if (changedCount > 0)
+            {
+                StoreInventory.SaveStoreToJson();
+                Messages.Message($"Set price to {price} for {changedCount} items in '{selectedCategory}' category",
+                    MessageTypeDefOf.PositiveEvent);
+                SoundDefOf.Click.PlayOneShotOnCamera();
+            }
+        }
+
+        // Add this method to reset category prices:
+        private void ResetCategoryPrices()
+        {
+            int changedCount = 0;
+            foreach (var item in filteredItems)
+            {
+                var thingDef = DefDatabase<ThingDef>.GetNamedSilentFail(item.DefName);
+                if (thingDef != null)
+                {
+                    int defaultPrice = (int)thingDef.BaseMarketValue;
+                    if (item.BasePrice != defaultPrice)
+                    {
+                        item.BasePrice = defaultPrice;
+                        changedCount++;
+                    }
+                }
+            }
+
+            if (changedCount > 0)
+            {
+                StoreInventory.SaveStoreToJson();
+                Messages.Message($"Reset {changedCount} items in '{selectedCategory}' to default prices",
+                    MessageTypeDefOf.PositiveEvent);
+                SoundDefOf.Click.PlayOneShotOnCamera();
+            }
+        }
+
+        // Add this field to your class:
+        private Dictionary<string, string> numericBuffers = new Dictionary<string, string>();
 
         private void BuildCategoryCounts()
         {
