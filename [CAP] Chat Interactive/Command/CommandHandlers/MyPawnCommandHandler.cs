@@ -62,6 +62,8 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                         return HandleBodyInfo(pawn, args);
                     case "health":
                         return HandlehealthInfo(pawn, args);
+                    case "implants":
+                        return HandleImplantsInfo(pawn, args);
                     case "gear":
                         return HandleGearInfo(pawn, args);
                     case "kills":
@@ -82,7 +84,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                     case "work":
                         return HandleWorkInfo(pawn, args);
                     default:
-                        return $"Unknown subcommand: {subCommand}. Use !mypawn for available options.";
+                        return $"Unknown subcommand: {subCommand}. !mypawn [type]: body, health, implants, gear, kills, needs, relations, skills, stats, story, traits, work";
                 }
             }
             catch (Exception ex)
@@ -91,8 +93,177 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 return "An error occurred while processing your pawn information.";
             }
         }
+
+        // === inplants ===
+        private static string HandleImplantsInfo(Pawn pawn, string[] args)
+        {
+            if (pawn.health?.hediffSet?.hediffs == null)
+            {
+                return $"{pawn.Name} has no health records.";
+            }
+
+            Logger.Debug("=== HandleInplantsInfo START ===");
+            Logger.Debug($"Pawn: {pawn.Name}, Total hediffs: {pawn.health.hediffSet.hediffs.Count}");
+
+            var report = new StringBuilder();
+            report.AppendLine("🔧 Implants & Replacements:");
+
+            // Get all visible implants (added parts)
+            var allHediffs = pawn.health.hediffSet.hediffs.ToList();
+            Logger.Debug("All hediffs:");
+            foreach (var h in allHediffs)
+            {
+                Logger.Debug($"  - {h.def.defName}, Visible: {h.Visible}, Part: {h.Part?.def?.label}");
+            }
+
+            var implants = allHediffs
+                .Where(h =>
+                {
+                    bool isVisible = h.Visible;
+                    bool isImplant = IsImplantOrAddedPart(h);
+                    Logger.Debug($"Filtering: {h.def.defName}, Visible={isVisible}, IsImplant={isImplant}");
+                    return isVisible && isImplant;
+                })
+                .ToList();
+
+            Logger.Debug($"Found {implants.Count} implants after filtering");
+
+            if (implants.Count == 0)
+            {
+                report.AppendLine("No implants or bionic replacements found.");
+                Logger.Debug("=== HandleInplantsInfo END (no implants) ===");
+                return report.ToString();
+            }
+
+            // Group implants by body part
+            var groupedImplants = implants
+                .GroupBy(h => h.Part)
+                .OrderByDescending(g => g.Key?.height ?? 0f)
+                .ThenByDescending(g => g.Key?.coverageAbsWithChildren ?? 0f)
+                .ToList();
+
+            foreach (var partGroup in groupedImplants)
+            {
+                string partName = partGroup.Key?.LabelCap ?? "Whole Body";
+                report.AppendLine($"• {partName}:");
+
+                foreach (var implant in partGroup.OrderBy(h => h.def.label))
+                {
+                    string implantName = StripTags(implant.LabelCap);
+                    string implantQuality = GetImplantQuality(implant);
+
+                    report.AppendLine($"  ◦ {implantName}{implantQuality}");
+                    Logger.Debug($"  - Found implant: {implantName} on {partName}");
+                }
+            }
+
+            // Add summary
+            report.AppendLine($"📊 Total: {implants.Count} implant(s)");
+
+            Logger.Debug("=== HandleInplantsInfo END ===");
+            return report.ToString();
+        }
+
+        // Remove or comment out most of the debug logs, keeping only important ones
+        private static bool IsImplantOrAddedPart(Hediff hediff)
+        {
+            if (hediff.def == null) return false;
+
+            // Check if it's an added part or implant class
+            if (hediff.def.hediffClass != null)
+            {
+                // Check if it's an added part type
+                if (typeof(Hediff_AddedPart).IsAssignableFrom(hediff.def.hediffClass))
+                    return true;
+
+                // Check if it's an implant type
+                if (typeof(Hediff_Implant).IsAssignableFrom(hediff.def.hediffClass))
+                    return true;
+            }
+
+            // Check if it spawns an implant/prosthetic when removed
+            if (hediff.def.spawnThingOnRemoved != null)
+            {
+                var thingDef = hediff.def.spawnThingOnRemoved;
+
+                // Check if it's any type of body part (excluding natural)
+                if (thingDef.IsWithinCategory(ThingCategoryDefOf.BodyParts))
+                {
+                    // Check specifically for prosthetic/bionic/ultratech/archotech/mechtech
+                    // Exclude natural body parts
+                    if (!thingDef.IsWithinCategory(ThingCategoryDef.Named("BodyPartsNatural")))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            // Check def name for common implant patterns
+            string defName = hediff.def.defName.ToLower();
+            if (defName.Contains("bionic") ||
+                defName.Contains("archotech") ||
+                defName.Contains("prosthetic") ||
+                defName.Contains("ultratech") ||
+                defName.Contains("mechtech") ||
+                defName.Contains("implant"))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static string GetImplantQuality(Hediff implant)
+        {
+            if (implant.def.spawnThingOnRemoved != null)
+            {
+                var thingDef = implant.def.spawnThingOnRemoved;
+
+                // Check which type of body part it is
+                if (thingDef.IsWithinCategory(ThingCategoryDefOf.BodyParts))
+                {
+                    // Check for archotech
+                    if (thingDef.IsWithinCategory(ThingCategoryDef.Named("BodyPartsArchotech")))
+                        return " (Archotech)";
+
+                    // Check for ultratech
+                    if (thingDef.IsWithinCategory(ThingCategoryDef.Named("BodyPartsUltra")))
+                        return " (Ultratech)";
+
+                    // Check for bionic
+                    if (thingDef.IsWithinCategory(ThingCategoryDef.Named("BodyPartsBionic")))
+                        return " (Bionic)";
+
+                    // Check for mechtech
+                    if (thingDef.IsWithinCategory(ThingCategoryDef.Named("BodyPartsMechtech")))
+                        return " (Mechtech)";
+
+                    // Check for prosthetic/simple
+                    if (thingDef.IsWithinCategory(ThingCategoryDef.Named("BodyPartsProsthetic")) ||
+                        thingDef.IsWithinCategory(ThingCategoryDef.Named("BodyPartsSimple")))
+                        return " (Prosthetic)";
+                }
+            }
+
+            // Check def name for common patterns
+            string defName = implant.def.defName.ToLower();
+            if (defName.Contains("archotech"))
+                return " (Archotech)";
+            if (defName.Contains("ultratech") || defName.Contains("ultra"))
+                return " (Ultratech)";
+            if (defName.Contains("mechtech"))
+                return " (Mechtech)";
+            if (defName.Contains("bionic"))
+                return " (Bionic)";
+            if (defName.Contains("prosthetic"))
+                return " (Prosthetic)";
+
+            return " (Implant)"; // Default fallback
+        }
+
+
+
         // === health ===
-        // Viewer requested feature
         private static string HandlehealthInfo(Pawn pawn, string[] args)
         {
             var report = new StringBuilder();
@@ -194,6 +365,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 _ => "😊"
             };
         }
+
         // === Body ===
         private static string HandleBodyInfo(Pawn pawn, string[] args)
         {
@@ -203,7 +375,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
             }
 
             var report = new StringBuilder();
-            report.AppendLine($"🏥 Health Report: "); // for {pawn.Name}:
+            report.AppendLine($"🏥 Health Report: ");
 
             // Add temperature comfort range
             float minComfy = pawn.GetStatValue(StatDefOf.ComfyTemperatureMin);
@@ -263,31 +435,104 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
 
         private static List<IGrouping<BodyPartRecord, Hediff>> GetVisibleHealthConditions(Pawn pawn)
         {
-            var visibleHediffs = pawn.health.hediffSet.hediffs
-                .Where(h => h.Visible)
-                .ToList();
+            var finalHediffs = new List<Hediff>();
 
-            // Include missing parts
-            var missingParts = pawn.health.hediffSet.GetMissingPartsCommonAncestors();
-            visibleHediffs.AddRange(missingParts);
+            foreach (var hediff in pawn.health.hediffSet.hediffs)
+            {
+                if (!hediff.Visible) continue;
 
-            return visibleHediffs
+                // Skip healthy implants
+                if (IsImplantOrAddedPart(hediff) && !hediff.def.isBad)
+                    continue;
+
+                // Handle missing parts
+                if (hediff is Hediff_MissingPart missingPart)
+                {
+                    if (HasAnyImplantOnPartOrChildren(pawn, missingPart.Part))
+                        continue; // Skip - replaced by implant
+
+                    finalHediffs.Add(hediff); // Keep - truly missing
+                }
+                else
+                {
+                    // Keep all other visible hediffs
+                    finalHediffs.Add(hediff);
+                }
+            }
+
+            return finalHediffs
                 .GroupBy(h => h.Part)
                 .OrderByDescending(g => g.Key?.height ?? 0f)
                 .ThenByDescending(g => g.Key?.coverageAbsWithChildren ?? 0f)
                 .ToList();
         }
 
+        private static bool HasAnyImplantOnPartOrChildren(Pawn pawn, BodyPartRecord missingPart)
+        {
+            if (missingPart == null || pawn.health?.hediffSet?.hediffs == null)
+                return false;
+
+            Logger.Debug($"=== Checking if missing part {missingPart.def?.label} is replaced by implant ===");
+
+            // Get all visible implants
+            var allImplants = pawn.health.hediffSet.hediffs
+                .Where(h => h.Visible && IsImplantOrAddedPart(h))
+                .ToList();
+
+            foreach (var implant in allImplants)
+            {
+                var implantPart = implant.Part;
+                if (implantPart == null) continue;
+
+                // Get all parts that this implant replaces/affects
+                var affectedParts = GetPartsReplacedByImplant(implant, implantPart);
+
+                if (affectedParts.Contains(missingPart))
+                {
+                    Logger.Debug($"Implant {implant.def.defName} replaces missing part {missingPart.def?.label}");
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static HashSet<BodyPartRecord> GetPartsReplacedByImplant(Hediff implant, BodyPartRecord implantPart)
+        {
+            var parts = new HashSet<BodyPartRecord> { implantPart };
+
+            // If implant is on a major body part (like leg), include all children
+            AddAllChildren(implantPart, parts);
+
+            return parts;
+        }
+
+        private static void AddAllChildren(BodyPartRecord part, HashSet<BodyPartRecord> set)
+        {
+            foreach (var child in part.GetDirectChildParts())
+            {
+                set.Add(child);
+                AddAllChildren(child, set);
+            }
+        }
+
         private static string GetHediffDisplay(Hediff hediff)
         {
             if (hediff == null) return string.Empty;
 
+            // Skip healthy implants in body report (they'll be shown separately in inplants)
+            if (!hediff.def.isBad && IsImplantOrAddedPart(hediff))
+            {
+                return string.Empty; // Don't show healthy implants in body report
+            }
+
             string display = System.Text.RegularExpressions.Regex.Replace(hediff.LabelCap, @"<[^>]*>", "");
 
             // Add emoji indicators
-            if (hediff is Hediff_MissingPart)
+            if (hediff is Hediff_MissingPart missingPart)
             {
-                return $"🦵 {display}"; // Missing limb
+                string bodyPartEmoji = GetBodyPartEmoji(missingPart.Part);
+                return $"{bodyPartEmoji} {display}";
             }
 
             if (hediff.Bleeding)
@@ -300,7 +545,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 return $"🩹 {display}"; // Tended wound
             }
 
-            // Add severity indicators
+            // Add severity indicators for injuries
             if (hediff.Severity > 0.7f)
             {
                 return $"🔴 {display}"; // Severe
@@ -313,6 +558,40 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
             {
                 return $"🟢 {display}"; // Mild
             }
+        }
+
+        private static string GetBodyPartEmoji(BodyPartRecord part)
+        {
+            if (part == null) return "❓";
+
+            string partLabel = part.def?.label?.ToLower() ?? "";
+
+            // Detailed emoji mapping for body parts
+            return partLabel switch
+            {
+                string p when p.Contains("arm") || p.Contains("shoulder") || p.Contains("upper arm") => "💪", // Arm
+                string p when p.Contains("hand") || p.Contains("palm") => "🖐️", // Hand
+                string p when p.Contains("finger") || p.Contains("thumb") => "👉", // Finger
+                string p when p.Contains("leg") || p.Contains("thigh") || p.Contains("hip") => "🦵", // Leg
+                string p when p.Contains("foot") || p.Contains("ankle") || p.Contains("heel") => "🦶", // Foot
+                string p when p.Contains("toe") => "🦶", // Toe (same as foot)
+                string p when p.Contains("head") || p.Contains("skull") => "🧑", // Head
+                string p when p.Contains("brain") || p.Contains("cerebrum") || p.Contains("cerebellum") => "🧠", // Brain
+                string p when p.Contains("eye") || p.Contains("retina") || p.Contains("cornea") => "👁️", // Eye
+                string p when p.Contains("ear") || p.Contains("eardrum") => "👂", // Ear
+                string p when p.Contains("nose") || p.Contains("nostril") => "👃", // Nose
+                string p when p.Contains("mouth") || p.Contains("lip") => "👄", // Mouth
+                string p when p.Contains("jaw") || p.Contains("mandible") => "🦷", // Jaw (teeth emoji)
+                string p when p.Contains("tooth") => "🦷", // Tooth
+                string p when p.Contains("tongue") => "👅", // Tongue
+                string p when p.Contains("heart") => "❤️", // Heart
+                string p when p.Contains("lung") => "🫁", // Lungs
+                string p when p.Contains("intestine") || p.Contains("colon") || p.Contains("bowel") => "🟠", // Intestines
+                string p when p.Contains("rib") || p.Contains("ribcage") => "🦴", // Ribs
+                string p when p.Contains("spine") || p.Contains("vertebra") => "🦴", // Spine
+                string p when p.Contains("pelvis") || p.Contains("hip bone") => "🦴", // Pelvis
+                _ => "🔪" // Default knife for generic amputations/unknown parts
+            };
         }
 
         private static string GetOverallHealthSeverity(Pawn pawn)

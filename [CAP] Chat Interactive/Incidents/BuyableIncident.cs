@@ -40,6 +40,7 @@ namespace CAP_ChatInteractive.Incidents
         public string DisabledReason { get; set; } = "";
         public bool ShouldBeInStore { get; set; } = true;
         public bool IsAvailableForCommands { get; set; } = true;
+        public int CooldownDays { get; set; } = 0;
 
         // Additional data
         public string ModSource { get; set; } = "RimWorld";

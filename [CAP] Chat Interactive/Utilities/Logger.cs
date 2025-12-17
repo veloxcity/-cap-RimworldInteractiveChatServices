@@ -44,7 +44,8 @@ namespace CAP_ChatInteractive
         {
             // Use settings-based debug toggle
             if (CAPChatInteractiveMod.Instance?.Settings?.GlobalSettings?.EnableDebugLogging == true)
-                Log.Message($"{Prefix} <color=#888888>[DEBUG] {message}</color>");
+                Log.Message($"[DEBUG] {message}");
+            //Log.Message($"{Prefix} <color=#888888>[DEBUG] {message}</color>");
         }
 
         public static void Twitch(string message)

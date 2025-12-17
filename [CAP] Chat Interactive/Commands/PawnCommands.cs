@@ -114,8 +114,8 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
 
         private string ShowMyPawnHelp()
         {
-            return "!mypawn [type]: body, gear, kills, needs, relations, skills, stats, story, traits, work\n" +
-                "Ex: !mypawn health, !mypawn skills, !mypawn stats shooting melee";
+            return "!mypawn [type]: body, health, implants, gear, kills, needs, relations, skills, stats, story, traits, work" ;
+                
         }
     }
 
