@@ -77,6 +77,13 @@ namespace CAP_ChatInteractive
         {
             base.PostClose();
             SaveCommandSettings();
+
+            // Force save the mod settings
+            if (CAPChatInteractiveMod.Instance?.Settings != null)
+            {
+                CAPChatInteractiveMod.Instance.Settings.Write();
+                Logger.Debug("Forced mod settings save from Command Manager");
+            }
         }
 
         private void LoadCommandSettings()
