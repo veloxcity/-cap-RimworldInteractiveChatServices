@@ -69,8 +69,9 @@ namespace CAP_ChatInteractive
 
             sb.AppendLine($"2. <b>Right Panel</b> - Item list with editing controls");
             sb.AppendLine($"   • Items are displayed with icons, names, categories, and mod sources");
-            sb.AppendLine($"   • Click the item icon to view detailed Def information");
+            sb.AppendLine($"   • Click the item icon to view detailed Def information and set custom names");
             sb.AppendLine($"   • Use controls to enable/disable items, set prices, and configure quantity limits");
+            sb.AppendLine($"   • Custom names are shown with an orange dot indicator");
             sb.AppendLine($"");
 
             sb.AppendLine($"<b>Header Controls:</b>");
@@ -103,8 +104,12 @@ namespace CAP_ChatInteractive
             sb.AppendLine($"");
 
             sb.AppendLine($"<b>Item Row Controls (for each item):</b>");
-            sb.AppendLine($"• <b>Icon</b> - Shows item graphic; click to view Def information");
+            sb.AppendLine($"• <b>Icon</b> - Shows item graphic; click to view Def information and set custom names");
+            sb.AppendLine($"   - Hover tooltip: 'Click icon for detailed item information and to set custom name'");
             sb.AppendLine($"• <b>Info Card Button</b> - RimWorld's built-in info card (if available)");
+            sb.AppendLine($"• <b>Name Display</b> - Shows custom name (if set) or default item name");
+            sb.AppendLine($"   - Hover to see full name details (Custom Name, Default Name, DefName, LabelCap)");
+            sb.AppendLine($"   - Orange dot indicates a custom name is set");
             sb.AppendLine($"• <b>Enabled Checkbox</b> - Toggle if item is available for purchase");
             sb.AppendLine($"• <b>Type Checkbox</b> - Mark item as Usable, Wearable, or Equippable");
             sb.AppendLine($"   - <b>Usable</b>: Items that can be used/consumed (food, medicine, drugs)");
@@ -136,6 +141,23 @@ namespace CAP_ChatInteractive
             sb.AppendLine($"   - Component properties");
             sb.AppendLine($"   - Ingestible/Apparel/Weapon specific data");
             sb.AppendLine($"   - Current store item configuration");
+            sb.AppendLine($"• <b>Custom Name Editor</b> - Set a custom display name for the item");
+            sb.AppendLine($"   - Custom names override the default item name in chat store");
+            sb.AppendLine($"   - Names must be unique (cannot duplicate other item names)");
+            sb.AppendLine($"   - Warning shown if name duplicates another item");
+            sb.AppendLine($"   - Clear button removes custom name (reverts to default)");
+            sb.AppendLine($"   - Default-assigned names (same as LabelCap) are not treated as custom");
+            sb.AppendLine($"");
+
+            sb.AppendLine($"<b>Custom Name Feature:</b>");
+            sb.AppendLine($"• <b>Purpose</b>: Set alternate display names for items in chat store");
+            sb.AppendLine($"• <b>Access</b>: Click item icon → Def Information Window → 'Custom Name' field");
+            sb.AppendLine($"• <b>Validation</b>: Names must be unique across all items");
+            sb.AppendLine($"   - Checks against other custom names, def names, and label caps");
+            sb.AppendLine($"   - Case-insensitive comparison");
+            sb.AppendLine($"• <b>Visual Indicator</b>: Items with custom names show orange dot in main list");
+            sb.AppendLine($"• <b>Tooltip</b>: Hover over item name to see custom and default names");
+            sb.AppendLine($"• <b>Default Behavior</b>: If no custom name, displays default RimWorld name");
             sb.AppendLine($"");
 
             sb.AppendLine($"<b>Item Types Explained:</b>");
@@ -171,6 +193,9 @@ namespace CAP_ChatInteractive
             sb.AppendLine($"• Search supports partial matching (case-insensitive)");
             sb.AppendLine($"• Default prices are based on RimWorld's BaseMarketValue");
             sb.AppendLine($"• Some items may not appear if they lack proper ThingDef definitions");
+            sb.AppendLine($"• Use custom names to create user-friendly names for technical items");
+            sb.AppendLine($"• Custom names are preserved even if the mod updates or changes");
+            sb.AppendLine($"• Duplicate name warnings help prevent confusion in chat commands");
 
             string fullText = sb.ToString();
 

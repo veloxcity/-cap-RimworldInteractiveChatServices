@@ -362,7 +362,7 @@ namespace CAP_ChatInteractive
             Rect headerRect = new Rect(rect.x, rect.y, rect.width, 40f);
             Text.Font = GameFont.Medium;
             Text.Anchor = TextAnchor.MiddleCenter;
-
+            
             string headerText = $"!{selectedCommand.commandText}";
             if (!settings.Enabled)
                 headerText += " 🚫 DISABLED";
