@@ -722,6 +722,9 @@ namespace CAP_ChatInteractive
                         ShowDefInfoWindow(thingDef, item);
                     }
 
+                    // Add tooltip for the icon
+                    TooltipHandler.TipRegion(iconRect, "Click icon for detailed item information and to set custom name");
+
                     Widgets.InfoCardButton(iconRect.xMax + 2f, iconRect.y, thingDef);
                 }
                 x += 80f;
@@ -730,14 +733,72 @@ namespace CAP_ChatInteractive
                 float infoWidth = 210f; // Fixed reasonable width for item info
                 Rect infoRect = new Rect(x, 5f, infoWidth, 50f);
                 Text.Anchor = TextAnchor.MiddleLeft;
-                string itemName = thingDef?.LabelCap ?? item.DefName;
-                // Truncate the item name if needed
-                string displayName = UIUtilities.TruncateTextToWidthEfficient(itemName, infoWidth - 5f);
-                Widgets.Label(infoRect.TopHalf(), displayName);
-                // Add tooltip if truncated
-                if (UIUtilities.WouldTruncate(itemName, infoWidth - 5f))
+
+                // Get the LabelCap as string for comparison
+                string labelCapString = thingDef?.LabelCap.ToString();
+
+                // Determine if we have a user-set custom name
+                // Custom name is considered "user-set" if it exists AND is different from LabelCap
+                bool hasUserCustomName = !string.IsNullOrEmpty(item.CustomName) &&
+                                         item.CustomName != labelCapString;
+
+                // Determine the display name: User Custom Name first, then LabelCap, then DefName
+                string displayName;
+                if (hasUserCustomName)
                 {
-                    TooltipHandler.TipRegion(infoRect.TopHalf(), itemName);
+                    displayName = item.CustomName;
+                }
+                else
+                {
+                    displayName = labelCapString ?? item.DefName;
+                }
+
+                // Truncate the display name if needed
+                string truncatedDisplayName = UIUtilities.TruncateTextToWidthEfficient(displayName, infoWidth - 5f);
+                Widgets.Label(infoRect.TopHalf(), truncatedDisplayName);
+
+                // Add tooltip if truncated OR if there's a user-set custom name
+                if (UIUtilities.WouldTruncate(displayName, infoWidth - 5f) || hasUserCustomName)
+                {
+                    // Build comprehensive tooltip text
+                    StringBuilder tooltipBuilder = new StringBuilder();
+
+                    if (hasUserCustomName)
+                    {
+                        tooltipBuilder.AppendLine($"Custom Name: {item.CustomName}");
+                        tooltipBuilder.AppendLine($"Default Name: {labelCapString ?? item.DefName}");
+                    }
+                    else
+                    {
+                        tooltipBuilder.AppendLine($"Name: {labelCapString ?? item.DefName}");
+                    }
+
+                    tooltipBuilder.AppendLine($"DefName: {item.DefName}");
+
+                    // Only show LabelCap separately if it's different from DefName
+                    if (thingDef != null && labelCapString != item.DefName)
+                    {
+                        tooltipBuilder.AppendLine($"LabelCap: {thingDef.LabelCap}");
+                    }
+
+                    if (hasUserCustomName)
+                    {
+                        tooltipBuilder.AppendLine($"\nClick the icon to edit custom name");
+                    }
+
+                    TooltipHandler.TipRegion(infoRect.TopHalf(), tooltipBuilder.ToString());
+                }
+                // Optional: Add a small indicator for user-set custom names
+                if (hasUserCustomName)
+                {
+                    Rect customIndicatorRect = new Rect(infoRect.x, infoRect.y, 4f, 4f);
+                    GUI.color = ColorLibrary.Orange;
+                    Widgets.DrawBox(customIndicatorRect);
+                    GUI.color = Color.white;
+
+                    // Add a special tooltip just for the indicator
+                    Rect indicatorTooltipRect = new Rect(infoRect.x, infoRect.y, 20f, 20f);
+                    TooltipHandler.TipRegion(indicatorTooltipRect, "Custom name is set");
                 }
 
                 Text.Font = GameFont.Tiny;
@@ -1302,6 +1363,7 @@ namespace CAP_ChatInteractive
         private ThingDef thingDef;
         private StoreItem storeItem;
         private Vector2 scrollPosition = Vector2.zero;
+        private string customNameBuffer = "";
 
         public override Vector2 InitialSize => new Vector2(600f, 700f);
 
@@ -1309,6 +1371,7 @@ namespace CAP_ChatInteractive
         {
             this.thingDef = thingDef;
             this.storeItem = storeItem;
+            this.customNameBuffer = storeItem.CustomName ?? "";
             doCloseButton = true;
             forcePause = true;
             absorbInputAroundWindow = true;
@@ -1432,6 +1495,7 @@ namespace CAP_ChatInteractive
 
             // StoreItem information
             sb.AppendLine($"--- Store Item Data ---");
+            sb.AppendLine($"Custom Name: {storeItem.CustomName}");
             sb.AppendLine($"Base Price: {storeItem.BasePrice}");
             sb.AppendLine($"Enabled: {storeItem.Enabled}");
             sb.AppendLine($"Category: {storeItem.Category}");
@@ -1444,20 +1508,153 @@ namespace CAP_ChatInteractive
 
             string fullText = sb.ToString();
 
-            // Calculate text height
-            float textHeight = Text.CalcHeight(fullText, rect.width - 20f);
-            Rect viewRect = new Rect(0f, 0f, rect.width - 20f, textHeight);
+            // Custom name editor - positioned at the top
+            Rect customNameRect = new Rect(rect.x, rect.y, rect.width, 30f);
 
-            // Scroll view
-            Widgets.BeginScrollView(rect, ref scrollPosition, viewRect);
-            Widgets.Label(new Rect(0f, 0f, viewRect.width, textHeight), fullText);
-            Widgets.EndScrollView();
+            // Label
+            Rect labelRect = new Rect(customNameRect.x, customNameRect.y, 100f, 30f);
+            Widgets.Label(labelRect, "Custom Name:");
+
+            // Text input
+            Rect inputRect = new Rect(customNameRect.x + 105f, customNameRect.y, rect.width - 215f, 30f);
+            customNameBuffer = Widgets.TextField(inputRect, customNameBuffer);
+
+            // Clear button (only show if there's a custom name)
+            if (!string.IsNullOrEmpty(storeItem.CustomName))
+            {
+                Rect clearButtonRect = new Rect(customNameRect.x + rect.width - 210f, customNameRect.y, 100f, 30f);
+                if (Widgets.ButtonText(clearButtonRect, "Clear"))
+                {
+                    storeItem.CustomName = null;
+                    customNameBuffer = "";
+                    StoreInventory.SaveStoreToJson();
+                    Messages.Message("Custom name cleared", MessageTypeDefOf.PositiveEvent);
+                    SoundDefOf.Click.PlayOneShotOnCamera();
+                }
+            }
+
+            // Save button
+            Rect saveButtonRect = new Rect(customNameRect.x + rect.width - 105f, customNameRect.y, 100f, 30f);
+            bool canSave = !string.IsNullOrWhiteSpace(customNameBuffer) && customNameBuffer != storeItem.CustomName;
+
+            // Disable save button if name is duplicate
+            if (IsCustomNameDuplicate(customNameBuffer))
+            {
+                GUI.color = Color.gray;
+                if (Widgets.ButtonText(saveButtonRect, "Save"))
+                {
+                    Messages.Message("Cannot save: Custom name is already in use by another item",
+                        MessageTypeDefOf.RejectInput);
+                }
+                GUI.color = Color.white;
+                TooltipHandler.TipRegion(saveButtonRect, "Cannot save: This name is already in use by another item");
+            }
+            else if (Widgets.ButtonText(saveButtonRect, "Save") && canSave)
+            {
+                storeItem.CustomName = customNameBuffer.Trim();
+                StoreInventory.SaveStoreToJson();
+                Messages.Message($"Custom name updated to '{storeItem.CustomName}'", MessageTypeDefOf.PositiveEvent);
+                SoundDefOf.Click.PlayOneShotOnCamera();
+            }
+            else if (!canSave)
+            {
+                GUI.color = Color.gray;
+                Widgets.ButtonText(saveButtonRect, "Save");
+                GUI.color = Color.white;
+                TooltipHandler.TipRegion(saveButtonRect, "No changes to save");
+            }
+
+            // Warning message below the input field (if duplicate)
+            if (!string.IsNullOrWhiteSpace(customNameBuffer) && IsCustomNameDuplicate(customNameBuffer))
+            {
+                Rect warningRect = new Rect(rect.x + 105f, rect.y + 35f, rect.width - 110f, 20f);
+                Text.Anchor = TextAnchor.UpperLeft;
+                GUI.color = ColorLibrary.Orange;
+                Widgets.Label(warningRect, "⚠ Warning: This name is already in use by another item");
+                GUI.color = Color.white;
+                Text.Anchor = TextAnchor.UpperLeft;
+
+                // Adjust scroll view position to account for warning message
+                Rect scrollRect = new Rect(rect.x, rect.y + 60f, rect.width, rect.height - 60f);
+
+                // Calculate text height
+                float textHeight = Text.CalcHeight(fullText, rect.width - 20f);
+                Rect viewRect = new Rect(0f, 0f, rect.width - 20f, textHeight);
+
+                // Scroll view
+                Widgets.BeginScrollView(scrollRect, ref scrollPosition, viewRect);
+                Widgets.Label(new Rect(0f, 0f, viewRect.width, textHeight), fullText);
+                Widgets.EndScrollView();
+            }
+            else
+            {
+                // Adjust scroll view to account for custom name editor
+                Rect scrollRect = new Rect(rect.x, rect.y + 35f, rect.width, rect.height - 35f);
+
+                // Calculate text height
+                float textHeight = Text.CalcHeight(fullText, rect.width - 20f);
+                Rect viewRect = new Rect(0f, 0f, rect.width - 20f, textHeight);
+
+                // Scroll view
+                Widgets.BeginScrollView(scrollRect, ref scrollPosition, viewRect);
+                Widgets.Label(new Rect(0f, 0f, viewRect.width, textHeight), fullText);
+                Widgets.EndScrollView();
+            }
         }
 
         // Helper method to check minification (same logic as StoreCommandHelper)
         private bool ShouldMinifyForDelivery(ThingDef thingDef)
         {
             return thingDef != null && thingDef.Minifiable;
+        }
+        // Method to check for duplicate custom names
+        private HashSet<string> GetAllExistingNames()
+        {
+            var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var item in StoreInventory.AllStoreItems.Values)
+            {
+                // Add custom names
+                if (!string.IsNullOrEmpty(item.CustomName))
+                    existingNames.Add(item.CustomName);
+
+                // Add def names
+                existingNames.Add(item.DefName);
+
+                // Add label caps
+                var thingDef = DefDatabase<ThingDef>.GetNamedSilentFail(item.DefName);
+                if (thingDef != null)
+                    existingNames.Add(thingDef.LabelCap.ToString());
+            }
+
+            return existingNames;
+        }
+
+        private bool IsCustomNameDuplicate(string customName)
+        {
+            if (string.IsNullOrWhiteSpace(customName))
+                return false;
+
+            var existingNames = GetAllExistingNames();
+
+            // Remove current item's names from the set to allow editing
+            if (!string.IsNullOrEmpty(storeItem.CustomName))
+                existingNames.Remove(storeItem.CustomName);
+
+            existingNames.Remove(storeItem.DefName);
+
+            var currentThingDef = DefDatabase<ThingDef>.GetNamedSilentFail(storeItem.DefName);
+            if (currentThingDef != null)
+            {
+                string currentLabelCap = currentThingDef.LabelCap.ToString();
+                existingNames.Remove(currentLabelCap);
+
+                // Also remove the custom name if it's the same as LabelCap (default assignment)
+                if (storeItem.CustomName == currentLabelCap)
+                    existingNames.Remove(storeItem.CustomName);
+            }
+
+            return existingNames.Contains(customName);
         }
     }
 
