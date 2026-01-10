@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Verse;
 
 namespace _CAP__Chat_Interactive.Utilities
@@ -41,11 +40,14 @@ namespace _CAP__Chat_Interactive.Utilities
         {
             var options = new List<DebugMenuOption>();
 
+            // First, get a sample race for context (use Human as default)
+            var humanRace = ThingDefOf.Human;
+
             foreach (var xenotype in DefDatabase<XenotypeDef>.AllDefs)
             {
                 options.Add(new DebugMenuOption(xenotype.defName, DebugMenuOptionMode.Action, () =>
                 {
-                    AnalyzeAndLogXenotypePricing(xenotype);
+                    AnalyzeAndLogXenotypePricing(humanRace, xenotype);
                 }));
             }
 
@@ -61,10 +63,15 @@ namespace _CAP__Chat_Interactive.Utilities
 
             foreach (var raceSetting in raceSettings.Values)
             {
+                // Find the race def for this setting
+                var raceDef = RaceUtils.FindRaceByName(raceSetting.DisplayName ?? raceSetting.GetType().Name);
+                if (raceDef == null) continue;
+
                 foreach (var xenotypeKey in raceSetting.XenotypePrices.Keys.ToList())
                 {
-                    float newPrice = GeneUtils.CalculateXenotypeGeneCost(xenotypeKey);
-                    if (newPrice != raceSetting.XenotypePrices[xenotypeKey])
+                    // Calculate new price using actual market value
+                    float newPrice = GeneUtils.CalculateXenotypeMarketValue(raceDef, xenotypeKey);
+                    if (Math.Abs(newPrice - raceSetting.XenotypePrices[xenotypeKey]) > 0.1f)
                     {
                         raceSetting.XenotypePrices[xenotypeKey] = newPrice;
                         updated = true;
@@ -88,27 +95,33 @@ namespace _CAP__Chat_Interactive.Utilities
         {
             var options = new List<DebugMenuOption>();
 
+            // Use Human as the sample race for gene details
+            var humanRace = ThingDefOf.Human;
+
             foreach (var xenotype in DefDatabase<XenotypeDef>.AllDefs)
             {
                 options.Add(new DebugMenuOption(xenotype.defName, DebugMenuOptionMode.Action, () =>
                 {
-                    ShowXenotypeGeneDetails(xenotype);
+                    ShowXenotypeGeneDetails(humanRace, xenotype);
                 }));
             }
 
             Find.WindowStack.Add(new Dialog_DebugOptionListLister(options));
         }
 
-        private static void AnalyzeAndLogXenotypePricing(XenotypeDef xenotype)
+        private static void AnalyzeAndLogXenotypePricing(ThingDef race, XenotypeDef xenotype)
         {
-            float geneCost = GeneUtils.CalculateXenotypeGeneCost(xenotype.defName);
-            var genes = GeneUtils.GetXenotypeGenes(xenotype.defName);
-            var geneDetails = GeneUtils.GetXenotypeGeneDetails(xenotype.defName);
+            // Calculate actual market value
+            float marketValue = GeneUtils.CalculateXenotypeMarketValue(race, xenotype.defName);
+            float geneValueOnly = GeneUtils.GetXenotypeGeneValueOnly(xenotype.defName, race.BaseMarketValue);
+            var geneDetails = GeneUtils.GetXenotypeGeneDetails(race, xenotype.defName);
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"=== {xenotype.defName} Pricing Analysis ===");
-            sb.AppendLine($"Final Multiplier: {geneCost:F2}x");
-            sb.AppendLine($"Total Genes: {genes.Count}");
+            sb.AppendLine($"=== {xenotype.defName} Pricing Analysis (for {race.defName}) ===");
+            sb.AppendLine($"Race Base Value: {race.BaseMarketValue:F0} silver");
+            sb.AppendLine($"Total Gene Value: {geneValueOnly:F0} silver");
+            sb.AppendLine($"Final Market Value: {marketValue:F0} silver");
+            sb.AppendLine($"Total Genes: {GeneUtils.GetXenotypeGenes(xenotype.defName).Count}");
             sb.AppendLine($"Gene Summary: {GeneUtils.GetXenotypeGeneSummary(xenotype.defName)}");
             sb.AppendLine();
             sb.AppendLine("Gene Details:");
@@ -121,15 +134,21 @@ namespace _CAP__Chat_Interactive.Utilities
             Messages.Message($"Check log for {xenotype.defName} pricing details", MessageTypeDefOf.NeutralEvent);
         }
 
-        private static void ShowXenotypeGeneDetails(XenotypeDef xenotype)
+        private static void ShowXenotypeGeneDetails(ThingDef race, XenotypeDef xenotype)
         {
-            var geneDetails = GeneUtils.GetXenotypeGeneDetails(xenotype.defName);
-            float geneCost = GeneUtils.CalculateXenotypeGeneCost(xenotype.defName);
+            var geneDetails = GeneUtils.GetXenotypeGeneDetails(race, xenotype.defName);
+            float marketValue = GeneUtils.CalculateXenotypeMarketValue(race, xenotype.defName);
+            float baseRaceValue = race.BaseMarketValue;
 
-            string message = $"{xenotype.defName} - Final Price: {geneCost:F2}x\n\n";
-            message += string.Join("\n", geneDetails);
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"{xenotype.defName} - Race: {race.defName}");
+            sb.AppendLine($"Race Base Value: {baseRaceValue:F0} silver");
+            sb.AppendLine($"Final Market Value: {marketValue:F0} silver");
+            sb.AppendLine();
+            sb.AppendLine("Gene Details:");
+            sb.AppendLine(string.Join("\n", geneDetails));
 
-            Find.WindowStack.Add(new Dialog_MessageBox(message, "OK", null, null, null, "Xenotype Gene Details"));
+            Find.WindowStack.Add(new Dialog_MessageBox(sb.ToString(), "OK", null, null, null, "Xenotype Gene Details"));
         }
     }
 }

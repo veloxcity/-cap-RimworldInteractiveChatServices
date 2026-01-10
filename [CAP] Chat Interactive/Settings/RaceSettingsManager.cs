@@ -150,13 +150,13 @@ namespace _CAP__Chat_Interactive.Utilities
             {
                 DisplayName = race.label ?? race.defName,
                 Enabled = true,
-                BasePrice = CalculateDefaultPrice(race),
+                BasePrice = CalculateDefaultPrice(race),  // This is race.BaseMarketValue
                 MinAge = 16,
                 MaxAge = 65,
                 AllowCustomXenotypes = true,
                 DefaultXenotype = "Baseliner",
                 AllowedGenders = GetAllowedGendersFromRace(race),
-                XenotypePrices = new Dictionary<string, float>(),
+                XenotypePrices = new Dictionary<string, float>(),  // Will store actual prices, not multipliers
                 EnabledXenotypes = new Dictionary<string, bool>()
             };
 
@@ -172,7 +172,7 @@ namespace _CAP__Chat_Interactive.Utilities
                 // Get allowed xenotypes from HAR for this specific race
                 var allowedXenotypes = GetAllowedXenotypes(race);
                 Logger.Debug($"HAR allowed xenotypes for {race.defName}: {string.Join(", ", allowedXenotypes)}");
-                // For humans, only enable base game xenotypes by default
+
                 bool isHuman = race == ThingDefOf.Human;
                 Logger.Debug($"Is human: {isHuman}, Allowed xenotypes count: {allowedXenotypes.Count}");
                 Logger.Debug($"Initializing xenotypes for {race.defName}: {allowedXenotypes.Count} allowed xenotypes");
@@ -190,15 +190,9 @@ namespace _CAP__Chat_Interactive.Utilities
                     else if (allowedXenotypes.Count > 0)
                     {
                         // For HAR races, use whiteXenotypeList to determine which xenotypes to enable
-                        // Turn ON xenotypes in whiteXenotypeList, turn OFF all others
                         defaultEnabled = allowedXenotypes.Contains(xenotype);
 
                         Logger.Debug($"Race: {race.defName} Xeno: {xenotype} - AllowedListCount: {allowedXenotypes.Count}, InList: {allowedXenotypes.Contains(xenotype)}, Enabled: {defaultEnabled}");
-
-                        if (allowedXenotypes.Contains(xenotype))
-                        {
-                            Logger.Debug($"  ^^^ FOUND IN ALLOWED LIST ^^^");
-                        }
 
                         // If this xenotype matches the race name, set it as the default
                         if (defaultEnabled && xenotype.Equals(race.defName, StringComparison.OrdinalIgnoreCase))
@@ -209,19 +203,36 @@ namespace _CAP__Chat_Interactive.Utilities
                     }
                     else
                     {
-                        // This is likely where the problem is - we're falling through here
                         Logger.Debug($"Race: {race.defName} - NO ALLOWED XENOTYPES LIST, defaulting all to TRUE");
                         defaultEnabled = true;
                     }
 
                     settings.EnabledXenotypes[xenotype] = defaultEnabled;
-                    settings.XenotypePrices[xenotype] = GetDefaultXenotypeMultiplier(xenotype);
+
+                    // NEW: Calculate actual price instead of multiplier
+                    settings.XenotypePrices[xenotype] = GetDefaultXenotypePrice(race, xenotype);
 
                     Logger.Debug($"  {xenotype}: {defaultEnabled} (allowed: {allowedXenotypes.Contains(xenotype)})");
                 }
             }
 
             return settings;
+        }
+
+        private static int CalculateDefaultPrice(ThingDef race)
+        {
+            // Simply use Rimworld's base market value for the race
+            if (race.BaseMarketValue > 0)
+            {
+                return (int)(race.BaseMarketValue);
+            }
+            return race == ThingDefOf.Human ? 1000 : 1500;
+        }
+
+        // NEW: Calculate actual xenotype price instead of multiplier
+        private static float GetDefaultXenotypePrice(ThingDef race, string xenotypeName)
+        {
+            return GeneUtils.CalculateXenotypeMarketValue(race, xenotypeName);
         }
 
         // Helper method to identify base game xenotypes
@@ -235,20 +246,6 @@ namespace _CAP__Chat_Interactive.Utilities
     };
 
             return baseGameXenotypes.Contains(xenotypeName);
-        }
-
-        private static int CalculateDefaultPrice(ThingDef race)
-        {
-            if (race.BaseMarketValue > 0)
-            {
-                return (int)(race.BaseMarketValue * 1.5f);
-            }
-            return race == ThingDefOf.Human ? 1000 : 1500;
-        }
-
-        private static float GetDefaultXenotypeMultiplier(string xenotypeName)
-        {
-            return GeneUtils.CalculateXenotypeGeneCost(xenotypeName);
         }
 
         private static List<string> GetAllowedXenotypes(ThingDef raceDef)

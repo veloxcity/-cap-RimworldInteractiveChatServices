@@ -68,8 +68,8 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
                 return $"💰 Balance: {formattedCoins} {currencySymbol}\n" +
                        $"📊 Karma: {viewer.Karma} {karmaEmoji}\n" +
                        $"💸 Earnings: {coinsPerAward} {currencySymbol} every 2 minutes\n" +
-                       $"⏱️ Rate: ~{coinsPerHour} {currencySymbol}/hour" +
-                       activeTimeInfo;
+                       $"⏱️ Rate: ~{coinsPerHour} {currencySymbol}/hour"; // +
+                       //activeTimeInfo;
             }
             return "Could not find your viewer data.";
         }

@@ -125,7 +125,54 @@ namespace CAP_ChatInteractive
             Rect sortRect = new Rect(210f, controlsY, 300f, 24f);
             DrawSortButtons(sortRect);
 
-            // Debug gear icon - top right corner
+            // In DrawHeader method, after the sort buttons:
+
+            // Reset All Prices button - moved left to make room for help button
+            Rect resetAllRect = new Rect(rect.width - 160f, controlsY, 120f, 24f);
+            if (Widgets.ButtonText(resetAllRect, "Reset All Prices"))
+            {
+                if (selectedRace != null)
+                {
+                    // Show confirmation dialog
+                    Find.WindowStack.Add(new Dialog_MessageBox(
+                        $"Reset ALL xenotype prices for {selectedRace.LabelCap} to gene-based values?\n\n" +
+                        "This will overwrite any custom prices you've set.",
+                        "Yes, Reset All",
+                        () => ResetAllXenotypePrices(selectedRace),
+                        "No, Cancel",
+                        null,
+                        "Reset Xenotype Prices"
+                    ));
+                }
+                else
+                {
+                    Messages.Message("Select a race first to reset prices", MessageTypeDefOf.RejectInput);
+                }
+            }
+            TooltipHandler.TipRegion(resetAllRect, "Reset all xenotype prices for selected race to gene-based values");
+
+            // Info help icon - next to reset button
+            //Rect infoRect = new Rect(rect.width - 190f, controlsY, 24f, 24f);
+            Rect infoRect = new Rect(rect.width - 60f, 5f, 24f, 24f); // Positioned left of the gear
+            Texture2D infoIcon = ContentFinder<Texture2D>.Get("UI/Buttons/InfoButton", false);
+            if (infoIcon != null)
+            {
+                if (Widgets.ButtonImage(infoRect, infoIcon))
+                {
+                    Find.WindowStack.Add(new Dialog_PawnRacesHelp());
+                }
+                TooltipHandler.TipRegion(infoRect, "Pawn Race Settings Help");
+            }
+            else
+            {
+                // Fallback text button
+                if (Widgets.ButtonText(new Rect(rect.width - 190f, 5f, 45f, 24f), "Help")) //(Widgets.ButtonText(new Rect(rect.width - 190f, controlsY, 45f, 24f), "Help"))
+                {
+                    Find.WindowStack.Add(new Dialog_PawnRacesHelp());
+                }
+            }
+
+            // Debug gear icon - top right corner (unchanged position)
             Rect debugRect = new Rect(rect.width - 30f, 5f, 24f, 24f);
             Texture2D gearIcon = ContentFinder<Texture2D>.Get("UI/Icons/Options/OptionsGeneral", false);
             if (gearIcon != null)
@@ -144,7 +191,6 @@ namespace CAP_ChatInteractive
                 }
             }
             TooltipHandler.TipRegion(debugRect, "Open Race Debug Information");
-
             Widgets.EndGroup();
         }
 
@@ -314,10 +360,8 @@ namespace CAP_ChatInteractive
 
         private void DrawRaceDetailsContent(Rect rect, RaceSettings settings)
         {
-
             float contentWidth = rect.width - 30f;
             float viewHeight = CalculateDetailsHeight(settings);
-
 
             Rect viewRect = new Rect(0f, 0f, contentWidth, Mathf.Max(viewHeight, rect.height));
 
@@ -343,7 +387,6 @@ namespace CAP_ChatInteractive
                 Text.Font = GameFont.Small;
                 y += sectionHeight;
 
-                // Show inherent gender restrictions from HAR (read-only)
                 // Show inherent gender restrictions from RaceSettings (read-only)
                 var raceSettings = RaceSettingsManager.GetRaceSettings(selectedRace.defName);
                 if (raceSettings != null)
@@ -509,12 +552,11 @@ namespace CAP_ChatInteractive
                 y += sectionHeight + 10f;
 
                 // Xenotype Settings section (only if Biotech is active)
-                // Xenotype Settings section (only if Biotech is active)
                 if (ModsConfig.BiotechActive)
                 {
                     Rect xenotypeLabelRect = new Rect(leftPadding, y, viewRect.width, sectionHeight);
                     Text.Font = GameFont.Medium;
-                    Widgets.Label(xenotypeLabelRect, "Xenotype Settings");
+                    Widgets.Label(xenotypeLabelRect, "Xenotype Prices"); // CHANGED: "Settings" to "Prices"
                     Text.Font = GameFont.Small;
                     y += sectionHeight;
 
@@ -527,15 +569,15 @@ namespace CAP_ChatInteractive
 
                     if (allXenotypes.Count > 0)
                     {
-                        // Column headers
+                        // Column headers - UPDATED
                         Rect xenotypeHeaderRect = new Rect(leftPadding, y, columnWidth, sectionHeight);
                         Rect enabledHeaderRect = new Rect(leftPadding + columnWidth, y, 80f, sectionHeight);
-                        Rect multiplierHeaderRect = new Rect(leftPadding + columnWidth + 90f, y, 100f, sectionHeight);
+                        Rect priceHeaderRect = new Rect(leftPadding + columnWidth + 90f, y, 120f, sectionHeight); // CHANGED: multiplier to price
 
                         Text.Font = GameFont.Tiny;
                         Widgets.Label(xenotypeHeaderRect, "Xenotype");
                         Widgets.Label(enabledHeaderRect, "Enabled");
-                        Widgets.Label(multiplierHeaderRect, "Multiplier");
+                        Widgets.Label(priceHeaderRect, "Price (silver)"); // CHANGED: "Multiplier" to "Price (silver)"
                         Text.Font = GameFont.Small;
                         y += sectionHeight;
 
@@ -559,7 +601,9 @@ namespace CAP_ChatInteractive
                             }
                             if (!settings.XenotypePrices.ContainsKey(xenotype))
                             {
-                                settings.XenotypePrices[xenotype] = GetDefaultXenotypeMultiplier(xenotype);
+                                // Get price from settings manager instead of calculating it
+                                float defaultPrice = RaceSettingsManager.GetRaceSettings(selectedRace.defName)?.BasePrice ?? settings.BasePrice;
+                                settings.XenotypePrices[xenotype] = defaultPrice;
                             }
 
                             // Xenotype name
@@ -576,17 +620,40 @@ namespace CAP_ChatInteractive
                                 SaveRaceSettings();
                             }
 
-                            // Multiplier input
-                            Rect multiplierRect = new Rect(leftPadding + columnWidth + 90f, y, 80f, sectionHeight);
-                            float multiplier = settings.XenotypePrices[xenotype];
-                            string multiplierBuffer = multiplier.ToString("F2");
-                            string newMultiplier = Widgets.TextField(multiplierRect, multiplierBuffer);
-                            if (newMultiplier != multiplierBuffer && float.TryParse(newMultiplier, out float parsedMultiplier) &&
-                                parsedMultiplier >= 0.1f && parsedMultiplier <= 10f)
+                            // Price input - CHANGED: from multiplier to price
+                            Rect priceRect = new Rect(leftPadding + columnWidth + 90f, y, 120f, sectionHeight);
+                            float currentPriceValue = settings.XenotypePrices[xenotype];
+                            string xenotypePriceBuffer = currentPriceValue.ToString("F0"); // Changed from priceBuffer to xenotypePriceBuffer
+                            string newPriceBuffer = Widgets.TextField(priceRect, xenotypePriceBuffer); // Changed second parameter
+
+                            if (newPriceBuffer != xenotypePriceBuffer && float.TryParse(newPriceBuffer, out float parsedPrice)) // Changed comparison
                             {
-                                settings.XenotypePrices[xenotype] = parsedMultiplier;
+                                // Allow prices from 0 to 1,000,000 silver
+                                parsedPrice = Mathf.Clamp(parsedPrice, 0f, 1000000f);
+                                settings.XenotypePrices[xenotype] = parsedPrice;
                                 SaveRaceSettings();
                             }
+
+                            // Reset button with tooltip
+                            Rect resetButtonRect = new Rect(leftPadding + columnWidth + 220f, y, 60f, sectionHeight);
+                            if (Widgets.ButtonText(resetButtonRect, "Reset"))
+                            {
+                                // Reset to gene-based price using GeneUtils
+                                float geneBasedPrice = GeneUtils.CalculateXenotypeMarketValue(selectedRace, xenotype);
+                                settings.XenotypePrices[xenotype] = geneBasedPrice;
+                                SaveRaceSettings();
+
+                                // Show feedback message
+                                Messages.Message($"Reset {xenotype} price to {geneBasedPrice:F0} silver", MessageTypeDefOf.NeutralEvent);
+                            }
+
+                            // Add tooltip explaining what reset does
+                            string resetTooltip = $"Reset {xenotype} price to gene-based value:\n";
+                            resetTooltip += $"• Race base value: {selectedRace.BaseMarketValue:F0} silver\n";
+                            resetTooltip += $"• Gene contribution: {GeneUtils.GetXenotypeGeneValueOnly(xenotype, selectedRace.BaseMarketValue):F0} silver\n";
+                            resetTooltip += $"• Total: {GeneUtils.CalculateXenotypeMarketValue(selectedRace, xenotype):F0} silver\n";
+                            resetTooltip += "\nClick to reset to Rimworld's calculated market value based on gene marketValueFactor";
+                            TooltipHandler.TipRegion(resetButtonRect, new TipSignal(resetTooltip, xenotype.GetHashCode() + 1000));
 
                             y += sectionHeight;
                         }
@@ -633,12 +700,12 @@ namespace CAP_ChatInteractive
 
                 if (allXenotypes.Count > 0)
                 {
-                    height += 28f; // Column headers
-                    height += 28f * allXenotypes.Count; // Xenotype rows
+                    height += 30f; // Column headers
+                    height += 30f * allXenotypes.Count; // Xenotype rows
                 }
                 else
                 {
-                    height += 28f; // No xenotypes message
+                    height += 30f; // No xenotypes message
                 }
             }
 
@@ -672,12 +739,6 @@ namespace CAP_ChatInteractive
         {
             // Use centralized manager instead of loading directly
             raceSettings = RaceSettingsManager.RaceSettings;
-        }
-
-        private static float GetDefaultXenotypeMultiplier(string xenotypeName)
-        {
-            // Use gene-based pricing if available, otherwise fall back to defaults
-            return GeneUtils.CalculateXenotypeGeneCost(xenotypeName);
         }
 
         private void SaveRaceSettings()
@@ -751,6 +812,31 @@ namespace CAP_ChatInteractive
             // Force validation of any active numeric fields before closing
             ValidateAllNumericFields();
             base.Close(doCloseSound);
+        }
+
+        private void ResetAllXenotypePrices(ThingDef race)
+        {
+            if (race == null || !raceSettings.TryGetValue(race.defName, out var settings))
+                return;
+
+            int resetCount = 0;
+
+            // Reset all xenotype prices for this race
+            foreach (var xenotype in settings.XenotypePrices.Keys.ToList())
+            {
+                float geneBasedPrice = GeneUtils.CalculateXenotypeMarketValue(race, xenotype);
+                settings.XenotypePrices[xenotype] = geneBasedPrice;
+                resetCount++;
+            }
+
+            SaveRaceSettings();
+
+            // Show feedback
+            string message = $"Reset {resetCount} xenotype prices for {race.LabelCap}";
+            Messages.Message(message, MessageTypeDefOf.PositiveEvent);
+
+            // Optional: Log details
+            Logger.Debug(message);
         }
 
         private void ValidateAllNumericFields()

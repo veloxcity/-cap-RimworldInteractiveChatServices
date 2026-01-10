@@ -1,4 +1,4 @@
-﻿// CAPChatInteractive_GameComponent.cs
+﻿// CAPChatInteractive_GameComponent.cs (updated)
 // Copyright (c) Captolamia
 // This file is part of CAP Chat Interactive.
 // 
@@ -26,6 +26,7 @@ namespace CAP_ChatInteractive
     {
         private int tickCounter = 0;
         private const int TICKS_PER_REWARD = 120 * 60; // 2 minutes in ticks (60 ticks/sec * 120 sec)
+        private bool versionCheckDone = false;
 
         public CAPChatInteractive_GameComponent(Game game)
         {
@@ -41,6 +42,30 @@ namespace CAP_ChatInteractive
             }
         }
 
+        public override void LoadedGame()
+        {
+            base.LoadedGame();
+
+            // Check for version updates when game is loaded
+            if (!versionCheckDone)
+            {
+                CheckForVersionUpdate();
+                versionCheckDone = true;
+            }
+        }
+
+        public override void StartedNewGame()
+        {
+            base.StartedNewGame();
+
+            // Check for version updates when new game is started
+            if (!versionCheckDone)
+            {
+                CheckForVersionUpdate();
+                versionCheckDone = true;
+            }
+        }
+
         public override void GameComponentTick()
         {
             tickCounter++;
@@ -52,6 +77,98 @@ namespace CAP_ChatInteractive
                 // Debug logging to verify it's working
                 Logger.Debug("2-minute coin reward tick executed - awarded coins to active viewers");
             }
+        }
+
+        private void CheckForVersionUpdate()
+        {
+            try
+            {
+                // In CheckForVersionUpdate() - for testing only
+                // Force it to show the update dialog
+                if (true) // Always show for testing
+                {
+                    ShowUpdateNotification("1.0.14", "1.0.13");
+                }
+
+                var settings = CAPChatInteractiveMod.Instance?.Settings?.GlobalSettings;
+                if (settings == null)
+                {
+                    Logger.Error("Cannot check version update - settings not available");
+                    return;
+                }
+
+                string currentVersion = settings.modVersion;
+                string savedVersion = settings.modVersionSaved;
+
+                Logger.Debug($"Version check - Current: {currentVersion}, Saved: {savedVersion}");
+
+                // Special handling for first-time/migration from empty version
+                bool isFirstTimeOrMigration = string.IsNullOrEmpty(savedVersion);
+
+                // If versions don't match, show update notification
+                if (isFirstTimeOrMigration || savedVersion != currentVersion)
+                {
+                    // Update the saved version
+                    string previousVersion = savedVersion;
+                    settings.modVersionSaved = currentVersion;
+
+                    // Force save the settings
+                    if (CAPChatInteractiveMod.Instance?.Settings != null)
+                    {
+                        CAPChatInteractiveMod.Instance.Settings.Write();
+                        Logger.Debug($"Updated saved version from '{previousVersion}' to '{currentVersion}'");
+                    }
+
+                    // Show update notification window
+                    ShowUpdateNotification(currentVersion, previousVersion);
+                }
+                else
+                {
+                    Logger.Debug("No version change detected");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.Error($"Error checking version update: {ex}");
+            }
+        }
+
+        private void ShowUpdateNotification(string newVersion, string oldVersion)
+        {
+            try
+            {
+                // Get update notes based on version
+                string updateNotes = GetUpdateNotesForVersion(newVersion, oldVersion);
+
+                // Show the update dialog
+                Find.WindowStack.Add(new Dialog_RICS_Updates(updateNotes));
+
+                Logger.Message($"[RICS] Updated from version {oldVersion} to {newVersion}. Showing update notes.");
+            }
+            catch (System.Exception ex)
+            {
+                Logger.Error($"Error showing update notification: {ex}");
+            }
+        }
+
+        private string GetUpdateNotesForVersion(string newVersion, string oldVersion)
+        {
+            // Check if we have specific notes for this version
+            if (VersionHistory.UpdateNotes.ContainsKey(newVersion))
+            {
+                // Special handling for critical migrations
+                if (newVersion == "1.0.14" && (string.IsNullOrEmpty(oldVersion) || oldVersion != "1.0.14"))
+                {
+                    return VersionHistory.GetMigrationNotes(oldVersion, newVersion);
+                }
+
+                return VersionHistory.UpdateNotes[newVersion];
+            }
+
+            // Fallback for unknown versions
+            return $"RICS has been updated to version {newVersion}.\n\n" +
+                   $"Previous version: {oldVersion}\n\n" +
+                   "Please check the mod's documentation for detailed changelog.";
         }
     }
 }

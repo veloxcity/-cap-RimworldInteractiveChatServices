@@ -98,10 +98,10 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                     }
                 }
 
-                // Calculate final price with xenotype multiplier
+                // Calculate final price with xenotype price (not multiplier)
                 int basePrice = raceSettings.BasePrice;
-                float xenotypeMultiplier = GetXenotypeMultiplier(raceSettings, xenotypeName);
-                int finalPrice = (int)(basePrice * xenotypeMultiplier);
+                float xenotypePrice = GetXenotypePrice(raceSettings, xenotypeName);
+                int finalPrice = (int)(basePrice + xenotypePrice);
 
                 // Check if viewer can afford
                 if (viewer.Coins < finalPrice)
@@ -489,22 +489,27 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 x.defName.Equals(xenotypeName, StringComparison.OrdinalIgnoreCase)) == null;
         }
 
-        private static float GetXenotypeMultiplier(RaceSettings raceSettings, string xenotypeName)
+        private static float GetXenotypePrice(RaceSettings raceSettings, string xenotypeName)
         {
             if (xenotypeName == "Baseliner" || string.IsNullOrEmpty(xenotypeName))
-                return 1.0f;
+                return 0f; // Baseliner adds no extra cost
 
             // Ensure dictionary is initialized
             if (raceSettings.XenotypePrices == null)
-                raceSettings.XenotypePrices = new Dictionary<string, float>();
-
-            if (raceSettings.XenotypePrices.TryGetValue(xenotypeName, out float multiplier))
             {
-                return multiplier;
+                raceSettings.XenotypePrices = new Dictionary<string, float>();
+                return 0f; // No price defined yet
             }
 
-            // Use gene-based pricing as default
-            return GeneUtils.CalculateXenotypeGeneCost(xenotypeName);
+            // Try to get the price from settings
+            if (raceSettings.XenotypePrices.TryGetValue(xenotypeName, out float price))
+            {
+                return price;
+            }
+
+            // If not found in settings, return 0 and log a warning
+            Logger.Warning($"No price found for xenotype '{xenotypeName}', using 0 as default");
+            return 0f;
         }
 
         private static bool IsGameReadyForPawnPurchase()
@@ -834,8 +839,9 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
             if (availableRaces.Count > 8)
                 result += $" (and {availableRaces.Count - 8} more...)";
 
-            if (availableRaces.Count < allRaces.Count())
-                result += $"\n{allRaces.Count() - availableRaces.Count} races are disabled in settings";
+            // removed extra info
+            //if (availableRaces.Count < allRaces.Count())
+            //    result += $"\n{allRaces.Count() - availableRaces.Count} races are disabled in settings";
 
             return result;
         }
