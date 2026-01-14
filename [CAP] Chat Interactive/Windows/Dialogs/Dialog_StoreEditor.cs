@@ -83,7 +83,7 @@ namespace CAP_ChatInteractive
 
             // Custom title with larger font and underline effect - similar to PawnQueue
             Text.Font = GameFont.Medium;
-            GUI.color = ColorLibrary.Orange;
+            GUI.color = ColorLibrary.HeaderAccent;
             Rect titleRect = new Rect(0f, 0f, 430f, 35f);
             string titleText = "Store Items Editor";
 
@@ -454,50 +454,59 @@ namespace CAP_ChatInteractive
             Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
 
-            // Category list
+            // Category list area
             Rect listRect = new Rect(rect.x, rect.y + 35f, rect.width, rect.height - 35f);
+
+            // Safety: don't crash if no categories yet
+            if (categoryCounts == null || categoryCounts.Count == 0)
+            {
+                Widgets.Label(listRect, "No categories loaded");
+                return;
+            }
+
             Rect viewRect = new Rect(0f, 0f, listRect.width - 20f, categoryCounts.Count * 30f);
 
             Widgets.BeginScrollView(listRect, ref categoryScrollPosition, viewRect);
             {
                 float y = 0f;
-                // Custom sort order for cleaner sidebar
+
+                // Custom sort: "All" first → Apparel group → Alphabetical → Uncategorized last
                 var orderedCategories = categoryCounts.Keys
                     .OrderBy(cat =>
                     {
-                        // Keep "All" at the very top
                         if (cat == "All") return 0;
-                        // Group Apparel categories together
                         if (cat == "Apparel") return 1;
                         if (cat == "Children's Apparel") return 2;
-                        if (cat == "Uncategorized") return 998; // Put uncategorized near the bottom
-                        // Everything else alphabetically after
+                        if (cat == "Uncategorized") return 998;
                         return 3;
                     })
                     .ThenBy(cat => cat)
                     .ToList();
+
                 foreach (var cat in orderedCategories)
                 {
-                    var count = categoryCounts[cat];
+                    int count = categoryCounts[cat];
                     Rect categoryButtonRect = new Rect(2f, y, viewRect.width - 4f, 28f);
 
-                    // Create label and truncate if needed
                     string label = $"{cat} ({count})";
-                    string displayLabel = UIUtilities.TruncateTextToWidthEfficient(label, categoryButtonRect.width - 10f);
 
-                    // Highlight selected category
+                    // Use the recommended truncation method
+                    string displayLabel = UIUtilities.Truncate(label, categoryButtonRect.width - 10f);
+
+                    // Visual feedback
                     if (selectedCategory == cat)
                         Widgets.DrawHighlightSelected(categoryButtonRect);
                     else if (Mouse.IsOver(categoryButtonRect))
                         Widgets.DrawHighlight(categoryButtonRect);
 
+                    // Button action
                     if (Widgets.ButtonText(categoryButtonRect, displayLabel))
                     {
                         selectedCategory = cat;
-                        FilterItems();
+                        FilterItems();  // Make sure this method exists!
                     }
 
-                    // Add tooltip if truncated
+                    // Tooltip only when actually truncated
                     if (UIUtilities.WouldTruncate(label, categoryButtonRect.width - 10f))
                     {
                         TooltipHandler.TipRegion(categoryButtonRect, label);
@@ -525,7 +534,8 @@ namespace CAP_ChatInteractive
             if (selectedCategory != "All") headerText += $" - {selectedCategory}";
 
             // Truncate header if needed
-            string displayHeader = UIUtilities.TruncateTextToWidthEfficient(headerText, countRect.width - 20f);
+            //string displayHeader = UIUtilities.TruncateTextToWidthEfficient(headerText, countRect.width - 20f);
+            string displayHeader = UIUtilities.Truncate(headerText, countRect.width - 20f);
             Widgets.Label(countRect, displayHeader);
 
             // Add tooltip if truncated
@@ -606,7 +616,7 @@ namespace CAP_ChatInteractive
             Rect labelRect = new Rect(x, centerY, 80f, iconSize);
             Text.Anchor = TextAnchor.MiddleRight;
             string labelText = "Set All Qty:";
-            string displayLabel = UIUtilities.TruncateTextToWidthEfficient(labelText, labelRect.width);
+            string displayLabel = UIUtilities.Truncate(labelText, labelRect.width);
             Widgets.Label(labelRect, displayLabel);
 
             // Add tooltip if truncated
@@ -759,7 +769,7 @@ namespace CAP_ChatInteractive
                 }
 
                 // Truncate the display name if needed
-                string truncatedDisplayName = UIUtilities.TruncateTextToWidthEfficient(displayName, infoWidth - 5f);
+                string truncatedDisplayName = UIUtilities.Truncate(displayName, infoWidth - 5f);
                 Widgets.Label(infoRect.TopHalf(), truncatedDisplayName);
 
                 // Add tooltip if truncated OR if there's a user-set custom name
@@ -797,7 +807,7 @@ namespace CAP_ChatInteractive
                 if (hasUserCustomName)
                 {
                     Rect customIndicatorRect = new Rect(infoRect.x, infoRect.y, 4f, 4f);
-                    GUI.color = ColorLibrary.Orange;
+                    GUI.color = ColorLibrary.HeaderAccent;
                     Widgets.DrawBox(customIndicatorRect);
                     GUI.color = Color.white;
 
@@ -809,7 +819,7 @@ namespace CAP_ChatInteractive
                 Text.Font = GameFont.Tiny;
                 // Also truncate category info if needed
                 string categoryInfo = $"{item.Category} • {item.ModSource}";
-                string displayCategory = UIUtilities.TruncateTextToWidthEfficient(categoryInfo, infoWidth - 5f);
+                string displayCategory = UIUtilities.Truncate(categoryInfo, infoWidth - 5f);
                 Widgets.Label(infoRect.BottomHalf(), displayCategory);
 
                 // Add tooltip if truncated
@@ -1755,7 +1765,7 @@ namespace CAP_ChatInteractive
             {
                 Rect warningRect = new Rect(rect.x + 105f, rect.y + 35f, rect.width - 110f, 20f);
                 Text.Anchor = TextAnchor.UpperLeft;
-                GUI.color = ColorLibrary.Orange;
+                GUI.color = ColorLibrary.HeaderAccent;
                 Widgets.Label(warningRect, "⚠ Warning: This name is already in use by another item");
                 GUI.color = Color.white;
                 Text.Anchor = TextAnchor.UpperLeft;

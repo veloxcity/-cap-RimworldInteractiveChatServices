@@ -31,16 +31,16 @@ namespace _CAP__Chat_Interactive
             listing.Begin(rect);
 
             Text.Font = GameFont.Medium;
-            GUI.color = ColorLibrary.Orange;
+            GUI.color = ColorLibrary.HeaderAccent;
             listing.Label("RICS.Economy.EconomySettingsHeader".Translate());
-            GUI.color = ColorLibrary.White;
+            GUI.color = Color.white;
             Text.Font = GameFont.Small;
             listing.GapLine(6f);
 
             // Coin Settings
-            GUI.color = ColorLibrary.SkyBlue;
+            GUI.color = ColorLibrary.SubHeader;
             listing.Label("RICS.Economy.CoinEconomyHeader".Translate());
-            GUI.color = ColorLibrary.White;
+            GUI.color = Color.white;
             UIUtilities.NumericField(listing, "RICS.Economy.StartingCoins".Translate(), "RICS.Economy.StartingCoinsDesc".Translate(), ref settings.StartingCoins, 0, 10000);
             UIUtilities.NumericField(listing, "RICS.Economy.BaseCoinReward".Translate(), "RICS.Economy.BaseCoinRewardDesc".Translate(), ref settings.BaseCoinReward, 1, 100);
             UIUtilities.NumericField(listing, "RICS.Economy.SubscriberExtraCoins".Translate(), "RICS.Economy.SubscriberExtraCoinsDesc".Translate(), ref settings.SubscriberExtraCoins, 0, 50);
@@ -50,9 +50,9 @@ namespace _CAP__Chat_Interactive
             listing.Gap(12f);
 
             // Karma Settings
-            GUI.color = ColorLibrary.SkyBlue;
+            GUI.color = ColorLibrary.SubHeader;
             listing.Label("RICS.Economy.KarmaSystemHeader".Translate());
-            GUI.color = ColorLibrary.White;
+            GUI.color = Color.white;
             UIUtilities.NumericField(listing, "RICS.Economy.StartingKarma".Translate(), "RICS.Economy.StartingKarmaDesc".Translate(), ref settings.StartingKarma, 0, 200);
 
             // Min Karma with validation
@@ -77,7 +77,7 @@ namespace _CAP__Chat_Interactive
             listing.Gap(12f);
 
             // Currency
-            GUI.color = ColorLibrary.SkyBlue;
+            GUI.color = ColorLibrary.SubHeader;
             listing.Label("RICS.Economy.CurrencyNameHeader".Translate());
             GUI.color = Color.white;
             listing.Gap(6f);

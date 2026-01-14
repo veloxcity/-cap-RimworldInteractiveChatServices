@@ -42,7 +42,7 @@ namespace CAP_ChatInteractive
             // Title
             Rect titleRect = new Rect(0f, 0f, inRect.width, 35f);
             Text.Font = GameFont.Medium;
-            GUI.color = ColorLibrary.Orange;
+            GUI.color = ColorLibrary.HeaderAccent;
             Widgets.Label(titleRect, "Events Editor Help");
             Text.Font = GameFont.Small;
             GUI.color = Color.white;

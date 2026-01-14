@@ -42,7 +42,7 @@ namespace _CAP__Chat_Interactive
             Text.Font = GameFont.Small;
 
             // Connection type explanation
-            GUI.color = ColorLibrary.Orange;
+            GUI.color = ColorLibrary.HeaderAccent;
             listing.Label("💡 Choose your connection type:");
             GUI.color = Color.white;
 

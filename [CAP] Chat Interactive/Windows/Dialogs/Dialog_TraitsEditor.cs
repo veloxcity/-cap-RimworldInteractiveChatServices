@@ -78,7 +78,7 @@ namespace CAP_ChatInteractive
 
             // Custom title with larger font and underline effect - matching other dialogs
             Text.Font = GameFont.Medium;
-            GUI.color = ColorLibrary.Orange;
+            GUI.color = ColorLibrary.HeaderAccent;
             Rect titleRect = new Rect(0f, 0f, 400f, 35f);
             Widgets.Label(titleRect, "Traits Editor");
 
@@ -557,7 +557,7 @@ namespace CAP_ChatInteractive
             string description = ReplacePawnVariables(trait.Description);
 
             // Use efficient truncation for description
-            string displayDescription = UIUtilities.TruncateTextToWidthEfficient(description, descRect.width, "...");
+            string displayDescription = UIUtilities.Truncate(description, descRect.width, "...");
             Widgets.Label(descRect, displayDescription);
 
             // Add tooltip if description was truncated

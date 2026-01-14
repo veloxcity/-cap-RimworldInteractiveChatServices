@@ -226,7 +226,7 @@ public class Dialog_QualityResearchSettings : Window
     private void DrawInfoText(Rect rect)
     {
         Text.Font = GameFont.Tiny;
-        GUI.color = ColorLibrary.LightGray;
+        GUI.color = ColorLibrary.LightText;
 
         string infoText = "These settings affect the purchase commands:\n" +
                          "• Quality levels determine what qualities viewers can request\n" +

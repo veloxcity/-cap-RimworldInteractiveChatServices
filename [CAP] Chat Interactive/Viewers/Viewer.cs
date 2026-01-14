@@ -163,11 +163,13 @@ namespace CAP_ChatInteractive
 
         public void GiveKarma(int karma)
         {
+            Logger.Debug($"Giving {karma} karma to viewer '{Username}'");
             SetKarma(Karma + karma);
         }
 
         public void TakeKarma(int karma)
         {
+            Logger.Debug($"Taking {karma} karma from viewer '{Username}'");
             SetKarma(Karma - karma);
         }
 

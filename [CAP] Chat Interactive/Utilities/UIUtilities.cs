@@ -22,74 +22,34 @@ using Verse;
 
 namespace CAP_ChatInteractive
 {
+    /// <summary>
+    /// Static utility class for common UI-related formatting and helpers,
+    /// especially for building rich-text tooltips, labels, truncation, and input handling.
+    /// </summary>
     public static class UIUtilities
     {
         /// <summary>
-        /// Truncates text to fit within a specified width, adding ".." if necessary
+        /// Recommended truncation method (uses efficient binary search)
+        /// 1 reference (primary public API)
         /// </summary>
-        /// <param name="text">The text to truncate</param>
-        /// <param name="maxWidth">The maximum width in pixels</param>
-        /// <returns>Truncated text with ".." if it was too long</returns>
-        public static string TruncateTextToWidth(string text, float maxWidth)
+        public static string Truncate(string text, float maxWidth, string ellipsis = "..")
         {
-            if (string.IsNullOrEmpty(text))
-                return text;
-
-            // Account for button padding (approximately 2 characters)
-            float paddingWidth = Text.CalcSize("M").x * 2f;
-            float availableWidth = maxWidth - paddingWidth;
-
-            // If it already fits, return as is
-            if (Text.CalcSize(text).x <= availableWidth)
-                return text;
-
-            // Simple linear approach - remove characters until it fits
-            string truncated = text;
-            for (int i = text.Length - 1; i > 0; i--)
-            {
-                truncated = text.Substring(0, i) + "..";
-                if (Text.CalcSize(truncated).x <= availableWidth)
-                    break;
-            }
-
-            return truncated;
+            return TruncateTextToWidthEfficient(text, maxWidth, ellipsis);
         }
 
         /// <summary>
-        /// Truncates text to fit within a specified width, with custom ellipsis
+        /// Truncates text to fit within a specified width, adding ".." if necessary
+        /// 6 references - Used in editors
         /// </summary>
-        /// <param name="text">The text to truncate</param>
-        /// <param name="maxWidth">The maximum width in pixels</param>
-        /// <param name="ellipsis">The ellipsis string to use (default "..")</param>
-        /// <returns>Truncated text with ellipsis if it was too long</returns>
-        public static string TruncateTextToWidth(string text, float maxWidth, string ellipsis)
+        public static string TruncateTextToWidth(string text, float maxWidth)
         {
-            if (string.IsNullOrEmpty(text))
-                return text;
-
-            float paddingWidth = Text.CalcSize("M").x * 2f;
-            float availableWidth = maxWidth - paddingWidth;
-
-            if (Text.CalcSize(text).x <= availableWidth)
-                return text;
-
-            string truncated = text;
-            for (int i = text.Length - 1; i > 0; i--)
-            {
-                truncated = text.Substring(0, i) + ellipsis;
-                if (Text.CalcSize(truncated).x <= availableWidth)
-                    break;
-            }
-
-            return truncated;
+            return Truncate(text, maxWidth); // Redirect to efficient version
         }
 
         /// <summary>
         /// Calculates if text will fit within the specified width
+        /// 2 references
         /// </summary>
-        /// <param name="text">The text to check</param>
-        /// <param name="maxWidth">The maximum width in pixels</param>
-        /// <returns>True if the text fits, false otherwise</returns>
         public static bool TextFitsWidth(string text, float maxWidth)
         {
             if (string.IsNullOrEmpty(text))
@@ -101,9 +61,10 @@ namespace CAP_ChatInteractive
         }
 
         /// <summary>
-        /// More efficient binary search approach for truncation
+        /// Efficient binary search truncation (internal core method)
+        /// 7 references
         /// </summary>
-        public static string TruncateTextToWidthEfficient(string text, float maxWidth, string ellipsis = "..")
+        private static string TruncateTextToWidthEfficient(string text, float maxWidth, string ellipsis = "..")
         {
             if (string.IsNullOrEmpty(text) || TextFitsWidth(text, maxWidth))
                 return text;
@@ -135,32 +96,9 @@ namespace CAP_ChatInteractive
         }
 
         /// <summary>
-        /// Gets the maximum characters that fit in a given width
-        /// </summary>
-        public static int GetMaxCharacters(string text, float maxWidth, string ellipsis = "..")
-        {
-            if (string.IsNullOrEmpty(text)) return 0;
-
-            float availableWidth = maxWidth - Text.CalcSize("M").x * 2f;
-            float ellipsisWidth = Text.CalcSize(ellipsis).x;
-
-            for (int i = text.Length; i > 0; i--)
-            {
-                float width = Text.CalcSize(text.Substring(0, i)).x + ellipsisWidth;
-                if (width <= availableWidth)
-                    return i;
-            }
-
-            return 1;
-        }
-
-        // Add this method to UIUtilities.cs
-        /// <summary>
         /// Checks if text would be truncated to fit within specified width
+        /// 8 references - used mostly in store editor and traits editor
         /// </summary>
-        /// <param name="text">The text to check</param>
-        /// <param name="maxWidth">The maximum width in pixels</param>
-        /// <returns>True if the text would be truncated, false otherwise</returns>
         public static bool WouldTruncate(string text, float maxWidth)
         {
             if (string.IsNullOrEmpty(text))
@@ -171,41 +109,42 @@ namespace CAP_ChatInteractive
             return Text.CalcSize(text).x > availableWidth;
         }
 
-        // Add this method to UIUtilities.cs
         /// <summary>
         /// Draws a button with automatic truncation and tooltip if truncated
+        /// 8 References
         /// </summary>
-        /// <param name="rect">The button rectangle</param>
-        /// <param name="text">The button text</param>
-        /// <param name="tooltip">Optional tooltip text (if null, shows full text when truncated)</param>
-        /// <returns>True if button clicked</returns>
-        public static bool ButtonWithTruncation(Rect rect, string text, string tooltip = null)
+        public static bool ButtonWithTruncation(Rect rect, string text, string tooltip = null, bool active = true)
         {
-            string truncatedText = TruncateTextToWidth(text, rect.width);
-            bool result = Widgets.ButtonText(rect, truncatedText);
+            string displayText = Truncate(text, rect.width);
+            bool clicked;
 
-            // Show tooltip if text was truncated or custom tooltip provided
+            if (active)
+            {
+                clicked = Widgets.ButtonText(rect, displayText);
+            }
+            else
+            {
+                Widgets.ButtonText(rect, displayText, active: false);
+                clicked = false;
+            }
+
             if (Mouse.IsOver(rect))
             {
                 if (!string.IsNullOrEmpty(tooltip))
-                {
                     TooltipHandler.TipRegion(rect, tooltip);
-                }
                 else if (WouldTruncate(text, rect.width))
-                {
                     TooltipHandler.TipRegion(rect, text);
-                }
             }
 
-            return result;
+            return clicked;
         }
 
         /// <summary>
-        /// Draws a button with truncation and custom tooltip handling
+        /// Draws a button with truncation and custom TipSignal tooltip
         /// </summary>
         public static bool ButtonWithTruncation(Rect rect, string text, TipSignal tooltip)
         {
-            string truncatedText = TruncateTextToWidth(text, rect.width);
+            string truncatedText = Truncate(text, rect.width);
             bool result = Widgets.ButtonText(rect, truncatedText);
 
             if (Mouse.IsOver(rect))
@@ -215,29 +154,22 @@ namespace CAP_ChatInteractive
 
             return result;
         }
+
         /// <summary>
-        /// 
+        /// Flexible numeric text field: allows free typing, clamps only on valid input
+        /// 19 references
+        /// Keeps invalid input visible so user can correct it
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="rect"></param>
-        /// <param name="value"></param>
-        /// <param name="buffer"></param>
-        /// <param name="min"></param>
-        /// <param name="max"></param>
         public static void TextFieldNumericFlexible<T>(Rect rect, ref T value, ref string buffer, T min, T max) where T : struct
         {
-            // Let user type freely without immediate clamping
             string newBuffer = Widgets.TextField(rect, buffer);
 
-            // Only parse and validate when the input actually changes
             if (newBuffer != buffer)
             {
                 buffer = newBuffer;
 
-                // Try to parse the input
                 if (float.TryParse(buffer, out float floatValue))
                 {
-                    // Convert to the appropriate type and clamp
                     if (typeof(T) == typeof(int))
                     {
                         int intValue = (int)floatValue;
@@ -252,43 +184,33 @@ namespace CAP_ChatInteractive
                         buffer = floatValue.ToString("0.##");
                     }
                 }
-                // If parsing fails but buffer is empty, set to min value
-                else if (string.IsNullOrEmpty(buffer))
+                else if (string.IsNullOrWhiteSpace(buffer))
                 {
                     value = min;
                     buffer = min.ToString();
                 }
+                // Else: keep invalid buffer visible for user correction
             }
         }
 
         /// <summary>
-        /// Light gray color for descriptions and secondary text
-        /// </summary>
-        public static readonly Color DescriptionColor = new Color(0.7f, 0.7f, 0.7f); // Light gray
-
-
-        /// <summary>
-        /// Draws a label with description text
+        /// Draws a label with right-aligned muted description text
+        /// 3 references
         /// </summary>
         public static void LabelWithDescription(Rect rect, string label, string description)
         {
             Text.Anchor = TextAnchor.MiddleLeft;
-
-            // Draw main label
             Widgets.Label(rect, label);
 
             if (!string.IsNullOrEmpty(description))
             {
-                // Save original color
                 Color originalColor = GUI.color;
-                GUI.color = DescriptionColor;
+                GUI.color = ColorLibrary.MutedText;
 
-                // Calculate description position (right-aligned)
                 float descriptionWidth = Text.CalcSize(description).x;
                 Rect descriptionRect = new Rect(rect.xMax - descriptionWidth, rect.y, descriptionWidth, rect.height);
                 Widgets.Label(descriptionRect, description);
 
-                // Restore color
                 GUI.color = originalColor;
             }
 
@@ -296,38 +218,10 @@ namespace CAP_ChatInteractive
         }
 
         /// <summary>
-        /// Validates and clamps numeric values with dependencies
-        /// </summary>
-        public static void ValidateMinMax(ref int minValue, ref int maxValue, string minBuffer, string maxBuffer)
-        {
-            if (minValue > maxValue)
-            {
-                minValue = maxValue;
-            }
-        }
-
-        /// <summary>
-        /// Draws a numeric field with label and description
+        /// Draws a numeric integer field with label and description
+        /// 9 references
         /// </summary>
         public static void NumericField(Listing_Standard listing, string label, string description, ref int value, int min, int max)
-        {
-            Rect rect = listing.GetRect(Text.LineHeight);
-            Rect leftRect = rect.LeftPart(0.7f).Rounded();
-            Rect rightRect = rect.RightPart(0.3f).Rounded();
-
-            // Use the LabelWithDescription method
-            LabelWithDescription(leftRect, label, description);
-
-            string buffer = value.ToString();
-            Widgets.TextFieldNumeric(rightRect, ref value, ref buffer, min, max);
-
-            listing.Gap(2f); // Small gap after each field
-        }
-
-        /// <summary>
-        /// Draws a numeric field for float values with label and description
-        /// </summary>
-        public static void NumericField(Listing_Standard listing, string label, string description, ref float value, float min, float max)
         {
             Rect rect = listing.GetRect(Text.LineHeight);
             Rect leftRect = rect.LeftPart(0.7f).Rounded();
@@ -340,68 +234,140 @@ namespace CAP_ChatInteractive
 
             listing.Gap(2f);
         }
-    }
 
-    // Add this to UIUtilities.cs
-    public static class TextFieldHelper
-    {
-        private static Dictionary<string, string> textFieldBuffers = new Dictionary<string, string>();
+        // Float version commented out as unused (0 references) - keep for future use if needed
+        /*
+        public static void NumericField(Listing_Standard listing, string label, string description, ref float value, float min, float max)
+        {
+            Rect rect = listing.GetRect(Text.LineHeight);
+            Rect leftRect = rect.LeftPart(0.7f).Rounded();
+            Rect rightRect = rect.RightPart(0.3f).Rounded();
+
+            LabelWithDescription(leftRect, label, description);
+
+            string buffer = value.ToString("0.##");
+            Widgets.TextFieldNumeric(rightRect, ref value, ref buffer, min, max);
+
+            listing.Gap(2f);
+        }
+        */
 
         /// <summary>
-        /// Draws a text field with proper buffering to prevent UI conflicts
+        /// Builds a colored header section for tooltips with a header and list of items.
+        /// Example: "<b>Settings</b>\n\n" + ColoredBulletSection("MyMod.GoodForHeader", ColorLibrary.Success, "Item1", "Item2")
         /// </summary>
-        public static string DrawBufferedTextField(Rect rect, string currentValue, string uniqueKey)
+        public static string ColoredSection(string headerKey, string color, params string[] itemKeys)
         {
-            // Initialize buffer if needed
-            if (!textFieldBuffers.ContainsKey(uniqueKey))
+            string text = "<color=" + color + ">" + headerKey.Translate() + "</color>\n";
+
+            foreach (var key in itemKeys)
             {
-                textFieldBuffers[uniqueKey] = currentValue ?? string.Empty;
+                if (!string.IsNullOrEmpty(key))
+                    text += key.Translate() + "\n";
             }
 
-            // Draw text field using buffer
-            string buffer = textFieldBuffers[uniqueKey];
-            buffer = Widgets.TextField(rect, buffer);
-            textFieldBuffers[uniqueKey] = buffer;
-
-            return buffer;
+            return text.TrimEnd('\n');
         }
 
         /// <summary>
-        /// Updates a buffer value without drawing
+        /// Colored section with default bullet prefix ("• ")
         /// </summary>
+        public static string ColoredBulletSection(string headerKey, string color, params string[] itemKeys)
+        {
+            string text = "<color=" + color + ">" + headerKey.Translate() + "</color>\n";
+
+            foreach (var key in itemKeys)
+            {
+                if (!string.IsNullOrEmpty(key))
+                    text += "• " + key.Translate() + "\n";
+            }
+
+            return text.TrimEnd('\n');
+        }
+
+        /// <summary>
+        /// Builds a simple bold header + description tooltip string
+        /// </summary>
+        public static string BasicTooltip(string titleKey, string descriptionKey)
+        {
+            return "<b>" + titleKey.Translate() + "</b>\n\n" + descriptionKey.Translate();
+        }
+        /// <summary>
+        /// Wraps text in rich-text color tag using a Color struct
+        /// </summary>
+        public static string Colorize(string text, Color color)
+        {
+            string hex = ColorUtility.ToHtmlStringRGB(color);
+            return $"<color=#{hex}>{text}</color>";
+        }
+    }
+
+    /// <summary>
+    /// Helper for buffered text fields to prevent UI flicker/conflicts in settings windows.
+    /// Call ClearAllBuffers() in your settings window's PostClose() to prevent memory buildup.
+    /// </summary>
+    public static class TextFieldHelper
+    {
+        private static readonly Dictionary<string, string> textFieldBuffers = new();
+
+        public static string DrawBufferedTextField(Rect rect, string currentValue, string uniqueKey)
+        {
+            if (!textFieldBuffers.TryGetValue(uniqueKey, out string buffer))
+            {
+                buffer = currentValue ?? string.Empty;
+                textFieldBuffers[uniqueKey] = buffer;
+            }
+
+            buffer = Widgets.TextField(rect, buffer);
+            textFieldBuffers[uniqueKey] = buffer;
+            return buffer;
+        }
+
         public static void UpdateBuffer(string uniqueKey, string value)
         {
             textFieldBuffers[uniqueKey] = value ?? string.Empty;
         }
 
-        /// <summary>
-        /// Clears a specific buffer
-        /// </summary>
         public static void ClearBuffer(string uniqueKey)
         {
-            if (textFieldBuffers.ContainsKey(uniqueKey))
-            {
-                textFieldBuffers.Remove(uniqueKey);
-            }
+            textFieldBuffers.Remove(uniqueKey);
         }
 
-        /// <summary>
-        /// Clears all buffers (call when window closes)
-        /// </summary>
         public static void ClearAllBuffers()
         {
             textFieldBuffers.Clear();
         }
     }
 
+    /// <summary>
+    /// Centralized color palette (67 references)
+    /// Use ColorLibrary.Colorize(text, ColorLibrary.SomeColor) for rich text
+    /// </summary>
     public static class ColorLibrary
     {
-        public static readonly Color Orange = new Color(1.0f, 0.5f, 0.1f);
-        public static readonly Color Blue = new Color(0.2f, 0.4f, 0.8f);
-        public static readonly Color SkyBlue = new Color(0.529f, 0.808f, 0.922f);
-        public static readonly Color Teal = new Color(0.0f, 0.5f, 0.5f);
-        public static readonly Color LightGray = new Color(0.9f, 0.9f, 0.9f);
-        public static readonly Color White = Color.white;
-        public static readonly Color Black = Color.black;
+        // Semantic / theme colors
+        public static readonly Color HeaderAccent = new Color(1.0f, 0.5f, 0.1f);   // Orange - headers
+        public static readonly Color SubHeader = new Color(0.529f, 0.808f, 0.922f); // SkyBlue - sub-headers
+        public static readonly Color PrimaryAction = new Color(0.2f, 0.4f, 0.8f);   // Blue
+        public static readonly Color Success = new Color(0.2f, 0.8f, 0.2f);
+        public static readonly Color Warning = new Color(1.0f, 0.6f, 0.1f);
+        public static readonly Color Danger = new Color(0.9f, 0.1f, 0.1f);
+
+        // Text variants
+        public static readonly Color MutedText = new Color(0.7f, 0.7f, 0.7f);   // Secondary / descriptions
+        public static readonly Color LightText = new Color(0.85f, 0.85f, 0.85f); // Tiny / faint text
+        public static readonly Color DefaultText = Color.white;
+
+        // Utility
+        public static readonly Color BlackOutline = Color.black;
+
+        /// <summary>
+        /// Wraps text in rich-text color tag using a Color struct
+        /// </summary>
+        public static string Colorize(string text, Color color)
+        {
+            string hex = ColorUtility.ToHtmlStringRGB(color);
+            return $"<color=#{hex}>{text}</color>";
+        }
     }
 }

@@ -160,7 +160,7 @@ namespace CAP_ChatInteractive
 
             // Title row - Orange with underline
             Text.Font = GameFont.Medium;
-            GUI.color = ColorLibrary.Orange;
+            GUI.color = ColorLibrary.HeaderAccent;
             Rect titleRect = new Rect(0f, 0f, 200f, 30f);
             Widgets.Label(titleRect, "Command Management");
 

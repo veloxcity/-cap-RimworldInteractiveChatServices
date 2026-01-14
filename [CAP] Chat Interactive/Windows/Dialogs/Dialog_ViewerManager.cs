@@ -96,7 +96,7 @@ namespace CAP_ChatInteractive
 
             // Custom title with larger font and underline effect - matching Store Editor
             Text.Font = GameFont.Medium;
-            GUI.color = ColorLibrary.Orange;
+            GUI.color = ColorLibrary.HeaderAccent;
             Rect titleRect = new Rect(0f, 0f, 400f, 35f);
             string titleText = $"Viewer Management - Viewers ({Viewers.All.Count})";
             if (filteredViewers.Count != Viewers.All.Count)

@@ -70,7 +70,7 @@ namespace CAP_ChatInteractive
 
             // Custom title with larger font and underline effect
             Text.Font = GameFont.Medium;
-            GUI.color = ColorLibrary.Orange;
+            GUI.color = ColorLibrary.HeaderAccent;
             Rect titleRect = new Rect(0f, 0f, 400f, 35f);
             string titleText = $"Pawn Queue Management - {GetQueueManager().GetQueueSize()} waiting";
 

@@ -37,10 +37,10 @@ namespace _CAP__Chat_Interactive
 
             // Debug and Logging Section
             Text.Font = GameFont.Medium;
-            GUI.color = ColorLibrary.Orange;
+            GUI.color = ColorLibrary.HeaderAccent;
             listing.Label("RICS.Global.DebugHeader".Translate());
             Text.Font = GameFont.Small;
-            GUI.color = ColorLibrary.White;
+            GUI.color = Color.white;
 
             listing.GapLine(6f);
             listing.CheckboxLabeled("RICS.Global.EnableDebugLogging".Translate(), ref settings.EnableDebugLogging);
@@ -54,10 +54,10 @@ namespace _CAP__Chat_Interactive
 
             // Quick Status Section
             Text.Font = GameFont.Medium;
-            GUI.color = ColorLibrary.Orange;
+            GUI.color = ColorLibrary.HeaderAccent;
             listing.Label("RICS.Global.QuickStatusHeader".Translate());
             Text.Font = GameFont.Small;
-            GUI.color = ColorLibrary.White;
+            GUI.color = Color.white;
 
             listing.GapLine(6f);
 
@@ -71,18 +71,18 @@ namespace _CAP__Chat_Interactive
 
             // Command Prefixes Section
             Text.Font = GameFont.Medium;
-            GUI.color = ColorLibrary.Orange;
+            GUI.color = ColorLibrary.HeaderAccent;
             listing.Label("RICS.Global.CommandPrefixesHeader".Translate());
             Text.Font = GameFont.Small;
-            GUI.color = ColorLibrary.White;
+            GUI.color = Color.white;
             listing.GapLine(6f);
 
             listing.Label("RICS.Global.CommandPrefixDescription".Translate());
             Text.Font = GameFont.Tiny;
-            GUI.color = ColorLibrary.LightGray;
+            GUI.color = ColorLibrary.LightText;
             listing.Label("RICS.Global.PrefixRestrictions".Translate());
             Text.Font = GameFont.Small;
-            GUI.color = ColorLibrary.White;
+            GUI.color = Color.white;
 
             string commandPrefix = listing.TextEntryLabeled("RICS.Global.CommandPrefixLabel".Translate(), settings.Prefix);
             if (IsValidPrefix(commandPrefix))

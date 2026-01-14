@@ -86,8 +86,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                         {
                             int totalEvents = cooldownManager.data.EventUsage.Values.Sum(record => record.CurrentPeriodUses);
                             Logger.Debug($"Global event limit reached: {totalEvents}/{settings.EventsperCooldown}");
-                            MessageHandler.SendFailureLetter("Raid Blocked",
-                                $"{user.Username} tried to call raid but global limit reached\n\n{totalEvents}/{settings.EventsperCooldown} events used");
+                            // MessageHandler.SendFailureLetter("Raid Blocked",$"{user.Username} tried to call raid but global limit reached\n\n{totalEvents}/{settings.EventsperCooldown} events used");
                             return $"❌ Global event limit reached! ({totalEvents}/{settings.EventsperCooldown} used this period)";
                         }
 
@@ -98,8 +97,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                             int badUsed = badRecord?.CurrentPeriodUses ?? 0;
                             string cooldownMessage = $"❌ BAD event limit reached! ({badUsed}/{settings.MaxBadEvents} used this period)";
                             Logger.Debug($"Bad event limit reached: {badUsed}/{settings.MaxBadEvents}");
-                            MessageHandler.SendFailureLetter("Raid Blocked",
-                                $"{user.Username} tried to call raid but bad event limit reached\n\n{badUsed}/{settings.MaxBadEvents} bad events used");
+                            // MessageHandler.SendFailureLetter("Raid Blocked",$"{user.Username} tried to call raid but bad event limit reached\n\n{badUsed}/{settings.MaxBadEvents} bad events used");
                             return cooldownMessage;
                         }
 
@@ -153,7 +151,8 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 if (result.Success)
                 {
                     viewer.TakeCoins(wager);
-                    viewer.GiveKarma(CalculateKarmaChange(wager, raidType, strategy));
+
+                    viewer.TakeKarma(CalculateKarmaChange(wager, raidType, strategy));
 
                     // Record raid usage for cooldowns ONLY ON SUCCESS
                     if (cooldownManager != null)
@@ -607,7 +606,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
         private static int CalculateKarmaChange(int wager, string raidType, string strategy)
         {
             // Negative karma for hostile actions, scaled by raid severity
-            int baseKarma = (int)(wager / 1000f * -3);
+            int baseKarma = (int)(wager / 100f);
 
             // More negative karma for more destructive raid types
             switch (raidType.ToLower())

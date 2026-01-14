@@ -46,11 +46,11 @@ namespace CAP_ChatInteractive
 
             // === HEADER ===
             Text.Font = GameFont.Medium;
-            GUI.color = ColorLibrary.Orange;
+            GUI.color = ColorLibrary.HeaderAccent;
             // OLD: listing.Label("Game Events & Cooldowns");
             listing.Label("RICS.GameEvents.Header".Translate());           // ← NEW
             Text.Font = GameFont.Small;
-            GUI.color = ColorLibrary.White;
+            GUI.color = Color.white;
             listing.GapLine(6f);
 
             // === DESCRIPTION ===
@@ -130,11 +130,11 @@ namespace CAP_ChatInteractive
         {
             // === SECTION TITLE ===
             Text.Font = GameFont.Medium;
-            GUI.color = ColorLibrary.Orange;
+            GUI.color = ColorLibrary.HeaderAccent;
             // OLD: listing.Label("Global Cooldown Settings");
             listing.Label("RICS.GameEvents.GlobalCooldownSettings".Translate());   // ← NEW
             Text.Font = GameFont.Small;
-            GUI.color = ColorLibrary.White;
+            GUI.color = Color.white;
             listing.GapLine(6f);
 
             // === MAIN TOGGLE ===
@@ -155,20 +155,20 @@ namespace CAP_ChatInteractive
                         "RICS.GameEvents.EventCooldownDays".Translate(),
                         ref settings.EventCooldownDays, 1, 90);
 
-                GUI.color = ColorLibrary.LightGray;
+                GUI.color = ColorLibrary.LightText;
 // OLD: listing.Label($"How many in-game days to count events. Affects: !event, !raid, !militaryaid, !weather");
     listing.Label("RICS.GameEvents.EventCooldownDaysDesc".Translate()); // ← NEW
-                GUI.color = ColorLibrary.White;
+                GUI.color = Color.white;
 
                 // Events per cooldown period
                 // OLD: NumericField(listing, "Events per cooldown period:", ref settings.EventsperCooldown, 1, 1000);
                 NumericField(listing,
                     "RICS.GameEvents.EventsPerCooldown".Translate(),
                     ref settings.EventsperCooldown, 1, 1000);
-                GUI.color = ColorLibrary.LightGray;
+                GUI.color = ColorLibrary.LightText;
                 // OLD: listing.Label($"Maximum events allowed in {settings.EventCooldownDays} days. 0 = unlimited");
                 listing.Label("RICS.GameEvents.EventsPerCooldownDesc".Translate(settings.EventCooldownDays)); // ← NEW with param
-                GUI.color = ColorLibrary.White;
+                GUI.color = Color.white;
 
                 listing.Gap(12f);
 
@@ -180,19 +180,19 @@ namespace CAP_ChatInteractive
                     listing.Gap(4f);
                     // OLD (error): NumericField(listing, "RICS.GameEvents.MaxBadEvents:".Translate(), ref settings.MaxBadEvents, 1, 1000);
                     NumericField(listing, "RICS.GameEvents.MaxBadEvents".Translate(), ref settings.MaxBadEvents, 1, 1000);  // ← FIXED (no extra :)
-                    GUI.color = ColorLibrary.LightGray;
+                    GUI.color = ColorLibrary.LightText;
                     listing.Label("RICS.GameEvents.MaxBadEventsDesc".Translate());
-                    GUI.color = ColorLibrary.White;
+                    GUI.color = Color.white;
 
                     NumericField(listing, "RICS.GameEvents.MaxGoodEvents".Translate(), ref settings.MaxGoodEvents, 1, 1000);  // ← FIXED
-                    GUI.color = ColorLibrary.LightGray;
+                    GUI.color = ColorLibrary.LightText;
                     listing.Label("RICS.GameEvents.MaxGoodEventsDesc".Translate());
-                    GUI.color = ColorLibrary.White;
+                    GUI.color = Color.white;
 
                     NumericField(listing, "RICS.GameEvents.MaxNeutralEvents".Translate(), ref settings.MaxNeutralEvents, 1, 1000);  // ← FIXED
-                    GUI.color = ColorLibrary.LightGray;
+                    GUI.color = ColorLibrary.LightText;
                     listing.Label("RICS.GameEvents.MaxNeutralEventsDesc".Translate());
-                    GUI.color = ColorLibrary.White;
+                    GUI.color = Color.white;
                 }
 
                 listing.Gap(12f);
@@ -200,30 +200,30 @@ namespace CAP_ChatInteractive
                 // Store purchase limits
                 // OLD: NumericField(listing, "Maximum item purchases per period:", ref settings.MaxItemPurchases, 1, 1000);
                 NumericField(listing, "RICS.GameEvents.MaxItemPurchases".Translate(), ref settings.MaxItemPurchases, 1, 1000);
-                GUI.color = ColorLibrary.LightGray;
+                GUI.color = ColorLibrary.LightText;
                 // OLD: listing.Label($"Maximum !buy, !equip, !wear, !healpawn, !revivepawn commands in {settings.EventCooldownDays} days");
                 listing.Label("RICS.GameEvents.MaxItemPurchasesDesc".Translate(settings.EventCooldownDays)); // ← NEW
-                GUI.color = ColorLibrary.White;
+                GUI.color = Color.white;
             }
             else
             {
                 // Show a message when cooldowns are disabled
                 listing.Gap(8f);
-                GUI.color = ColorLibrary.LightGray;
+                GUI.color = ColorLibrary.LightText;
                 // OLD (error): listing.Label("RICS.GameEvents.EventCooldownDaysDesc".Translate());
                 listing.Label("RICS.GameEvents.CooldownsDisabledMessage".Translate());  // ← FIXED
-                GUI.color = ColorLibrary.White;
+                GUI.color = Color.white;
             }
         }
 
         private static void DrawOtherSettings(Listing_Standard listing, CAPGlobalChatSettings settings)
         {
             Text.Font = GameFont.Medium;
-            GUI.color = ColorLibrary.Orange;
+            GUI.color = ColorLibrary.HeaderAccent;
             // OLD: listing.Label("Other Settings");
             listing.Label("RICS.GameEvents.OtherSettings".Translate());
             Text.Font = GameFont.Small;
-            GUI.color = ColorLibrary.White;
+            GUI.color = Color.white;
             listing.GapLine(6f);
 
             // Max Traits setting
@@ -241,11 +241,11 @@ namespace CAP_ChatInteractive
             bool gameLoaded = Current.ProgramState == ProgramState.Playing;
 
             Text.Font = GameFont.Medium;
-            GUI.color = ColorLibrary.Orange;
+            GUI.color = ColorLibrary.HeaderAccent;
             // OLD: listing.Label("Event Management");
             listing.Label("RICS.GameEvents.EventManagement".Translate()); // ← NEW
             Text.Font = GameFont.Small;
-            GUI.color = ColorLibrary.White;
+            GUI.color = Color.white;
 
             listing.GapLine(6f);
             GUI.color = Color.white;
@@ -289,7 +289,7 @@ namespace CAP_ChatInteractive
             int enabledEvents = IncidentsManager.AllBuyableIncidents?.Values.Count(e => e.Enabled) ?? 0;
 
             Text.Font = GameFont.Small;
-            GUI.color = ColorLibrary.SkyBlue;
+            GUI.color = ColorLibrary.SubHeader;
             // OLD: listing.Label("Current Statistics:");
             listing.Label("RICS.GameEvents.CurrentStatistics".Translate()); // ← NEW)
             Text.Font = GameFont.Tiny;
@@ -378,10 +378,10 @@ namespace CAP_ChatInteractive
                 ));
             }
 
-            GUI.color = ColorLibrary.LightGray;
+            GUI.color = ColorLibrary.LightText;
             // OLD: listing.Label("Reset all cooldown settings back to default values");
             listing.Label("RICS.GameEvents.ResetAllCooldowns".Translate()); // ← NEW
-            GUI.color = ColorLibrary.White;
+            GUI.color = Color.white;
         }
 
         private static void ResetToDefaults(CAPGlobalChatSettings settings)

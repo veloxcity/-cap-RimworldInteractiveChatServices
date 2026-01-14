@@ -155,6 +155,12 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 if (success)
                 {
                     viewer.TakeCoins(cost);
+                    // Add Karma for successful weather change 1.0.15
+                    if (buyableWeather.KarmaType == "good")
+                        viewer.GiveKarma(buyableWeather.BaseCost/100);
+                    else if (buyableWeather.KarmaType == "bad" || buyableWeather.KarmaType == "doom")
+                        viewer.TakeKarma(buyableWeather.BaseCost / 100);
+
                     // Record weather usage for cooldowns ONLY ON SUCCESS
                     if (success && cooldownManager != null)
                     {
