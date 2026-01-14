@@ -100,21 +100,19 @@ namespace _CAP__Chat_Interactive
                 "🔍 <i>This is NOT your display name with capitals!</i>");
             */
             TooltipHandler.TipRegion(channelLabelRect,
-                "<b>" + "RICS.Twitch.ChannelNameTooltip.Title".Translate() + "</b>\n\n" +
+                "<b>" + UIUtilities.Colorize("RICS.Twitch.ChannelNameTooltip.Title".Translate(),ColorLibrary.HeaderAccent) // orange
+                + "</b>\n\n" +
                 "RICS.Twitch.ChannelNameTooltip.Desc".Translate() + "\n\n" +
                 UIUtilities.Colorize(
                     "RICS.Twitch.ChannelNameTooltip.UrlExample".Translate(),
-                    ColorLibrary.HeaderAccent
+                    ColorLibrary.SubHeader  // sky blue
                 ) + "\n\n" +
-                UIUtilities.ColoredBulletSection(
-                    "RICS.Twitch.ChannelNameTooltip.ExamplesHeader",
-                    "orange",  // or "yellow" or ColorLibrary.Warning.ToString() if you prefer named
-                    "RICS.Twitch.ChannelNameTooltip.Example1",
-                    "RICS.Twitch.ChannelNameTooltip.CaseNote"
-                ) + "\n" +
+                "<b>" + "RICS.Twitch.ChannelNameTooltip.ExamplesHeader".Translate() + "</b>\n" +
+                "• " + "RICS.Twitch.ChannelNameTooltip.Example1".Translate() + "\n" +
+                "• " + "RICS.Twitch.ChannelNameTooltip.CaseNote".Translate() + "\n\n" +
                 UIUtilities.Colorize(
                     "RICS.Twitch.ChannelNameTooltip.Warning".Translate(),
-                    ColorLibrary.Danger
+                    ColorLibrary.Warning       // subtle orange/red
                 )
             );
 
@@ -139,22 +137,36 @@ namespace _CAP__Chat_Interactive
             // OLD: Widgets.Label(botLabelRect, "Bot Username:");
             Widgets.Label(botLabelRect,
                 "RICS.Twitch.BotUsernameLabel".Translate());
-            /* OLD:
             TooltipHandler.TipRegion(botLabelRect,
-                "<b>Bot Account Username</b>\n\n" +
-                "🤖 <b>Recommended:</b> Create a separate bot account\n" +
-                "👤 <b>Alternative:</b> Use your main streamer account\n\n" +
-                "<b>Why use a bot account?</b>\n" +
-                "• Keeps chat clean (bot messages separate)\n" +
-                "• Prevents accidental commands from your own account\n" +
-                "• Better moderation control\n" +
-                "• Professional appearance\n\n" +
-                "<b>Using main account?</b>\n" +
-                "• Just enter your channel name again\n" +
-                "• You'll see your own messages in chat");
-            */
-            TooltipHandler.TipRegion(botLabelRect,
-                "RICS.Twitch.BotUsernameTooltip".Translate()
+                UIUtilities.Colorize(
+                    "RICS.Twitch.BotUsernameTooltip.Title".Translate(),
+                    ColorLibrary.HeaderAccent      // orange for main title
+                ) + "\n\n" +
+
+                UIUtilities.Colorize(
+                    "RICS.Twitch.BotUsernameTooltip.Recommended".Translate(),
+                    ColorLibrary.Success           // green – positive emphasis
+                ) + "\n" +
+                UIUtilities.Colorize(
+                    "RICS.Twitch.BotUsernameTooltip.Alternative".Translate(),
+                    ColorLibrary.MutedText         // gray – secondary option
+                ) + "\n\n" +
+
+                UIUtilities.Colorize(
+                    "RICS.Twitch.BotUsernameTooltip.WhyHeader".Translate(),
+                    ColorLibrary.SubHeader         // sky blue for sub-header
+                ) + "\n" +
+                "• " + "RICS.Twitch.BotUsernameTooltip.Why1".Translate() + "\n" +
+                "• " + "RICS.Twitch.BotUsernameTooltip.Why2".Translate() + "\n" +
+                "• " + "RICS.Twitch.BotUsernameTooltip.Why3".Translate() + "\n" +
+                "• " + "RICS.Twitch.BotUsernameTooltip.Why4".Translate() + "\n\n" +
+
+                UIUtilities.Colorize(
+                    "RICS.Twitch.BotUsernameTooltip.MainAccountHeader".Translate(),
+                    ColorLibrary.SubHeader         // sky blue again for consistency
+                ) + "\n" +
+                "• " + "RICS.Twitch.BotUsernameTooltip.Main1".Translate() + "\n" +
+                "• " + "RICS.Twitch.BotUsernameTooltip.Main2".Translate()
             );
 
             Rect botFieldRect = listing.GetRect(30f);

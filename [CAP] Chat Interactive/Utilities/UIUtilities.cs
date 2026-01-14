@@ -350,7 +350,7 @@ namespace CAP_ChatInteractive
         public static readonly Color SubHeader = new Color(0.529f, 0.808f, 0.922f); // SkyBlue - sub-headers
         public static readonly Color PrimaryAction = new Color(0.2f, 0.4f, 0.8f);   // Blue
         public static readonly Color Success = new Color(0.2f, 0.8f, 0.2f);
-        public static readonly Color Warning = new Color(1.0f, 0.6f, 0.1f);
+        public static readonly Color Warning = new Color(1.0f, 0.75f, 0.2f);  // Yellow-Orange  Maybe more yellow?
         public static readonly Color Danger = new Color(0.9f, 0.1f, 0.1f);
 
         // Text variants
