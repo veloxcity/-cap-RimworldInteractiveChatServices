@@ -69,7 +69,7 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
                        $"📊 Karma: {viewer.Karma} {karmaEmoji}\n" +
                        $"💸 Earnings: {coinsPerAward} {currencySymbol} every 2 minutes\n" +
                        $"⏱️ Rate: ~{coinsPerHour} {currencySymbol}/hour"; // +
-                       //activeTimeInfo;
+                                                                          //activeTimeInfo;
             }
             return "Could not find your viewer data.";
         }
@@ -355,15 +355,31 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
             var resultParts = new List<string>();
 
             if (allies.Count > 0)
-                resultParts.Add($"Allies: {string.Join(" - ", allies)}");
+                resultParts.Add($"Allies: {string.Join(" • ", allies)}");
 
             if (neutrals.Count > 0)
-                resultParts.Add($"Neutrals: {string.Join(" - ", neutrals)}");
+                resultParts.Add($"Neutrals: {string.Join(" • ", neutrals)}");
 
             if (enemies.Count > 0)
-                resultParts.Add($"Enemies: {string.Join(" - ", enemies)}");
+                resultParts.Add($"Enemies: {string.Join(" • ", enemies)}");
 
             return string.Join(" | ", resultParts);
         }
+    }
+    public class Colonists : ChatCommand
+    {
+        public override string Name => "colonists";
+        public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
+        {
+            //var colonistList = Current.Game.PlayerHomeMaps.SelectMany(m => m.mapPawns.FreeColonistsSpawned);
+            //var animalsList = Current.Game.PlayerHomeMaps.SelectMany(m => m.mapPawns.ColonyAnimals);
+            int colonistCount = Current.Game.PlayerHomeMaps.Sum(m => m.mapPawns.FreeColonistsSpawnedCount);
+            int animalCount = Current.Game.PlayerHomeMaps.Sum(m => m.mapPawns.ColonyAnimals.Count);
+            int viewerCount = Viewers.All.Count;
+
+            return $"There are {colonistCount}({viewerCount} viewers) and {animalCount} colony animals.";
+        }
+
+
     }
 }
