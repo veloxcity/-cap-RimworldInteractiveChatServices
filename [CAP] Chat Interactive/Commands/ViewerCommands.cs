@@ -319,4 +319,51 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
             return WealthCommandHandler.HandleWealthCommand(messageWrapper, args);
         }
     }
+
+    public class Factions : ChatCommand
+    {
+        public override string Name => "factions";
+        public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
+        {
+            var factionManager = Current.Game.World.factionManager;
+            var factions = factionManager.AllFactionsVisible
+                .Where(f => !f.IsPlayer)
+                .OrderByDescending(f => f.PlayerGoodwill);
+
+            var allies = new List<string>();
+            var neutrals = new List<string>();
+            var enemies = new List<string>();
+
+            foreach (Faction faction in factions)
+            {
+                string entry = $"{faction.Name}[{faction.PlayerGoodwill}]";
+
+                switch (faction.PlayerRelationKind)
+                {
+                    case FactionRelationKind.Ally:
+                        allies.Add(entry);
+                        break;
+                    case FactionRelationKind.Neutral:
+                        neutrals.Add(entry);
+                        break;
+                    case FactionRelationKind.Hostile:
+                        enemies.Add(entry);
+                        break;
+                }
+            }
+
+            var resultParts = new List<string>();
+
+            if (allies.Count > 0)
+                resultParts.Add($"Allies: {string.Join(" - ", allies)}");
+
+            if (neutrals.Count > 0)
+                resultParts.Add($"Neutrals: {string.Join(" - ", neutrals)}");
+
+            if (enemies.Count > 0)
+                resultParts.Add($"Enemies: {string.Join(" - ", enemies)}");
+
+            return string.Join(" | ", resultParts);
+        }
+    }
 }
