@@ -64,4 +64,4 @@ We are fully committed to complying with the **GNU Affero GPL v3** license under
 
 As a preservation effort for the RimWorld modding community, our goal is to maintain and innovate on interactive chat concepts, providing users with more choices and features. We welcome constructive dialogue with hodlhodl1132 regarding any concerns.
 
-For credits and acknowledgments of contributors, see [CREDITS.md](CREDITS.md).
+For credits and acknowledgments of contributors, see [CREDITS.md](https://github.com/ekudram/-cap-RimworldInteractiveChatServices/blob/master/credits.md).
