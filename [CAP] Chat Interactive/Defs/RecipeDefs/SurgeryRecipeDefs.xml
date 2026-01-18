@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+  <!-- Gender Swap Surgery -->
+  <RecipeDef Name="GenderSwapSurgery" ParentName="SurgeryFlesh">
+    <defName>GenderSwapSurgery</defName>
+    <label>gender swap</label>
+    <description>Performs a gender swap on the patient.</description>
+    <workerClass>CAP_ChatInteractive.Commands.CommandHandlers.GenderSwapRecipeWorker</workerClass>
+    <!-- Custom worker -->
+    <ingredients>
+      <!-- Add any required ingredients, e.g., medicine -->
+      <li>
+        <filter>
+          <thingDefs>
+            <li>MedicineIndustrial</li>
+          </thingDefs>
+        </filter>
+        <count>3</count>
+      </li>
+    </ingredients>
+    <defaultIngredientFilter>
+      <thingDefs>
+        <li>MedicineIndustrial</li>
+      </thingDefs>
+    </defaultIngredientFilter>
+    <fixedIngredientFilter>
+      <thingDefs>
+        <li>MedicineIndustrial</li>
+      </thingDefs>
+    </fixedIngredientFilter>
+
+    <appliedOnFixedBodyParts>
+      <li>Torso</li>
+    </appliedOnFixedBodyParts>
+    <hideBodyPartNames>true</hideBodyPartNames>
+
+    <skillRequirements>
+      <Medicine>10</Medicine>
+    </skillRequirements>
+    <workSpeedStat>MedicalOperationSpeed</workSpeedStat>
+    <workAmount>3200</workAmount>
+    <!-- Surgery duration -->
+    <anesthetize>true</anesthetize>
+    <surgerySuccessChanceFactor>1</surgerySuccessChanceFactor>
+  </RecipeDef>
+
+  <!-- Fat Body Surgery -->
+  <RecipeDef Name="FatBodySurgery" ParentName="SurgeryFlesh">
+    <defName>FatBodySurgery</defName>
+    <label>add fat surgery</label>
+    <description>Performs fat adding surgery.</description>
+    <workerClass>CAP_ChatInteractive.Commands.CommandHandlers.FatBodyRecipeWorker</workerClass>
+    <!-- Custom worker -->
+    <ingredients>
+      <!-- Add any required ingredients, e.g., medicine -->
+      <li>
+        <filter>
+          <thingDefs>
+            <li>MedicineIndustrial</li>
+          </thingDefs>
+        </filter>
+        <count>3</count>
+      </li>
+    </ingredients>
+    <defaultIngredientFilter>
+      <thingDefs>
+        <li>MedicineIndustrial</li>
+      </thingDefs>
+    </defaultIngredientFilter>
+    <fixedIngredientFilter>
+      <thingDefs>
+        <li>MedicineIndustrial</li>
+      </thingDefs>
+    </fixedIngredientFilter>
+
+    <appliedOnFixedBodyParts>
+      <li>Torso</li>
+    </appliedOnFixedBodyParts>
+    <hideBodyPartNames>true</hideBodyPartNames>
+
+    <skillRequirements>
+      <Medicine>10</Medicine>
+    </skillRequirements>
+    <workSpeedStat>MedicalOperationSpeed</workSpeedStat>
+    <workAmount>3200</workAmount>
+    <!-- Surgery duration -->
+    <anesthetize>true</anesthetize>
+    <surgerySuccessChanceFactor>1</surgerySuccessChanceFactor>
+  </RecipeDef>
+
+  <!-- Feminine Body Surgery -->
+  <RecipeDef Name="FeminineBodySurgery" ParentName="SurgeryFlesh">
+    <defName>FeminineBodySurgery</defName>
+    <label>feminine surgery</label>
+    <description>Surgery to make one more feminine.</description>
+    <workerClass>CAP_ChatInteractive.Commands.CommandHandlers.FeminineBodyRecipeWorker</workerClass>
+    <!-- Custom worker -->
+    <ingredients>
+      <!-- Add any required ingredients, e.g., medicine -->
+      <li>
+        <filter>
+          <thingDefs>
+            <li>MedicineIndustrial</li>
+          </thingDefs>
+        </filter>
+        <count>3</count>
+      </li>
+    </ingredients>
+    <defaultIngredientFilter>
+      <thingDefs>
+        <li>MedicineIndustrial</li>
+      </thingDefs>
+    </defaultIngredientFilter>
+    <fixedIngredientFilter>
+      <thingDefs>
+        <li>MedicineIndustrial</li>
+      </thingDefs>
+    </fixedIngredientFilter>
+
+    <appliedOnFixedBodyParts>
+      <li>Torso</li>
+    </appliedOnFixedBodyParts>
+    <hideBodyPartNames>true</hideBodyPartNames>
+
+    <skillRequirements>
+      <Medicine>10</Medicine>
+    </skillRequirements>
+    <workSpeedStat>MedicalOperationSpeed</workSpeedStat>
+    <workAmount>3200</workAmount>
+    <!-- Surgery duration -->
+    <anesthetize>true</anesthetize>
+    <surgerySuccessChanceFactor>1</surgerySuccessChanceFactor>
+  </RecipeDef>
+
+  <!-- Hulking Body Surgery -->
+  <RecipeDef Name="HulkingBodySurgery" ParentName="SurgeryFlesh">
+    <defName>HulkingBodySurgery</defName>
+    <label>hulking surgery</label>
+    <description>Surgery to make one more hulking.</description>
+    <workerClass>CAP_ChatInteractive.Commands.CommandHandlers.HulkBodyRecipeWorker</workerClass>
+    <!-- Custom worker -->
+    <ingredients>
+      <!-- Add any required ingredients, e.g., medicine -->
+      <li>
+        <filter>
+          <thingDefs>
+            <li>MedicineIndustrial</li>
+          </thingDefs>
+        </filter>
+        <count>3</count>
+      </li>
+    </ingredients>
+    <defaultIngredientFilter>
+      <thingDefs>
+        <li>MedicineIndustrial</li>
+      </thingDefs>
+    </defaultIngredientFilter>
+    <fixedIngredientFilter>
+      <thingDefs>
+        <li>MedicineIndustrial</li>
+      </thingDefs>
+    </fixedIngredientFilter>
+
+    <appliedOnFixedBodyParts>
+      <li>Torso</li>
+    </appliedOnFixedBodyParts>
+    <hideBodyPartNames>true</hideBodyPartNames>
+
+    <skillRequirements>
+      <Medicine>10</Medicine>
+    </skillRequirements>
+    <workSpeedStat>MedicalOperationSpeed</workSpeedStat>
+    <workAmount>3200</workAmount>
+    <!-- Surgery duration -->
+    <anesthetize>true</anesthetize>
+    <surgerySuccessChanceFactor>1</surgerySuccessChanceFactor>
+  </RecipeDef>
+
+  <!-- Masculine Body Surgery -->
+  <RecipeDef Name="MasculineBodySurgery" ParentName="SurgeryFlesh">
+    <defName>MasculineBodySurgery</defName>
+    <label>masculine surgery</label>
+    <description>Surgery to make one more masculine.</description>
+    <workerClass>CAP_ChatInteractive.Commands.CommandHandlers.MasculineBodyRecipeWorker</workerClass>
+    <!-- Custom worker -->
+    <ingredients>
+      <!-- Add any required ingredients, e.g., medicine -->
+      <li>
+        <filter>
+          <thingDefs>
+            <li>MedicineIndustrial</li>
+          </thingDefs>
+        </filter>
+        <count>3</count>
+      </li>
+    </ingredients>
+    <defaultIngredientFilter>
+      <thingDefs>
+        <li>MedicineIndustrial</li>
+      </thingDefs>
+    </defaultIngredientFilter>
+    <!-- Or whatever prereq you want -->
+    <fixedIngredientFilter>
+      <thingDefs>
+        <li>MedicineIndustrial</li>
+      </thingDefs>
+    </fixedIngredientFilter>
+
+    <appliedOnFixedBodyParts>
+      <li>Torso</li>
+    </appliedOnFixedBodyParts>
+    <hideBodyPartNames>true</hideBodyPartNames>
+
+    <skillRequirements>
+      <Medicine>10</Medicine>
+    </skillRequirements>
+    <workSpeedStat>MedicalOperationSpeed</workSpeedStat>
+    <workAmount>3200</workAmount>
+    <!-- Surgery duration -->
+    <anesthetize>true</anesthetize>
+    <surgerySuccessChanceFactor>1</surgerySuccessChanceFactor>
+  </RecipeDef>
+
+  <!-- Thin Body Surgery -->
+  <RecipeDef Name="ThinBodySurgery" ParentName="SurgeryFlesh">
+    <defName>ThinBodySurgery</defName>
+    <label>thin surgery</label>
+    <description>Surgery to make one thin.</description>
+    <workerClass>CAP_ChatInteractive.Commands.CommandHandlers.ThinBodyRecipeWorker</workerClass>
+    <!-- Custom worker -->
+    <ingredients>
+      <!-- Add any required ingredients, e.g., medicine -->
+      <li>
+        <filter>
+          <thingDefs>
+            <li>MedicineIndustrial</li>
+          </thingDefs>
+        </filter>
+        <count>3</count>
+      </li>
+    </ingredients>
+    <defaultIngredientFilter>
+      <thingDefs>
+        <li>MedicineIndustrial</li>
+      </thingDefs>
+    </defaultIngredientFilter>
+    <!-- Or whatever prereq you want -->
+    <fixedIngredientFilter>
+      <thingDefs>
+        <li>MedicineIndustrial</li>
+      </thingDefs>
+    </fixedIngredientFilter>
+
+    <appliedOnFixedBodyParts>
+      <li>Torso</li>
+    </appliedOnFixedBodyParts>
+    <hideBodyPartNames>true</hideBodyPartNames>
+
+    <skillRequirements>
+      <Medicine>10</Medicine>
+    </skillRequirements>
+    <workSpeedStat>MedicalOperationSpeed</workSpeedStat>
+    <workAmount>3200</workAmount>
+    <!-- Surgery duration -->
+    <anesthetize>true</anesthetize>
+    <surgerySuccessChanceFactor>1</surgerySuccessChanceFactor>
+  </RecipeDef>
+</Defs>

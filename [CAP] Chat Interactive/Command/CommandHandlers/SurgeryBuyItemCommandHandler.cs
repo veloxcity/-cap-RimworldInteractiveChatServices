@@ -62,6 +62,51 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 string sideStr = parsed.Side;
                 string quantityStr = parsed.Quantity.ToString();
 
+                // Special handling for custom surgeries (no ThingDef)
+                string surgeryType = null;
+                string recipeDefName = null;
+                string displayName = null;
+
+                if (itemName == "gender swap" || itemName == "genderswap" || itemName == "swapgender")
+                {
+                    return HandleGenderSwapSurgery(messageWrapper, viewer, currencySymbol);
+                }
+                else if (itemName == "fat body" || itemName == "fatbody" || itemName == "body fat")
+                {
+                    surgeryType = "fat body";
+                    recipeDefName = "FatBodySurgery";
+                    displayName = "Fat Body";
+                }
+                else if (itemName == "feminine body" || itemName == "femininebody" || itemName == "bodyfeminine")
+                {
+                    surgeryType = "feminine body";
+                    recipeDefName = "FeminineBodySurgery";
+                    displayName = "Feminine Body";
+                }
+                else if (itemName == "hulking body" || itemName == "hulkingbody" || itemName == "bodyhulking")
+                {
+                    surgeryType = "hulking body";
+                    recipeDefName = "HulkingBodySurgery";
+                    displayName = "Hulking Body";
+                }
+                else if (itemName == "masculine body" || itemName == "masculinebody" || itemName == "bodymasculine")
+                {
+                    surgeryType = "masculine body";
+                    recipeDefName = "MasculineBodySurgery";
+                    displayName = "Masculine Body";
+                }
+                else if (itemName == "thin body" || itemName == "thinbody" || itemName == "bodythin")
+                {
+                    surgeryType = "thin body";
+                    recipeDefName = "ThinBodySurgery";
+                    displayName = "Thin Body";
+                }
+
+                if (surgeryType != null)
+                {
+                    return HandleBodyChangeSurgery(messageWrapper, viewer, currencySymbol, surgeryType, recipeDefName, displayName);
+                }
+
                 // Get store item
                 var storeItem = StoreCommandHelper.GetStoreItemByName(itemName);
                 if (storeItem == null)
@@ -82,11 +127,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                     return $"Error: Implant definition not found.";
                 }
 
-                // Special handling for gender swap
-                if (itemName == "gender swap" || itemName == "genderswap" || itemName == "swapgender")
-                {
-                    return HandleGenderSwapSurgery(messageWrapper, viewer, currencySymbol);
-                }
+
 
                 // Check if this is a valid surgery item (bionic, implant, etc.)
                 if (!IsValidSurgeryItem(thingDef))
@@ -197,6 +238,89 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
             }
         }
 
+        // In SurgeryBuyItemCommandHandler.cs, add these new methods below HandleGenderSwapSurgery
+
+        private static string HandleBodyChangeSurgery(ChatMessageWrapper messageWrapper, Viewer viewer, string currencySymbol, string surgeryType, string recipeDefName, string displayName)
+        {
+            const int quantity = 1;
+
+            var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
+            int finalPrice = globalSettings.SurgeryBodyChangeCost; // Assume a new global setting for body change cost, e.g., 800 default
+
+            if (!StoreCommandHelper.CanUserAfford(messageWrapper, finalPrice))
+            {
+                return $"You need {StoreCommandHelper.FormatCurrencyMessage(finalPrice, currencySymbol)} for {displayName} surgery! " +
+                       $"You have {StoreCommandHelper.FormatCurrencyMessage(viewer.Coins, currencySymbol)}.";
+            }
+
+            Verse.Pawn pawn = StoreCommandHelper.GetViewerPawn(messageWrapper);
+            if (pawn == null)
+                return "You need to have a pawn in the colony to perform surgery. Use !buy pawn first.";
+            if (pawn.Dead)
+                return "Your pawn is dead. You cannot perform surgery.";
+
+            var recipe = DefDatabase<RecipeDef>.GetNamedSilentFail(recipeDefName);
+            if (recipe == null)
+            {
+                Logger.Error($"{recipeDefName} RecipeDef not found.");
+                return $"Error: {displayName} procedure not available (mod configuration issue).";
+            }
+
+            var corePart = pawn.RaceProps.body.corePart;
+            if (corePart == null)
+                return "Error: No suitable body part found for surgery.";
+
+            if (HasSurgeryScheduled(pawn, recipe, corePart))
+                return $"{displayName} surgery is already scheduled for your pawn. Please wait.";
+
+            // Optional: Check if pawn already has this body type (to prevent redundant surgery)
+            BodyTypeDef targetBodyType = GetTargetBodyTypeForSurgery(surgeryType); // Define this helper method
+            if (targetBodyType != null && pawn.story.bodyType == targetBodyType)
+            {
+                return $"Your pawn already has a {displayName.ToLower()} body type. No change needed!";
+            }
+
+            // Optional: Gender compatibility check (e.g., block "masculine" on female pawns?)
+            // if (surgeryType == "masculine" && pawn.gender == Gender.Female) return "This surgery is not compatible with female pawns.";
+
+            viewer.TakeCoins(finalPrice);
+
+            int karmaEarned = finalPrice / 200; // Conservative karma
+            if (karmaEarned > 0)
+            {
+                viewer.GiveKarma(karmaEarned);
+                Logger.Debug($"Awarded {karmaEarned} karma for {displayName} surgery");
+            }
+
+            ScheduleSurgeries(pawn, recipe, new List<BodyPartRecord> { corePart });
+
+            LookTargets targets = new LookTargets(pawn);
+            string invoiceLabel = $"🏥 Rimazon Surgery - {messageWrapper.Username}";
+            string invoiceMessage = CreateRimazonSurgeryInvoice(
+                messageWrapper.Username, displayName, quantity, finalPrice, currencySymbol,
+                new List<BodyPartRecord> { corePart });
+
+            MessageHandler.SendBlueLetter(invoiceLabel, invoiceMessage, targets);
+
+            Logger.Debug($"{displayName} surgery scheduled for {messageWrapper.Username} - {finalPrice}{currencySymbol}");
+
+            return $"{displayName} surgery scheduled for {StoreCommandHelper.FormatCurrencyMessage(finalPrice, currencySymbol)}! " +
+                   $"Your doctors will transform your pawn. Remaining balance: {StoreCommandHelper.FormatCurrencyMessage(viewer.Coins, currencySymbol)}.";
+        }
+
+        // Helper to map surgeryType to BodyTypeDef (add this)
+        private static BodyTypeDef GetTargetBodyTypeForSurgery(string surgeryType)
+        {
+            switch (surgeryType.ToLower())
+            {
+                case "fat body": return BodyTypeDefOf.Fat;
+                case "feminine body": return BodyTypeDefOf.Female;
+                case "hulking body": return BodyTypeDefOf.Hulk;
+                case "masculine body": return BodyTypeDefOf.Male;
+                case "thin body": return BodyTypeDefOf.Thin;
+                default: return null;
+            }
+        }
         // New method for handling gender swap surgery
         private static string HandleGenderSwapSurgery(ChatMessageWrapper messageWrapper, Viewer viewer, string currencySymbol)
         {
