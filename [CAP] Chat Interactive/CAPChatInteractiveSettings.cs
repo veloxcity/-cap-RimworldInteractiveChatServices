@@ -160,7 +160,7 @@ namespace CAP_ChatInteractive
 
         // Surgery Command Settings
         public int SurgeryGenderSwapCost = 1000;
-        public int SurgeryBodyChangeCost = 1000;
+        public int SurgeryBodyChangeCost = 800;
 
         // Passion Settings
         public int MinPassionWager = 10;
@@ -259,7 +259,7 @@ namespace CAP_ChatInteractive
 
             // Surgery Command
             Scribe_Values.Look(ref SurgeryGenderSwapCost, "surgeryGenderSwapCost", 1000);
-            Scribe_Values.Look(ref SurgeryBodyChangeCost, "surgeryBodyChangeCost", 1000);
+            Scribe_Values.Look(ref SurgeryBodyChangeCost, "surgeryBodyChangeCost", 800);
 
             // Channel Points settings
             Scribe_Values.Look(ref ChannelPointsEnabled, "channelPointsEnabled", true);

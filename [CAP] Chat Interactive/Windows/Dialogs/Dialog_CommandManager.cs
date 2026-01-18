@@ -784,6 +784,63 @@ namespace CAP_ChatInteractive
                     y += 20f;
                 }
 
+                // SURGERY-SPECIFIC SETTINGS - Only show for surgery command
+                if (selectedCommand != null && selectedCommand.commandText.ToLower() == "surgery")
+                {
+                    y += 10f; // Extra spacing before section
+
+                    // Surgery header
+                    Rect surgeryHeaderRect = new Rect(leftPadding + 10f, y, viewRect.width - leftPadding, sectionHeight);
+                    Text.Font = GameFont.Medium;
+                    GUI.color = ColorLibrary.HeaderAccent;
+                    Widgets.Label(surgeryHeaderRect, "Surgery Settings");
+                    Text.Font = GameFont.Small;
+                    GUI.color = Color.white;
+                    y += sectionHeight;
+
+                    // Gender Swap Cost
+                    Rect genderCostLabelRect = new Rect(leftPadding + 10f, y, viewRect.width - leftPadding - 100f, sectionHeight);
+                    Widgets.Label(genderCostLabelRect, "Gender Swap Cost:");
+                    Rect genderCostInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
+
+                    string genderCostKey = "surgery_gender_swap_cost";
+                    if (!numericBuffers.ContainsKey(genderCostKey))
+                    {
+                        numericBuffers[genderCostKey] = settingsGlobalChat.SurgeryGenderSwapCost.ToString();
+                    }
+                    string genderCostBuffer = numericBuffers[genderCostKey];
+                    Widgets.TextFieldNumeric(genderCostInputRect, ref settingsGlobalChat.SurgeryGenderSwapCost, ref genderCostBuffer, 0f, 100000f);
+                    numericBuffers[genderCostKey] = genderCostBuffer;
+
+                    y += sectionHeight;
+
+                    // Body Change Cost
+                    Rect bodyCostLabelRect = new Rect(leftPadding + 10f, y, viewRect.width - leftPadding - 100f, sectionHeight);
+                    Widgets.Label(bodyCostLabelRect, "Body Change Cost:");
+                    Rect bodyCostInputRect = new Rect(viewRect.width - 90f, y, 80f, sectionHeight);
+
+                    string bodyCostKey = "surgery_body_change_cost";
+                    if (!numericBuffers.ContainsKey(bodyCostKey))
+                    {
+                        numericBuffers[bodyCostKey] = settingsGlobalChat.SurgeryBodyChangeCost.ToString();
+                    }
+                    string bodyCostBuffer = numericBuffers[bodyCostKey];
+                    Widgets.TextFieldNumeric(bodyCostInputRect, ref settingsGlobalChat.SurgeryBodyChangeCost, ref bodyCostBuffer, 0f, 100000f);
+                    numericBuffers[bodyCostKey] = bodyCostBuffer;
+
+                    y += sectionHeight;
+
+                    // Optional description
+                    Rect surgeryDescRect = new Rect(leftPadding + 10f, y, viewRect.width - leftPadding, 28f);
+                    Text.Font = GameFont.Tiny;
+                    GUI.color = new Color(0.7f, 0.7f, 0.7f);
+                    Widgets.Label(surgeryDescRect, "These costs apply to special cosmetic surgeries like gender swap and body type changes.");
+                    Text.Font = GameFont.Small;
+                    GUI.color = Color.white;
+                    y += 20f;
+                }
+
+
             }
             Widgets.EndScrollView();
         }
@@ -859,6 +916,16 @@ namespace CAP_ChatInteractive
                 height += 28f; // Max wager
                 height += 28f; // Base success chance
                 height += 28f; // Max success chance
+                height += 28f; // Description (taller than normal)
+            }
+
+            // SURGERY-SPECIFIC SETTINGS HEIGHT
+            if (selectedCommand != null && selectedCommand.commandText.ToLower() == "surgery")
+            {
+                height += 10f; // Extra spacing
+                height += 28f; // Surgery header
+                height += 28f; // Gender Swap Cost
+                height += 28f; // Body Change Cost
                 height += 28f; // Description (taller than normal)
             }
 
