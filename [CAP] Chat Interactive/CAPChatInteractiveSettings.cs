@@ -156,6 +156,11 @@ namespace CAP_ChatInteractive
         // Research settings
         public bool RequireResearch = true;
 
+        // Command settings that need to be global for now
+
+        // Surgery Command Settings
+        public int SurgeryGenderSwapCost = 1000;
+
         // Passion Settings
         public int MinPassionWager = 10;
         public int MaxPassionWager = 1000;
@@ -249,6 +254,9 @@ namespace CAP_ChatInteractive
             Scribe_Values.Look(ref MaxPassionWager, "maxPassionWager", 1000);
             Scribe_Values.Look(ref BasePassionSuccessChance, "basePassionSuccessChance", 15.0f);
             Scribe_Values.Look(ref MaxPassionSuccessChance, "maxPassionSuccessChance", 60.0f);
+
+            // Surgery Command
+            Scribe_Values.Look(ref SurgeryGenderSwapCost, "surgeryGenderSwapCost", 1000);
 
             // Channel Points settings
             Scribe_Values.Look(ref ChannelPointsEnabled, "channelPointsEnabled", true);

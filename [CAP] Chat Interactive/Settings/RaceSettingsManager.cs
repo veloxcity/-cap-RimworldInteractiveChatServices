@@ -34,7 +34,8 @@ namespace _CAP__Chat_Interactive.Utilities
         public int MinAge { get; set; } = 16;
         public int MaxAge { get; set; } = 65;
         public bool AllowCustomXenotypes { get; set; } = true;
-        public string DefaultXenotype { get; set; } = "Baseliner"; 
+        public string DefaultXenotype { get; set; } = "Baseliner";
+        public string PreferredPawnKindDefName { get; set; } = null;   // null = use auto-detection
         public AllowedGenders AllowedGenders { get; set; } = new AllowedGenders();
         public Dictionary<string, float> XenotypePrices { get; set; } = new Dictionary<string, float>();
         public Dictionary<string, bool> EnabledXenotypes { get; set; } = new Dictionary<string, bool>();

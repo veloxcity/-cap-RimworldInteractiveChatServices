@@ -208,7 +208,7 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
             {
                 return $"Store purchase limit reached ({globalSettings.MaxItemPurchases} per {globalSettings.EventCooldownDays} days)";
             }
-            return SurgeryBuyItemCommandHandler.HandleSurgery(user, args);
+            return SurgeryItemCommandHandler.HandleSurgery(user, args);
         }
     }
 }

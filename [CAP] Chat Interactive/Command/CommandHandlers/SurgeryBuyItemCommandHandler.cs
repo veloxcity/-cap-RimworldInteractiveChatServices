@@ -1,10 +1,4 @@
-﻿using CAP_ChatInteractive.Utilities;
-using RimWorld;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Verse;
-// Copyright (c) Captolamia
+﻿// Copyright (c) Captolamia
 // This file is part of CAP Chat Interactive.
 // 
 // CAP Chat Interactive is free software: you can redistribute it and/or modify
@@ -19,13 +13,31 @@ using Verse;
 // 
 // You should have received a copy of the GNU Affero General Public License
 // along with CAP Chat Interactive. If not, see <https://www.gnu.org/licenses/>.
-//
-// Command handler for buying items from Rimazon store
+using CAP_ChatInteractive.Commands.ViewerCommands;
+using CAP_ChatInteractive.Store;
+using CAP_ChatInteractive.Utilities;
+using RimWorld;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Verse;
+
+/// <summary>
+/// Surgery Command Handler for CAP Chat Interactive
+/// </summary>
 namespace CAP_ChatInteractive.Commands.CommandHandlers
 {
-    internal static class SurgeryBuyItemCommandHandler
+    /// <summary>
+    /// SurgeryBuyItemCommandHandler handles the !surgery command for purchasing and scheduling surgeries for implants.
+    /// </summary>
+    internal static class SurgeryItemCommandHandler
     {
-
+        /// <summary>
+        /// Main handler for the !surgery command.
+        /// </summary>
+        /// <param name="messageWrapper"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
         public static string HandleSurgery(ChatMessageWrapper messageWrapper, string[] args)
         {
             try
@@ -34,7 +46,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
 
                 if (args.Length == 0)
                 {
-                    return "Usage: !surgery <implant> [left/right] [quantity] - Example: !surgery bionic arm left 1";
+                    return "Usage: !surgery [implant] [left/right] [quantity] or [genderswap]";
                 }
 
                 var settings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
@@ -46,7 +58,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 if (parsed.HasError)
                     return parsed.Error;
 
-                string itemName = parsed.ItemName;
+                string itemName = parsed.ItemName.ToLower(); // Normalize to lower for case-insensitive matching
                 string sideStr = parsed.Side;
                 string quantityStr = parsed.Quantity.ToString();
 
@@ -64,10 +76,16 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
 
                 // Check if this is actually an implant/surgery item
                 var thingDef = DefDatabase<ThingDef>.GetNamedSilentFail(storeItem.DefName);
-                if (thingDef == null)
+                if (thingDef == null && itemName != "gender swap") // Allow gender swap even without ThingDef
                 {
                     Logger.Error($"ThingDef not found: {storeItem.DefName}");
                     return $"Error: Implant definition not found.";
+                }
+
+                // Special handling for gender swap
+                if (itemName == "gender swap" || itemName == "genderswap" || itemName == "swapgender")
+                {
+                    return HandleGenderSwapSurgery(messageWrapper, viewer, currencySymbol);
                 }
 
                 // Check if this is a valid surgery item (bionic, implant, etc.)
@@ -179,30 +197,70 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
             }
         }
 
-        // ===== INVOICE CREATION METHODS =====
-        private static string CreateRimazonSurgeryInvoice(string username, string itemName, int quantity, int price, string currencySymbol, List<BodyPartRecord> bodyParts)
+        // New method for handling gender swap surgery
+        private static string HandleGenderSwapSurgery(ChatMessageWrapper messageWrapper, Viewer viewer, string currencySymbol)
         {
-            string invoice = $"RIMAZON SURGERY SERVICE\n";
-            invoice += $"====================\n";
-            invoice += $"Customer: {username}\n";
-            invoice += $"Procedure: {itemName} x{quantity}\n";
+            const int quantity = 1;
 
-            if (bodyParts.Count > 0)
+            var globalSettings = CAPChatInteractiveMod.Instance.Settings.GlobalSettings;
+            int finalPrice = globalSettings.SurgeryGenderSwapCost;
+
+            if (!StoreCommandHelper.CanUserAfford(messageWrapper, finalPrice))
             {
-                invoice += $"Body Parts: {string.Join(", ", bodyParts.Select(bp => bp.Label))}\n";
+                return $"You need {StoreCommandHelper.FormatCurrencyMessage(finalPrice, currencySymbol)} for gender swap surgery! " +
+                       $"You have {StoreCommandHelper.FormatCurrencyMessage(viewer.Coins, currencySymbol)}.";
             }
 
-            invoice += $"Service: Surgical Implantation\n";
-            invoice += $"====================\n";
-            invoice += $"Total: {price:N0}{currencySymbol}\n";
-            invoice += $"====================\n";
-            invoice += $"Thank you for using Rimazon Surgery!\n";
-            invoice += $"Implant delivered to pawn's inventory.\n";
-            invoice += $"Surgery scheduled with colony doctors.";
+            Verse.Pawn pawn = StoreCommandHelper.GetViewerPawn(messageWrapper);
+            if (pawn == null)
+                return "You need to have a pawn in the colony to perform surgery. Use !buy pawn first.";
+            if (pawn.Dead)
+                return "Your pawn is dead. You cannot perform surgery.";
 
-            return invoice;
+            var recipe = DefDatabase<RecipeDef>.GetNamedSilentFail("GenderSwapSurgery");
+            if (recipe == null)
+            {
+                Logger.Error("GenderSwapSurgery RecipeDef not found.");
+                return "Error: Gender swap procedure not available (mod configuration issue).";
+            }
+
+            var corePart = pawn.RaceProps.body.corePart;
+            if (corePart == null)
+                return "Error: No suitable body part found for surgery.";
+
+            if (HasSurgeryScheduled(pawn, recipe, corePart))
+                return "Gender swap surgery is already scheduled for your pawn. Please wait.";
+
+            // Optional: prevent redundant swaps (comment out if you want to allow funny double-swaps)
+            if (pawn.gender == Gender.None) return "Your pawn has no gender to swap... mysterious.";
+
+            viewer.TakeCoins(finalPrice);
+
+            // Optional: smaller or no karma
+            int karmaEarned = finalPrice / 200; // ← more conservative, or set to 0 / small fixed value
+            if (karmaEarned > 0)
+            {
+                viewer.GiveKarma(karmaEarned);
+                Logger.Debug($"Awarded {karmaEarned} karma for gender swap purchase");
+            }
+
+            ScheduleSurgeries(pawn, recipe, new List<BodyPartRecord> { corePart });
+
+            LookTargets targets = new LookTargets(pawn);
+            string invoiceLabel = $"🏥 Rimazon Surgery - {messageWrapper.Username}";
+            string invoiceMessage = CreateRimazonSurgeryInvoice(
+                messageWrapper.Username, "Gender Swap", quantity, finalPrice, currencySymbol,
+                new List<BodyPartRecord> { corePart });
+
+            MessageHandler.SendBlueLetter(invoiceLabel, invoiceMessage, targets);
+
+            Logger.Debug($"Gender swap scheduled for {messageWrapper.Username} - {finalPrice}{currencySymbol}");
+
+            return $"Gender swap surgery scheduled for {StoreCommandHelper.FormatCurrencyMessage(finalPrice, currencySymbol)}! " +
+                   $"Your doctors will take care of it. Remaining balance: {StoreCommandHelper.FormatCurrencyMessage(viewer.Coins, currencySymbol)}.";
         }
 
+        // ===== BODY PART SELECTION METHODS =====
         private static List<BodyPartRecord> FindBodyPartsForSurgery(RecipeDef recipe, Verse.Pawn pawn, string sideFilter, int maxQuantity)
         {
             Logger.Debug($"FindBodyPartsForSurgery - Recipe: {recipe.defName}, SideFilter: {sideFilter}, MaxQuantity: {maxQuantity}");
@@ -250,6 +308,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
         }
 
         private static string GetAvailableBodyPartsDescription(RecipeDef recipe, Verse.Pawn pawn)
+
         {
             var availableParts = recipe.Worker.GetPartsToApplyOn(pawn, recipe).ToList();
             if (availableParts.Count == 0) return "none";
@@ -261,6 +320,30 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 .ToList();
 
             return string.Join(", ", partGroups);
+        }
+
+        // ===== INVOICE CREATION METHODS =====
+        private static string CreateRimazonSurgeryInvoice(string username, string itemName, int quantity, int price, string currencySymbol, List<BodyPartRecord> bodyParts)
+        {
+            string invoice = $"RIMAZON SURGERY SERVICE\n";
+            invoice += $"====================\n";
+            invoice += $"Customer: {username}\n";
+            invoice += $"Procedure: {itemName} x{quantity}\n";
+
+            if (bodyParts.Count > 0)
+            {
+                invoice += $"Body Parts: {string.Join(", ", bodyParts.Select(bp => bp.Label))}\n";
+            }
+
+            invoice += $"Service: Surgical Implantation\n";
+            invoice += $"====================\n";
+            invoice += $"Total: {price:N0}{currencySymbol}\n";
+            invoice += $"====================\n";
+            invoice += $"Thank you for using Rimazon Surgery!\n";
+            invoice += $"Implant delivered to pawn's inventory.\n";
+            invoice += $"Surgery scheduled with colony doctors.";
+
+            return invoice;
         }
 
         // ===== BODY PART METHODS =====

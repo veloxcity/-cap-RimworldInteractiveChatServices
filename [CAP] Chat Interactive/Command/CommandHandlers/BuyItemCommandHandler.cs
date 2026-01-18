@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
-using Verse.Sound;
 using Pawn = CAP_ChatInteractive.Commands.ViewerCommands.Pawn;
 
 namespace CAP_ChatInteractive.Commands.CommandHandlers

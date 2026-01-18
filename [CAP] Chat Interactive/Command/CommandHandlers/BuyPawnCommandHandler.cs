@@ -17,10 +17,7 @@
 //
 // Pawn purchase command handler
 using _CAP__Chat_Interactive.Utilities;
-using CAP_ChatInteractive;
-using CAP_ChatInteractive.Commands.CommandHandlers;
 using RimWorld;
-using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -270,9 +267,15 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
 
         public static PawnKindDef GetPawnKindDefForRace(string raceName)
         {
+
             // Use centralized race lookup
             var raceDef = RaceUtils.FindRaceByName(raceName);
+            
+            
+            
             if (raceDef == null)
+
+
             {
                 Logger.Warning($"Race not found: {raceName}");
                 return PawnKindDefOf.Colonist;
