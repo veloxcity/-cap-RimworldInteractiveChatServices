@@ -94,7 +94,7 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
             {
                return $"Store purchase limit reached ({globalSettings.MaxItemPurchases} per {globalSettings.EventCooldownDays} days)";
             }
-            return BuyItemCommandHandler.HandleUseItem(user, args);
+            return UseItemCommandHandler.HandleUseItem(user, args);
         }
     }
 
@@ -208,7 +208,7 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
             {
                 return $"Store purchase limit reached ({globalSettings.MaxItemPurchases} per {globalSettings.EventCooldownDays} days)";
             }
-            return BuyItemCommandHandler.HandleSurgery(user, args);
+            return SurgeryBuyItemCommandHandler.HandleSurgery(user, args);
         }
     }
 }
