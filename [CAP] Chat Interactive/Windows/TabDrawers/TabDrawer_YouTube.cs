@@ -17,6 +17,7 @@
 // Draws the YouTube settings tab in the Chat Interactive settings window
 using CAP_ChatInteractive;
 using RimWorld;
+using System.Text;
 using UnityEngine;
 using Verse;
 using ColorLibrary = CAP_ChatInteractive.ColorLibrary;
@@ -38,27 +39,32 @@ namespace _CAP__Chat_Interactive
 
             // Header with connection type explanation
             Text.Font = GameFont.Medium;
-            listing.Label("YouTube Chat Integration");
+            GUI.color = ColorLibrary.HeaderAccent;
+            listing.Label("TabDrawer_YouTube.YouTubeChatIntegration".Translate());
+            GUI.color = Color.white;
             Text.Font = GameFont.Small;
 
             // Connection type explanation
-            GUI.color = ColorLibrary.HeaderAccent;
-            listing.Label("💡 Choose your connection type:");
+            GUI.color = ColorLibrary.SubHeader;
+            listing.Label("TabDrawer_YouTube.ConnectionTypeExplanation".Translate());
             GUI.color = Color.white;
 
             var explanationRect = listing.GetRect(60f);
-            string explanation = @"<b>Read-Only</b>: Just API Key + Channel ID (easy, reads chat only)
-<b>Read+Write</b>: API Key + OAuth (hard, can send messages, may require verification)";
-            Widgets.Label(explanationRect, explanation);
+            StringBuilder explanation = new StringBuilder();
+            explanation.AppendLine("TabDrawer_YouTube.ConnectionTypeReadOnly".Translate());
+            explanation.AppendLine("TabDrawer_YouTube.ConnectionTypeReadWrite".Translate());
+            Widgets.Label(explanationRect, explanation.ToString());
             listing.Gap(12f);
 
-            listing.CheckboxLabeled("Enable YouTube Integration", ref settings.Enabled);
+            listing.CheckboxLabeled("TabDrawer_YouTube.EnableYouTubeIntegration".Translate(), ref settings.Enabled);
             listing.Gap(12f);
 
             // Basic Settings Section
             Text.Font = GameFont.Medium;
-            listing.Label("Basic Settings (Required for Read-Only)");
+            GUI.color = ColorLibrary.SubHeader;
+            listing.Label("TabDrawer_YouTube.BasicSettingsHeader".Translate());
             Text.Font = GameFont.Small;
+            GUI.color = Color.white;
             listing.GapLine(6f);
 
             // Channel ID with better tooltip
@@ -67,35 +73,32 @@ namespace _CAP__Chat_Interactive
             Rect channelFieldRect = new Rect(channelLabelRect.xMax + 10f, channelRect.y, 200f, 30f);
             Rect channelButtonRect = new Rect(channelFieldRect.xMax + 10f, channelRect.y, 120f, 30f);
 
-            Widgets.Label(channelLabelRect, "Channel ID:");
+            Widgets.Label(channelLabelRect, "TabDrawer_YouTube.ChannelIDLabel".Translate());
             settings.ChannelName = Widgets.TextField(channelFieldRect, settings.ChannelName);
-            if (Widgets.ButtonText(channelButtonRect, "Find ID"))
+            if (Widgets.ButtonText(channelButtonRect, "TabDrawer_YouTube.FindIDButton".Translate()))
             {
                 Find.WindowStack.Add(new Dialog_MessageBox(
-                    "This will open a tool to find your YouTube Channel ID.\n\n" +
-                    "Your Channel ID starts with 'UC' and is different from your channel name.\n\n" +
-                    "Open Channel ID Finder?",
-                    "Open Tool", () => Application.OpenURL("https://commentpicker.com/youtube-channel-id.php"),
-                    "Cancel", null, null, true
+                    "TabDrawer_YouTube.ChannelIDDialogMessage".Translate(),
+                    "TabDrawer_YouTube.ChannelIDDialogOpenTool".Translate(),
+                    () => Application.OpenURL("https://commentpicker.com/youtube-channel-id.php"),
+                    "TabDrawer_YouTube.ChannelIDDialogCancel".Translate(), null, null, true
                 ));
             }
-            TooltipHandler.TipRegion(channelRect,
-                "<b>Required for both read-only and read+write modes</b>\n\n" +
-                "Your unique YouTube Channel ID (starts with UC...)\n" +
-                "This is NOT your channel name or URL!\n\n" +
-                "Example: UC_x123y456z789 (24 characters)");
+            TooltipHandler.TipRegion(channelRect, "TabDrawer_YouTube.ChannelIDTooltip".Translate());
 
             listing.Gap(12f);
 
             // API Key Section with better explanation
             Text.Font = GameFont.Medium;
-            listing.Label("API Key (Required for Read-Only)");
+            GUI.color = ColorLibrary.SubHeader; 
+            listing.Label("TabDrawer_YouTube.APIKeyHeader".Translate());
             Text.Font = GameFont.Small;
+            GUI.color = Color.white;
             listing.GapLine(6f);
 
             Rect apiKeyHelpRect = listing.GetRect(30f);
             GUI.color = Color.yellow;
-            Widgets.Label(apiKeyHelpRect, "💡 API Key enables READ-ONLY chat reading");
+            Widgets.Label(apiKeyHelpRect, "TabDrawer_YouTube.APIKeyHelp".Translate());
             GUI.color = Color.white;
             listing.Gap(4f);
 
@@ -105,42 +108,40 @@ namespace _CAP__Chat_Interactive
             Rect apiKeyPasteRect = new Rect(apiKeyFieldRect.xMax + 10f, apiKeyRect.y, 80f, 30f);
             Rect apiKeyGetRect = new Rect(apiKeyPasteRect.xMax + 10f, apiKeyRect.y, 80f, 30f);
 
-            Widgets.Label(apiKeyLabelRect, "API Key:");
+            Widgets.Label(apiKeyLabelRect, "TabDrawer_YouTube.APIKeyLabel".Translate());
 
             // Show masked API key for security
             string displayText = string.IsNullOrEmpty(settings.AccessToken) ?
-                "[Click Paste or Get]" :
-                "••••••••••••••••";
+                "TabDrawer_YouTube.APIKeyPlaceholder".Translate() :
+                "TabDrawer_YouTube.APIKeyMasked".Translate();
             Widgets.TextField(apiKeyFieldRect, displayText);
 
-            if (Widgets.ButtonText(apiKeyPasteRect, "Paste"))
+            if (Widgets.ButtonText(apiKeyPasteRect, "TabDrawer_YouTube.APIKeyPasteButton".Translate()))
             {
                 string clipboardText = GUIUtility.systemCopyBuffer?.Trim();
                 if (!string.IsNullOrEmpty(clipboardText) && clipboardText.Length > 10)
                 {
                     settings.AccessToken = clipboardText;
-                    Messages.Message("API key pasted! You can now try read-only connection.", MessageTypeDefOf.PositiveEvent);
+                    Messages.Message("TabDrawer_YouTube.APIKeyPasteSuccess".Translate(), MessageTypeDefOf.PositiveEvent);
                 }
                 else
                 {
-                    Messages.Message("Clipboard empty or invalid!", MessageTypeDefOf.NegativeEvent);
+                    Messages.Message("TabDrawer_YouTube.APIKeyPasteFailed".Translate(), MessageTypeDefOf.NegativeEvent);
                 }
             }
 
-            if (Widgets.ButtonText(apiKeyGetRect, "Get Key"))
+            if (Widgets.ButtonText(apiKeyGetRect, "TabDrawer_YouTube.APIKeyGetButton".Translate()))
             {
+                StringBuilder dialogMessage = new StringBuilder();
+                dialogMessage.AppendLine("TabDrawer_YouTube.APIKeyDialogTitle".Translate());
+                dialogMessage.AppendLine();
+                dialogMessage.Append("TabDrawer_YouTube.APIKeyDialogInstructions".Translate());
+
                 Find.WindowStack.Add(new Dialog_MessageBox(
-                    "<b>YouTube Data API v3 Key Setup</b>\n\n" +
-                    "1. Go to Google Cloud Console\n" +
-                    "2. Create a project (or select existing)\n" +
-                    "3. Enable 'YouTube Data API v3'\n" +
-                    "4. Create credentials → API Key\n" +
-                    "5. Copy the generated key\n" +
-                    "6. Paste it here\n\n" +
-                    "This enables <b>read-only</b> chat access.\n\n" +
-                    "Open Google Cloud Console?",
-                    "Open Console", () => Application.OpenURL("https://console.cloud.google.com/"),
-                    "Cancel", null, null, true
+                    dialogMessage.ToString(),
+                    "TabDrawer_YouTube.APIKeyDialogOpenConsole".Translate(),
+                    () => Application.OpenURL("https://console.cloud.google.com/"),
+                    "TabDrawer_YouTube.ChannelIDDialogCancel".Translate(), null, null, true
                 ));
             }
 
@@ -149,25 +150,113 @@ namespace _CAP__Chat_Interactive
             {
                 Rect statusRect = listing.GetRect(20f);
                 GUI.color = Color.green;
-                Widgets.Label(statusRect, "✓ API Key configured - Ready for read-only mode");
+                Widgets.Label(statusRect, "TabDrawer_YouTube.APIKeyConfigured".Translate());
                 GUI.color = Color.white;
             }
             else
             {
                 Rect statusRect = listing.GetRect(20f);
                 GUI.color = Color.yellow;
-                Widgets.Label(statusRect, "⚠ No API Key - Cannot connect to YouTube");
+                Widgets.Label(statusRect, "TabDrawer_YouTube.NoAPIKey".Translate());
                 GUI.color = Color.white;
             }
 
-            TooltipHandler.TipRegion(apiKeyRect,
-                "<b>YouTube Data API v3 Key</b>\n\n" +
-                "Required for reading chat messages.\n" +
-                "Get this from Google Cloud Console.\n\n" +
-                "This is different from OAuth tokens!\n\n" +
-                "🔒 This key only allows reading chat,\nnot sending messages.");
+            TooltipHandler.TipRegion(apiKeyRect, "TabDrawer_YouTube.APIKeyTooltip".Translate());
 
             listing.Gap(24f);
+
+            // Connection status and controls
+            listing.Gap(12f);
+
+            if (settings.IsConnected)
+            {
+                // Status: Connected (green)
+                string connectedStatus = "TabDrawer_YouTube.Status".Translate(
+                    ColorLibrary.Colorize("TabDrawer_YouTube.Connected".Translate(), Color.green)
+                );
+                listing.Label(connectedStatus);
+
+                if (listing.ButtonText("TabDrawer_YouTube.DisconnectButton".Translate()))
+                {
+                    CAPChatInteractiveMod.Instance.YouTubeService.Disconnect();
+                    Messages.Message("TabDrawer_YouTube.DisconnectedMessage".Translate(), MessageTypeDefOf.SilentInput);
+                }
+
+                // Show connection type
+                var youtubeService = CAPChatInteractiveMod.Instance?.YouTubeService;
+                if (youtubeService != null)
+                {
+                    string modeText = youtubeService.CanSendMessages ?
+                        "TabDrawer_YouTube.ModeReadWrite".Translate() :
+                        "TabDrawer_YouTube.ModeReadOnly".Translate();
+
+                    Color modeColor = youtubeService.CanSendMessages ? Color.green : Color.yellow;
+
+                    string modeDisplay = "TabDrawer_YouTube.ConnectionMode".Translate(
+                        ColorLibrary.Colorize(modeText, modeColor)
+                    );
+                    listing.Label(modeDisplay);
+                }
+            }
+            else
+            {
+                // Status: Disconnected (red)
+                string disconnectedStatus = "TabDrawer_YouTube.Status".Translate(
+                    ColorLibrary.Colorize("TabDrawer_YouTube.Disconnected".Translate(), Color.red)
+                );
+                listing.Label(disconnectedStatus);
+
+                bool canConnectReadOnly = !string.IsNullOrEmpty(settings.ChannelName) &&
+                                        !string.IsNullOrEmpty(settings.AccessToken);
+
+                if (canConnectReadOnly)
+                {
+                    if (listing.ButtonText("TabDrawer_YouTube.ConnectReadOnlyButton".Translate()))
+                    {
+                        CAPChatInteractiveMod.Instance.YouTubeService.Connect();
+                        Messages.Message("TabDrawer_YouTube.ConnectingMessage".Translate(), MessageTypeDefOf.SilentInput);
+                    }
+                    TooltipHandler.TipRegion(listing.GetRect(0f), "TabDrawer_YouTube.ConnectReadOnlyTooltip".Translate());
+                }
+                else
+                {
+                    GUI.color = Color.gray;
+                    listing.ButtonText("TabDrawer_YouTube.CannotConnectButton".Translate());
+                    GUI.color = Color.white;
+                    TooltipHandler.TipRegion(listing.GetRect(0f), "TabDrawer_YouTube.CannotConnectTooltip".Translate());
+                }
+            }
+
+            // Quota information if connected
+            var youtubeServiceQuota = CAPChatInteractiveMod.Instance?.YouTubeService;
+            if (youtubeServiceQuota != null && settings.IsConnected)
+            {
+                listing.Gap(12f);
+                Text.Font = GameFont.Medium;
+                listing.Label("TabDrawer_YouTube.APIQuotaHeader".Translate());
+                Text.Font = GameFont.Small;
+                listing.GapLine(6f);
+
+                listing.Label(string.Format("TabDrawer_YouTube.QuotaStatus".Translate(), youtubeServiceQuota.QuotaStatus));
+
+                Rect quotaRect = listing.GetRect(22f);
+                Widgets.FillableBar(quotaRect, youtubeServiceQuota.QuotaPercentage / 100f,
+                    SolidColorMaterials.NewSolidColorTexture(youtubeServiceQuota.QuotaColor));
+
+                if (youtubeServiceQuota.QuotaPercentage >= 80)
+                {
+                    listing.Gap(4f);
+                    GUI.color = Color.yellow;
+                    listing.Label("TabDrawer_YouTube.HighQuotaWarning".Translate());
+                    GUI.color = Color.white;
+                }
+            }
+
+            listing.End();
+            Widgets.EndScrollView();
+        }
+    }
+}
 
 //            // OAuth Section (Optional - for sending messages)
 //            Text.Font = GameFont.Medium;
@@ -218,85 +307,3 @@ namespace _CAP__Chat_Interactive
 //            TooltipHandler.TipRegion(listing.GetRect(0f),
 //                "Automatically connect to YouTube when RimWorld starts\n\n" +
 //                "Requires valid API Key and Channel ID");
-
-            // Connection status and controls
-            listing.Gap(12f);
-
-            if (settings.IsConnected)
-            {
-                listing.Label("Status: <color=green>Connected</color>");
-                if (listing.ButtonText("Disconnect"))
-                {
-                    CAPChatInteractiveMod.Instance.YouTubeService.Disconnect();
-                    Messages.Message("Disconnected from YouTube", MessageTypeDefOf.SilentInput);
-                }
-
-                // Show connection type
-                var youtubeService = CAPChatInteractiveMod.Instance?.YouTubeService;
-                if (youtubeService != null)
-                {
-                    string connectionType = youtubeService.CanSendMessages ?
-                        "<color=green>Read+Write</color>" :
-                        "<color=yellow>Read-Only</color>";
-                    listing.Label($"Mode: {connectionType}");
-                }
-            }
-            else
-            {
-                listing.Label("Status: <color=red>Disconnected</color>");
-
-                bool canConnectReadOnly = !string.IsNullOrEmpty(settings.ChannelName) &&
-                                        !string.IsNullOrEmpty(settings.AccessToken);
-
-                if (canConnectReadOnly)
-                {
-                    if (listing.ButtonText("Connect (Read-Only)"))
-                    {
-                        CAPChatInteractiveMod.Instance.YouTubeService.Connect();
-                        Messages.Message("Connecting to YouTube in read-only mode...", MessageTypeDefOf.SilentInput);
-                    }
-                    TooltipHandler.TipRegion(listing.GetRect(0f),
-                        "Connect to YouTube chat in read-only mode\n\n" +
-                        "You will be able to see chat messages but cannot reply");
-                }
-                else
-                {
-                    GUI.color = Color.gray;
-                    listing.ButtonText("Connect (Missing API Key or Channel ID)");
-                    GUI.color = Color.white;
-                    TooltipHandler.TipRegion(listing.GetRect(0f),
-                        "Cannot connect - missing API Key or Channel ID\n\n" +
-                        "Configure basic settings above first");
-                }
-            }
-
-            // Quota information if connected
-            var youtubeServiceQuota = CAPChatInteractiveMod.Instance?.YouTubeService;
-            if (youtubeServiceQuota != null && settings.IsConnected)
-            {
-                listing.Gap(12f);
-                Text.Font = GameFont.Medium;
-                listing.Label("API Quota Usage");
-                Text.Font = GameFont.Small;
-                listing.GapLine(6f);
-
-                listing.Label($"Status: {youtubeServiceQuota.QuotaStatus}");
-
-                Rect quotaRect = listing.GetRect(22f);
-                Widgets.FillableBar(quotaRect, youtubeServiceQuota.QuotaPercentage / 100f,
-                    SolidColorMaterials.NewSolidColorTexture(youtubeServiceQuota.QuotaColor));
-
-                if (youtubeServiceQuota.QuotaPercentage >= 80)
-                {
-                    listing.Gap(4f);
-                    GUI.color = Color.yellow;
-                    listing.Label("High usage - consider reducing polling frequency");
-                    GUI.color = Color.white;
-                }
-            }
-
-            listing.End();
-            Widgets.EndScrollView();
-        }
-    }
-}

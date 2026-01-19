@@ -364,6 +364,8 @@ namespace CAP_ChatInteractive
         /// <summary>
         /// Wraps text in rich-text color tag using a Color struct
         /// </summary>
+        /// we are switching to method:  ColorLibrary.Colorize(modeText, modeColor)
+        /// 
         public static string Colorize(string text, Color color)
         {
             string hex = ColorUtility.ToHtmlStringRGB(color);
