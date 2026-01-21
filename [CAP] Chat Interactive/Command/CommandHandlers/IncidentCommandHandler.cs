@@ -18,7 +18,6 @@
 // Handles the !event command for triggering incidents via chat
 using CAP_ChatInteractive.Commands.Cooldowns;
 using CAP_ChatInteractive.Incidents;
-using CAP_ChatInteractive.Utilities;
 using LudeonTK;
 using RimWorld;
 using System;

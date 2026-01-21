@@ -369,15 +369,40 @@ namespace CAP_ChatInteractive.Commands.ViewerCommands
     public class Colonists : ChatCommand
     {
         public override string Name => "colonists";
+
         public override string Execute(ChatMessageWrapper messageWrapper, string[] args)
         {
-            //var colonistList = Current.Game.PlayerHomeMaps.SelectMany(m => m.mapPawns.FreeColonistsSpawned);
-            //var animalsList = Current.Game.PlayerHomeMaps.SelectMany(m => m.mapPawns.ColonyAnimals);
-            int colonistCount = Current.Game.PlayerHomeMaps.Sum(m => m.mapPawns.FreeColonistsSpawnedCount);
-            int animalCount = Current.Game.PlayerHomeMaps.Sum(m => m.mapPawns.ColonyAnimals.Count);
-            int viewerCount = Viewers.All.Count;
+            // Get total living free colonists (standard RimWorld count)
+            int colonistCount = Current.Game.PlayerHomeMaps
+                .Sum(m => m.mapPawns.FreeColonistsSpawnedCount);
 
-            return $"There are {colonistCount}({viewerCount} viewers) and {animalCount} colony animals.";
+            // Get total colony animals
+            int animalCount = Current.Game.PlayerHomeMaps
+                .Sum(m => m.mapPawns.ColonyAnimals.Count);
+
+            // Count only viewers who have an **assigned living pawn**
+            var assignmentManager = Current.Game.GetComponent<GameComponent_PawnAssignmentManager>();
+            if (assignmentManager == null)
+            {
+                // Fallback / safety
+                return $"There are {colonistCount} colonists and {animalCount} colony animals.";
+            }
+
+            // Count unique pawns that are:
+            // • Assigned to a viewer
+            // • Still alive (most common expectation for viewer commands)
+            int viewerPawnCount = assignmentManager.GetAllViewerPawns()
+                .Count;  // This method already filters out dead pawns
+
+            // Alternative version (more explicit - use whichever style you prefer):
+            /*
+            int viewerPawnCount = assignmentManager.viewerPawnAssignments
+                .Values
+                .Select(thingId => GameComponent_PawnAssignmentManager.FindPawnByThingId(thingId))
+                .Count(p => p != null && !p.Dead);
+            */
+
+            return $"There are {colonistCount} colonists ({viewerPawnCount} controlled by viewers) and {animalCount} colony animals.";
         }
     }
 }
