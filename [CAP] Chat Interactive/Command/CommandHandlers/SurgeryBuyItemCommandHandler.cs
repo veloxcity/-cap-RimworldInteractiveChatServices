@@ -69,31 +69,31 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 {
                     return HandleGenderSwapSurgery(messageWrapper, viewer, currencySymbol);
                 }
-                else if (itemName == "fat body" || itemName == "fatbody" || itemName == "body fat")
+                else if (itemName == "fat body" || itemName == "fatbody" || itemName == "body fat" || itemName == "fat")
                 {
                     surgeryType = "fat body";
                     recipeDefName = "FatBodySurgery";
                     displayName = "Fat Body";
                 }
-                else if (itemName == "feminine body" || itemName == "femininebody" || itemName == "bodyfeminine")
+                else if (itemName == "feminine body" || itemName == "femininebody" || itemName == "bodyfeminine" || itemName == "feminine")
                 {
                     surgeryType = "feminine body";
                     recipeDefName = "FeminineBodySurgery";
                     displayName = "Feminine Body";
                 }
-                else if (itemName == "hulking body" || itemName == "hulkingbody" || itemName == "bodyhulking")
+                else if (itemName == "hulking body" || itemName == "hulkingbody" || itemName == "bodyhulking" || itemName == "hulk")
                 {
                     surgeryType = "hulking body";
                     recipeDefName = "HulkingBodySurgery";
                     displayName = "Hulking Body";
                 }
-                else if (itemName == "masculine body" || itemName == "masculinebody" || itemName == "bodymasculine")
+                else if (itemName == "masculine body" || itemName == "masculinebody" || itemName == "bodymasculine" || itemName == "masculine")
                 {
                     surgeryType = "masculine body";
                     recipeDefName = "MasculineBodySurgery";
                     displayName = "Masculine Body";
                 }
-                else if (itemName == "thin body" || itemName == "thinbody" || itemName == "bodythin")
+                else if (itemName == "thin body" || itemName == "thinbody" || itemName == "bodythin" || itemName == "thin")
                 {
                     surgeryType = "thin body";
                     recipeDefName = "ThinBodySurgery";
@@ -595,21 +595,7 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                 }
             }
 
-            // Pregnancy check
-            if (pawn.health?.hediffSet != null)
-            {
-                var pregnancyHediff = pawn.health.hediffSet.hediffs
-                    .FirstOrDefault(h => h.def.defName.ToLower().Contains("pregnancy") || h is Hediff_Pregnant);
 
-                if (pregnancyHediff != null)
-                {
-                    reason = "Your pawn is currently pregnant. Major body-altering surgeries are not safe during pregnancy.";
-                    return false;
-                }
-
-                // Lactating block (optional - you already have it commented; keep if wanted)
-                // if (pawn.health.hediffSet.HasHediff(HediffDefOf.Lactating)) { ... }
-            }
 
             // Ideology check (your existing code continues...)
             if (pawn.Ideo != null && pawn.Ideo.memes.Any(m =>
@@ -659,6 +645,23 @@ namespace CAP_ChatInteractive.Commands.CommandHandlers
                     return false;
                 }
             }
+
+            // Pregnancy check
+            if (pawn.health?.hediffSet != null)
+            {
+                var pregnancyHediff = pawn.health.hediffSet.hediffs
+                    .FirstOrDefault(h => h.def.defName.ToLower().Contains("pregnancy") || h is Hediff_Pregnant);
+
+                if (pregnancyHediff != null)
+                {
+                    reason = "Your pawn is currently pregnant. Major body-altering surgeries are not safe during pregnancy.";
+                    return false;
+                }
+
+                // Lactating block (optional - you already have it commented; keep if wanted)
+                // if (pawn.health.hediffSet.HasHediff(HediffDefOf.Lactating)) { ... }
+            }
+
             reason = null;
             return true;
         }
